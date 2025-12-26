@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя - RouteBuddy</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .profile-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            width: 160px;
+            height: 160px;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%; /* Это делает изображение круглым */
+            object-fit: cover; /* Обеспечивает заполнение круга без искажений */
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            background: var(--medium-gray);
+            display: block; /* Убирает лишние отступы снизу */
+        }
+
+        .avatar-img:hover {
+            transform: scale(1.03);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10; /* Убедимся, что кнопка поверх изображения */
+        }
+
+        /* Также исправим превью в модальном окне */
+        .avatar-preview {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%; /* Круглая превью тоже */
+            object-fit: cover;
+            margin: 1.5rem auto;
+            display: block;
+            border: 3px solid var(--medium-gray);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        /* Добавим контейнер для гарантии круглой формы */
+        .avatar-wrapper {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            background: var(--medium-gray);
+            display: inline-block;
+            position: relative;
+        }
+
+
+        .avatar-section {
+            position: relative;
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        }
+
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-img {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            object-fit: cover;
+            transition: all 0.3s ease;
+            background: var(--medium-gray);
+        }
+
+        .avatar-img:hover {
+            transform: scale(1.03);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar-upload-btn:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info {
+            padding: 2.5rem;
+            background: var(--card-bg);
+        }
+
+        .user-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        @media (max-width: 768px) {
+            .user-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        .action-btn {
+            margin: 0.5rem;
+            padding: 0.9rem 1.8rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .action-btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .action-btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-color), #1a202c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+        }
+
+        .action-btn-secondary {
+            background: var(--medium-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--accent-color);
+        }
+
+        .action-btn-secondary:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(113, 128, 150, 0.2);
+        }
+
+        .action-btn-success {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            color: white;
+        }
+
+        .action-btn-warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .action-btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .routes-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .section-title {
+            color: var(--secondary-color);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--medium-gray);
+        }
+
+        .route-card {
+            border: 1px solid var(--medium-gray);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            background: var(--card-bg);
+        }
+
+        .route-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            border-color: var(--accent-color);
+        }
+
+        .route-badge {
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-easy {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .badge-medium {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .badge-hard {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .route-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .route-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .route-stat i {
+            color: var(--accent-color);
+            font-size: 1.1rem;
+        }
+
+        .rating-stars {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .star {
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        .star.filled {
+            color: #f6ad55;
+        }
+
+        .star.half {
+            background: linear-gradient(90deg, #f6ad55 50%, #e2e8f0 50%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rating-value {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-left: 5px;
+        }
+
+        .route-description {
+            color: var(--text-light);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .route-footer {
+            border-top: 1px solid var(--medium-gray);
+            padding-top: 1.2rem;
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--light-gray);
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--medium-gray);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--light-gray);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: var(--card-bg);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .avatar-preview {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 1.5rem auto;
+            display: block;
+            border: 3px solid var(--medium-gray);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .btn-outline-gray {
+            border: 1px solid var(--medium-gray);
+            color: var(--text-secondary);
+            background: transparent;
+        }
+
+        .btn-outline-gray:hover {
+            background: var(--medium-gray);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .text-muted {
+            color: var(--text-light) !important;
+        }
+
+        .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--light-gray), var(--medium-gray));
+            border-radius: 16px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .empty-state i {
+            color: var(--accent-color);
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.6;
+        }
+
+        .pagination-container {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--medium-gray);
+        }
+
+        .page-link {
+            border: 1px solid var(--medium-gray);
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            margin: 0 3px;
+            border-radius: 8px;
+        }
+
+        .page-link:hover {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<!-- Навигационная панель -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <div class="fw-bold fs-4">RouteBuddy</div>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/">
+                        <i class="fas fa-home me-2"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes/create">
+                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link active d-flex align-items-center" href="/profile">
+                        <i class="fas fa-user-circle me-2"></i> Профиль
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes/explore">
+                        <i class="fas fa-compass me-2"></i> Исследовать
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- Основная карточка профиля -->
+    <div class="profile-card mb-5">
+        <div class="avatar-section">
+            <div class="avatar-container">
+                <img
+
+                     class="avatar-img"
+                     id="currentAvatar">
+
+                <!-- Кнопка изменения аватара -->
+                <div class="avatar-upload-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+
+            <h1 class="text-white mb-2 fw-bold" th:text="${user.username}">Имя пользователя</h1>
+            <p class="text-light opacity-75 mb-0" th:text="${user.email}">
+                <i class="fas fa-envelope me-2"></i>email@example.com
+            </p>
+        </div>
+
+        <div class="user-info">
+            <!-- Статистика пользователя -->
+            <div class="user-stats">
+                <div class="stat-item">
+                    <div class="stat-value" >0</div>
+                    <div class="stat-label">Маршрутов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Пройдено км</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Дней активности</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Друзей</div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="row g-3 mt-4">
+                <div class="col-md-6 col-lg-3">
+                    <button class="btn action-btn action-btn-primary w-100" onclick="window.location.href='/profile/routes'">
+                        <i class="fas fa-route"></i>
+                        Мои маршруты
+                    </button>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <button class="btn action-btn action-btn-success w-100" onclick="window.location.href='/routes/create'">
+                        <i class="fas fa-plus-circle"></i>
+                        Создать маршрут
+                    </button>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <button class="btn action-btn action-btn-warning w-100" onclick="window.location.href='/routes/export'">
+                        <i class="fas fa-download"></i>
+                        Выгрузить маршрут
+                    </button>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <button class="btn action-btn action-btn-secondary w-100" onclick="window.location.href='/settings'">
+                        <i class="fas fa-cog"></i>
+                        Настройки
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Секция последних маршрутов -->
+    <div class="routes-section">
+        <h2 class="section-title d-flex align-items-center">
+            <i class="fas fa-history me-3"></i>
+            Последние маршруты
+        </h2>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="route-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1 fw-bold" >Название маршрута</h5>
+                                <small class="text-muted">
+                                    <i class="far fa-calendar me-1"></i>
+                                    <span>Дата создания</span>
+                                </small>
+                            </div>
+                            <span>
+                                    Сложность
+                                </span>
+                        </div>
+
+                        <p class="route-description">
+                            Описание маршрута...
+                        </p>
+
+                        <div class="route-info">
+                            <div class="route-stat">
+                                <i class="fas fa-route"></i>
+                                <span>0 км</span>
+                            </div>
+                            <div class="route-stat">
+                                <i class="fas fa-clock"></i>
+                                <span>0 мин</span>
+                            </div>
+                            <div class="route-stat">
+                                <i class="fas fa-eye"></i>
+                                <span>0</span>
+                            </div>
+                            <div class="route-stat">
+                                <div class="rating-stars">
+                                    <!-- Генерация звезд рейтинга -->
+                                    <span>
+                                            <i></i>
+                                        </span>
+                                    <span class="rating-value ms-1">0.0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="route-footer">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <span class="text-muted me-2">Статус:</span>
+                                    <span  class="badge bg-success bg-opacity-10 text-success">
+                                            <i class="fas fa-globe-americas me-1"></i> Публичный
+                                        </span>
+                                    <span  class="badge bg-secondary bg-opacity-10 text-secondary">
+                                            <i class="fas fa-lock me-1"></i> Приватный
+                                        </span>
+                                </div>
+                            </div>
+                            <div>
+                                <a
+                                   class="btn btn-sm btn-outline-gray me-2">
+                                    <i class="fas fa-external-link-alt me-1"></i> Открыть
+                                </a>
+                                <button class="btn btn-sm btn-outline-gray"
+
+                                >
+                                    <i class="fas fa-download me-1"></i> Экспорт
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сообщение если нет маршрутов -->
+        <div class="empty-state">
+            <i class="fas fa-route"></i>
+            <h3 class="fw-bold mb-3">У вас пока нет маршрутов</h3>
+            <p class="text-muted mb-4">Начните создавать свои маршруты прямо сейчас!</p>
+            <a href="/routes/create" class="btn action-btn action-btn-primary btn-lg px-5">
+                Создать первый маршрут
+            </a>
+        </div>
+
+        <!-- Пагинация (если есть) -->
+        <div class="pagination-container">
+            <nav aria-label="Навигация по страницам">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" >
+                        <a class="page-link"aria-label="Назад">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <li
+                        class="page-item" >
+                        <a class="page-link">1</a>
+                    </li>
+
+                    <li class="page-item">
+                        <a class="page-link" aria-label="Вперед">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для загрузки аватара -->
+<div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="fas fa-user-circle me-3"></i>
+                    Изменение аватара
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="avatarForm" method="post" enctype="multipart/form-data">
+                    <div class="upload-area" onclick="document.getElementById('avatarInput').click()">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--accent-color);"></i>
+                        <h5 class="fw-bold mb-2">Загрузите новое фото</h5>
+                        <p class="text-muted mb-0">Перетащите файл сюда или нажмите для выбора</p>
+                        <small class="text-muted">JPG, PNG, GIF (до 5MB)</small>
+                    </div>
+                    <input type="file"
+                           id="avatarInput"
+                           name="avatar"
+                           accept="image/*"
+                           style="display: none;"
+                           onchange="previewAvatar(event)">
+
+                    <!-- Превью нового аватара -->
+                    <div id="avatarPreviewContainer" class="text-center" style="display: none;">
+                        <h6 class="mt-4 mb-3 fw-bold">Предпросмотр:</h6>
+                        <img id="avatarPreview" class="avatar-preview" alt="Превью аватара">
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="avatarUrl" class="form-label fw-bold mb-3">
+                            <i class="fas fa-link me-2"></i>Или введите URL изображения:
+                        </label>
+                        <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-link"></i>
+                                </span>
+                            <input type="url"
+                                   class="form-control"
+                                   id="avatarUrl"
+                                   placeholder="https://example.com/avatar.jpg"
+                                   onchange="loadAvatarFromUrl(this.value)">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-gray" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Отмена
+                </button>
+                <button type="button" class="btn action-btn-primary" onclick="uploadAvatar()">
+                    <i class="fas fa-save me-2"></i> Сохранить изменения
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS и зависимости -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script>
+    // Превью загруженного аватара
+    function previewAvatar(event) {
+        const input = event.target;
+        const preview = document.getElementById('avatarPreview');
+        const container = document.getElementById('avatarPreviewContainer');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // Проверка размера файла (5MB максимум)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Файл слишком большой! Максимальный размер: 5MB');
+                input.value = '';
+                return;
+            }
+
+            // Проверка типа файла
+            if (!file.type.match('image.*')) {
+                alert('Пожалуйста, выберите изображение!');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.style.display = 'block';
+
+                // Показываем сообщение об успешной загрузке
+                const uploadArea = document.querySelector('.upload-area');
+                uploadArea.innerHTML = `
+                        <div class="text-success">
+                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                            <h5 class="fw-bold">Изображение загружено</h5>
+                            <p class="mb-0">${file.name}</p>
+                            <small>${(file.size / 1024).toFixed(0)} KB</small>
+                        </div>
+                    `;
+            }
+
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Загрузка аватара по URL
+    function loadAvatarFromUrl(url) {
+        if (!url) return;
+
+        const preview = document.getElementById('avatarPreview');
+        const container = document.getElementById('avatarPreviewContainer');
+
+        // Валидация URL
+        if (!url.match(/^https?:\/\/.+\/.+\.(jpg|jpeg|png|gif|webp)$/i)) {
+            alert('Пожалуйста, введите корректный URL изображения');
+            return;
+        }
+
+        preview.src = url;
+        container.style.display = 'block';
+
+        // Обновляем текстовое поле загрузки
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.innerHTML = `
+                <div class="text-success">
+                    <i class="fas fa-link fa-3x mb-3"></i>
+                    <h5 class="fw-bold">URL изображения установлен</h5>
+                    <p class="mb-0 text-truncate">${url}</p>
+                </div>
+            `;
+    }
+
+    // Отправка формы аватара
+    function uploadAvatar() {
+        const form = document.getElementById('avatarForm');
+        const formData = new FormData(form);
+
+        // Показываем индикатор загрузки
+        const submitBtn = document.querySelector('#avatarModal .modal-footer .btn-primary');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Загрузка...';
+        submitBtn.disabled = true;
+
+        fetch('/profile/avatar', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Показываем уведомление об успехе
+                    showNotification('Аватар успешно обновлен!', 'success');
+
+                    // Закрываем модальное окно через 1 секунду
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('avatarModal'));
+                        modal.hide();
+                        location.reload();
+                    }, 1000);
+                } else {
+                    throw new Error('Ошибка при загрузке аватара');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Ошибка при загрузке аватара', 'error');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+    }
+
+    // Экспорт маршрута
+    function exportRoute(routeId) {
+        // Показываем индикатор загрузки
+        showNotification('Подготовка файла для скачивания...', 'info');
+
+        fetch(`/routes/${routeId}/export`, {
+            method: 'GET'
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('Export failed');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `маршрут_${routeId}.gpx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showNotification('Маршрут успешно экспортирован!', 'success');
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                showNotification('Ошибка при экспорте маршрута', 'error');
+            });
+    }
+
+    // Уведомления
+    function showNotification(message, type) {
+        // Создаем элемент уведомления
+        const notification = document.createElement('div');
+        notification.className = `notification alert alert-${type === 'success' ? 'success' :
+            type === 'error' ? 'danger' :
+                type === 'info' ? 'info' : 'warning'}
+                                     alert-dismissible fade show`;
+        notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            `;
+
+        notification.innerHTML = `
+                <strong>${type === 'success' ? '✓ Успешно!' :
+            type === 'error' ? '✗ Ошибка!' :
+                type === 'info' ? 'ℹ Информация' : '⚠ Внимание'}</strong>
+                <span class="ms-2">${message}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+        document.body.appendChild(notification);
+
+        // Автоматическое скрытие через 4 секунды
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 150);
+            }
+        }, 4000);
+    }
+
+    // Drag and drop для загрузки аватара
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadArea = document.querySelector('.upload-area');
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary-color)';
+            this.style.backgroundColor = 'var(--light-gray)';
+            this.style.boxShadow = '0 6px 20px var(--shadow-color)';
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--medium-gray)';
+            this.style.backgroundColor = 'var(--light-gray)';
+            this.style.boxShadow = 'none';
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--medium-gray)';
+            this.style.backgroundColor = 'var(--light-gray)';
+            this.style.boxShadow = 'none';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const input = document.getElementById('avatarInput');
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(files[0]);
+                input.files = dataTransfer.files;
+
+                // Запускаем превью
+                const event = new Event('change');
+                input.dispatchEvent(event);
+            }
+        });
+
+        // Инициализация звезд рейтинга
+        initializeRatings();
+    });
+
+    // Инициализация рейтингов
+    function initializeRatings() {
+        document.querySelectorAll('.rating-stars').forEach(ratingContainer => {
+            const ratingValue = parseFloat(ratingContainer.querySelector('.rating-value').textContent);
+            const stars = ratingContainer.querySelectorAll('.star');
+
+            stars.forEach((star, index) => {
+                const starNumber = index + 1;
+                if (ratingValue >= starNumber) {
+                    star.classList.add('fas', 'fa-star', 'filled');
+                    star.classList.remove('far', 'fa-star-half-alt');
+                } else if (ratingValue >= starNumber - 0.5) {
+                    star.classList.add('fas', 'fa-star-half-alt', 'half');
+                    star.classList.remove('far');
+                } else {
+                    star.classList.add('far', 'fa-star');
+                    star.classList.remove('fas', 'fa-star-half-alt');
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>
