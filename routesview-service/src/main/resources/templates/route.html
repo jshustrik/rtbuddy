@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${route.title} + ' | RouteBuddy'">Маршрут</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Яндекс.Карты API -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=2c3f60ba-9f7f-40c0-a539-ed36ce7e532c&lang=ru_RU" type="text/javascript"></script>
+    <!-- Custom CSS -->
+
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --star-color: #fbbf24;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        /* Header стили */
+        .route-header-section {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .route-header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .route-title {
+            font-size: 2.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .route-short-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+        }
+
+        .route-meta-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            align-items: center;
+        }
+
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .meta-tag i {
+            font-size: 0.9rem;
+        }
+
+        /* Информация о маршруте */
+        .route-info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--medium-gray);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+
+        .info-card-icon {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .info-card-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .cost-value {
+            color: var(--success-color);
+            font-weight: 700;
+        }
+
+        /* Секция карты */
+        .map-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .map-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .color-sightseeing { background-color: #4299e1; }
+        .color-accommodation { background-color: #38a169; }
+        .color-food { background-color: #ed8936; }
+        .color-transport { background-color: #9f7aea; }
+        .color-activity { background-color: #f56565; }
+
+        /* Секция дней */
+        .days-section {
+            margin-bottom: 2rem;
+        }
+
+        .day-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+        }
+
+        .day-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .day-header:hover {
+            background: linear-gradient(90deg, var(--secondary-color), var(--dark-gray));
+        }
+
+        .day-header h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .day-number {
+            background: rgba(255, 255, 255, 0.2);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .day-cost {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .day-body {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .day-body.show {
+            display: block;
+        }
+
+        .day-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .day-points {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .point-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .point-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .icon-sightseeing { background-color: #4299e1; }
+        .icon-accommodation { background-color: #38a169; }
+        .icon-food { background-color: #ed8936; }
+        .icon-transport { background-color: #9f7aea; }
+        .icon-activity { background-color: #f56565; }
+
+        .point-content {
+            flex: 1;
+        }
+
+        .point-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .point-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .point-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Секция отзывов */
+        .reviews-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--medium-gray);
+        }
+
+        .rating-overall {
+            text-align: center;
+        }
+
+        .rating-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            line-height: 1;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.2rem;
+            margin: 0.5rem 0;
+            justify-content: center;
+        }
+
+        .star {
+            color: #e2e8f0;
+            font-size: 1.2rem;
+        }
+
+        .star.filled {
+            color: var(--star-color);
+        }
+
+        .star.half {
+            position: relative;
+            color: #e2e8f0;
+        }
+
+        .star.half::before {
+            content: '\f005';
+            position: absolute;
+            width: 50%;
+            overflow: hidden;
+            color: var(--star-color);
+        }
+
+        .rating-count {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Форма отзыва */
+        .review-form {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .rating-input input {
+            display: none;
+        }
+
+        .rating-input label {
+            cursor: pointer;
+            font-size: 2rem;
+            color: #e2e8f0;
+            transition: color 0.3s;
+        }
+
+        .rating-input label:hover,
+        .rating-input label:hover ~ label,
+        .rating-input input:checked ~ label {
+            color: var(--star-color);
+        }
+
+        .rating-value-display {
+            margin-left: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        /* Список отзывов */
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .review-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .review-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .review-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .review-author-info h5 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .review-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--light-gray);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        .review-rating .stars {
+            color: var(--star-color);
+        }
+
+        .review-rating-value {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .review-comment {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Кнопки */
+        .btn-action {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--medium-gray);
+            color: var(--text-primary);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, var(--success-color), #2f855a);
+            color: white;
+        }
+
+        /* Автор маршрута */
+        .author-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+        }
+
+        .author-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .author-info p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-card, .review-card {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .route-info-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .reviews-header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .route-info-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .map-controls {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Навигационная панель -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <div class="fw-bold fs-4">RouteBuddy</div>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/">
+                        <i class="fas fa-home me-2"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes/create">
+                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes">
+                        <i class="fas fa-route me-2"></i> Маршруты
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/profile" sec:authorize="isAuthenticated()">
+                        <i class="fas fa-user-circle me-2"></i> Профиль
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/logout" sec:authorize="isAuthenticated()">
+                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="http://127.0.0.1:8081/login" sec:authorize="!isAuthenticated()">
+                        <i class="fas fa-sign-in-alt me-2"></i> Войти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/routes">Маршруты</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${route.title}">Название маршрута</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок маршрута -->
+    <div class="route-header-section">
+        <h1 class="route-title" th:text="${route.title}">Название маршрута</h1>
+        <p class="route-short-description" th:text="${route.shortDescription}">Краткое описание маршрута</p>
+
+        <div class="route-meta-top">
+            <div class="meta-tag">
+                <i class="fas fa-map-marker-alt"></i>
+                <span th:text="${route.city}">Город</span>
+            </div>
+            <div class="meta-tag">
+                <i class="fas fa-mountain"></i>
+                <span th:text="${route.difficulty}">Сложность</span>
+            </div>
+            <div class="meta-tag">
+                <i class="fas fa-eye"></i>
+                <span th:text="${route.views} + ' просмотров'">0 просмотров</span>
+            </div>
+            <div class="meta-tag">
+                <i class="fas fa-calendar-alt"></i>
+                <span th:text="${#temporals.format(route.createdAt, 'dd.MM.yyyy')}">Дата</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информационные карточки -->
+    <div class="route-info-cards">
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="info-card-value" th:text="${route.durationDays}">0</div>
+            <div class="info-card-label">Дней маршрута</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-ruler-combined"></i>
+            </div>
+            <div class="info-card-value" th:text="${route.distance} + ' км'">0 км</div>
+            <div class="info-card-label">Общая длина</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="info-card-value cost-value" th:text="${#numbers.formatDecimal(route.totalCost, 0, 0)} + ' ₽'">0 ₽</div>
+            <div class="info-card-label">Общая стоимость</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="info-card-value" th:text="${#numbers.formatDecimal(route.rating, 1, 1)}">0.0</div>
+            <div class="info-card-label" th:text="'Рейтинг (' + ${route.reviewsCount} + ')'">Рейтинг (0)</div>
+        </div>
+    </div>
+
+    <!-- Полное описание -->
+    <div class="reviews-section">
+        <h2 class="section-title mb-4"><i class="fas fa-info-circle me-2"></i>Подробное описание</h2>
+        <div class="route-description" th:text="${route.description}" style="white-space: pre-line;">
+            Полное описание маршрута...
+        </div>
+    </div>
+
+    <!-- Карта маршрута -->
+    <div class="map-section">
+        <div class="map-controls">
+            <h3><i class="fas fa-map-marked-alt me-2"></i>Карта маршрута</h3>
+
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Структура по дням -->
+    <div class="days-section">
+        <h2 class="section-title mb-4"><i class="fas fa-calendar-check me-2"></i>Структура маршрута</h2>
+
+        <div class="accordion" id="daysAccordion">
+            <div th:each="day : ${route.days}" class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" th:attr="data-bs-target='#day' + ${day.dayNumber}">
+                    <h3>
+                        <span class="day-number" th:text="${day.dayNumber}">1</span>
+                        <span th:text="${day.title}">Название дня</span>
+                        <span class="day-cost" th:text="${#numbers.formatDecimal(day.cost, 0, 0)} + ' ₽'">0 ₽</span>
+                    </h3>
+                </div>
+
+                <div th:id="'day' + ${day.dayNumber}" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description" th:text="${day.description}">
+                            Описание дня...
+                        </p>
+
+                        <div class="day-points">
+                            <div th:each="point : ${day.points}" class="point-item">
+                                <div class="point-icon" th:classappend="'icon-' + ${point.type.toLowerCase()}">
+                                    <i th:switch="${point.type}">
+                                        <i th:case="'SIGHTSEEING'" class="fas fa-landmark"></i>
+                                        <i th:case="'ACCOMMODATION'" class="fas fa-hotel"></i>
+                                        <i th:case="'FOOD'" class="fas fa-utensils"></i>
+                                        <i th:case="'TRANSPORT'" class="fas fa-bus"></i>
+                                        <i th:case="'ACTIVITY'" class="fas fa-hiking"></i>
+                                        <i th:case="*" class="fas fa-map-marker-alt"></i>
+                                    </i>
+                                </div>
+                                <div class="point-content">
+                                    <h5 class="point-title" th:text="${point.title}">Название точки</h5>
+                                    <p class="point-description" th:text="${point.description}">
+                                        Описание точки...
+                                    </p>
+                                    <div class="point-meta">
+                                        <span th:if="${point.timeSpent}">
+                                            <i class="far fa-clock me-1"></i>
+                                            <span th:text="${point.timeSpent}">Время</span>
+                                        </span>
+                                        <span th:if="${point.cost}">
+                                            <i class="fas fa-wallet me-1"></i>
+                                            <span th:text="${point.cost} + ' ₽'">0 ₽</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Автор маршрута -->
+    <div class="author-section">
+        <div class="author-avatar-large" th:text="${route.authorUsername.substring(0, 1).toUpperCase()}">
+            А
+        </div>
+        <div class="author-info">
+            <h4 th:text="'Автор: ' + ${route.authorUsername}">Имя автора</h4>
+            <p>Создал этот маршрут <span th:text="${#temporals.format(route.createdAt, 'dd MMMM yyyy')}">дата</span></p>
+        </div>
+    </div>
+
+    <!-- Отзывы -->
+    <div class="reviews-section">
+        <div class="reviews-header">
+            <div>
+                <h2 class="section-title mb-0"><i class="fas fa-comments me-2"></i>Отзывы</h2>
+                <p class="text-muted mt-2" th:text="${route.reviewsCount} + ' отзывов'">0 отзывов</p>
+            </div>
+
+            <div class="rating-overall">
+                <div class="rating-value" th:text="${#numbers.formatDecimal(route.rating, 1, 1)}">0.0</div>
+                <div class="rating-stars">
+                    <span th:each="i : ${#numbers.sequence(1, 10)}">
+                        <i th:classappend="${i <= route.rating} ? 'fas fa-star star filled' :
+                                          ${i - 0.5 <= route.rating} ? 'fas fa-star-half-alt star half' :
+                                          'far fa-star star'"></i>
+                    </span>
+                </div>
+                <div class="rating-count" th:text="'из 10'">из 10</div>
+            </div>
+        </div>
+
+        <!-- Форма добавления отзыва -->
+        <div sec:authorize="isAuthenticated()" th:unless="${userReview}" class="review-form">
+            <h5 class="mb-3">Оставить отзыв</h5>
+            <form th:action="'/routes/' + ${route.id} + '/reviews'" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ваша оценка:</label>
+                    <div class="rating-input">
+                        <input type="radio" id="rating10" name="rating" value="10">
+                        <label for="rating10">★</label>
+                        <input type="radio" id="rating9" name="rating" value="9">
+                        <label for="rating9">★</label>
+                        <input type="radio" id="rating8" name="rating" value="8">
+                        <label for="rating8">★</label>
+                        <input type="radio" id="rating7" name="rating" value="7">
+                        <label for="rating7">★</label>
+                        <input type="radio" id="rating6" name="rating" value="6">
+                        <label for="rating6">★</label>
+                        <input type="radio" id="rating5" name="rating" value="5">
+                        <label for="rating5">★</label>
+                        <input type="radio" id="rating4" name="rating" value="4">
+                        <label for="rating4">★</label>
+                        <input type="radio" id="rating3" name="rating" value="3">
+                        <label for="rating3">★</label>
+                        <input type="radio" id="rating2" name="rating" value="2">
+                        <label for="rating2">★</label>
+                        <input type="radio" id="rating1" name="rating" value="1">
+                        <label for="rating1">★</label>
+                        <span class="rating-value-display" id="ratingDisplay">0</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="comment" class="form-label fw-bold">Ваш комментарий:</label>
+                    <textarea class="form-control" id="comment" name="comment" rows="4"
+                              placeholder="Поделитесь впечатлениями о маршруте..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-action btn-success">
+                    <i class="fas fa-paper-plane me-2"></i>Отправить отзыв
+                </button>
+            </form>
+        </div>
+
+        <!-- Существующий отзыв пользователя -->
+        <div sec:authorize="isAuthenticated()" th:if="${userReview}" class="review-form">
+            <h5 class="mb-3">Ваш отзыв</h5>
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-author">
+                        <div class="review-avatar" th:text="${username.substring(0, 1).toUpperCase()}">
+                            П
+                        </div>
+                        <div class="review-author-info">
+                            <h5 th:text="${username}">Пользователь</h5>
+                            <div class="review-date" th:text="${#temporals.format(userReview.createdAt, 'dd.MM.yyyy HH:mm')}">
+                                Дата
+                            </div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <span th:each="i : ${#numbers.sequence(1, 10)}">
+                                <i th:classappend="${i <= userReview.rating} ? 'fas fa-star' : 'far fa-star'"></i>
+                            </span>
+                        </div>
+                        <span class="review-rating-value" th:text="${userReview.rating}">0</span>
+                    </div>
+                </div>
+                <p class="review-comment" th:text="${userReview.comment}">
+                    Комментарий пользователя...
+                </p>
+            </div>
+        </div>
+
+        <!-- Список отзывов -->
+        <div th:if="${not #lists.isEmpty(reviews)}" class="reviews-list">
+            <div th:each="review : ${reviews}" class="review-card">
+                <div class="review-header">
+                    <div class="review-author">
+                        <div class="review-avatar" th:text="${review.authorUsername.substring(0, 1).toUpperCase()}">
+                            А
+                        </div>
+                        <div class="review-author-info">
+                            <h5 th:text="${review.authorUsername}">Автор отзыва</h5>
+                            <div class="review-date" th:text="${#temporals.format(review.createdAt, 'dd.MM.yyyy HH:mm')}">
+                                Дата
+                            </div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <span th:each="i : ${#numbers.sequence(1, 10)}">
+                                <i th:classappend="${i <= review.rating} ? 'fas fa-star' : 'far fa-star'"></i>
+                            </span>
+                        </div>
+                        <span class="review-rating-value" th:text="${review.rating}">0</span>
+                    </div>
+                </div>
+                <p class="review-comment" th:text="${review.comment}">
+                    Текст отзыва...
+                </p>
+            </div>
+        </div>
+
+        <!-- Сообщение об отсутствии отзывов -->
+        <div th:if="${#lists.isEmpty(reviews)}" class="text-center py-5">
+            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+            <h5>Пока нет отзывов</h5>
+            <p class="text-muted">Будьте первым, кто поделится впечатлениями об этом маршруте!</p>
+        </div>
+    </div>
+
+    <!-- Кнопки действий -->
+    <div class="d-flex gap-3 justify-content-center mb-5">
+        <a href="/routes" class="btn-action btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Вернуться к маршрутам
+        </a>
+        <a th:href="'/routes/create?copy=' + ${route.id}" class="btn-action">
+            <i class="fas fa-copy me-2"></i>Создать похожий
+        </a>
+        <button class="btn-action" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Распечатать маршрут
+        </button>
+    </div>
+</div>
+
+<!-- Bootstrap JS и зависимости -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script>
+
+    // Инициализация Яндекс.Карт
+    /*ymaps.ready(initMap);
+
+    async function initMap() {
+        const points = [<th:block th:utext="${mapPointsJson}">[]</th:block>];
+
+        if (points.length === 0) {
+            document.getElementById('map').innerHTML =
+                '<div class="text-center py-5 text-muted">' +
+                '<i class="fas fa-map-marker-alt fa-3x mb-3"></i>' +
+                '<p>Нет точек для отображения на карте</p>' +
+                '</div>';
+            return;
+        }
+
+        // Создаем карту
+        const map = new ymaps.Map('map', {
+            center: [points[0].lat, points[0].lon],
+            zoom: 12,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        // Цвета для разных типов точек
+        const typeColors = {
+            'SIGHTSEEING': '#4299e1',
+            'ACCOMMODATION': '#38a169',
+            'FOOD': '#ed8936',
+            'TRANSPORT': '#9f7aea',
+            'ACTIVITY': '#f56565',
+            'OTHER': '#718096'
+        };
+
+        // Иконки для разных типов точек
+        const typeIcons = {
+            'SIGHTSEEING': 'landmark',
+            'ACCOMMODATION': 'hotel',
+            'FOOD': 'utensils',
+            'TRANSPORT': 'bus',
+            'ACTIVITY': 'hiking'
+        };
+
+        // Создаем объекты для хранения меток и линий
+        const placemarks = [];
+        const coordinates = [];
+
+        // Добавляем метки на карту
+        points.forEach((point, index) => {
+            coordinates.push([point.lat, point.lon]);
+
+            const placemark = new ymaps.Placemark(
+                [point.lat, point.lon],
+                {
+                    balloonContentHeader: `<strong>${point.title}</strong>`,
+                    balloonContentBody: point.description,
+                    balloonContentFooter: `Точка ${index + 1}`
+                },
+                {
+                    preset: 'islands#circleIcon',
+                    iconColor: typeColors[point.type] || '#718096',
+                    draggable: false
+                }
+            );
+
+            placemarks.push(placemark);
+            map.geoObjects.add(placemark);
+        });
+
+        // Добавляем линию маршрута
+        if (coordinates.length > 1) {
+            const routeLine = new ymaps.Polyline(
+                coordinates,
+                {},
+                {
+                    strokeColor: '#4a5568',
+                    strokeWidth: 3,
+                    strokeOpacity: 0.7
+                }
+            );
+
+            map.geoObjects.add(routeLine);
+        }
+
+        // Масштабируем карту чтобы вместить все метки
+        if (placemarks.length > 1) {
+            map.setBounds(map.geoObjects.getBounds(), {
+                checkZoomRange: true
+            });
+        }
+    }
+
+    // Обработка рейтинга
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обновление отображения рейтинга
+        const ratingInputs = document.querySelectorAll('.rating-input input');
+        const ratingDisplay = document.getElementById('ratingDisplay');
+
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                ratingDisplay.textContent = this.value;
+            });
+        });
+
+        // Обработка звезд рейтинга в отзывах
+        document.querySelectorAll('.review-rating .stars').forEach(stars => {
+            const rating = parseInt(stars.closest('.review-rating').querySelector('.review-rating-value').textContent);
+            const starIcons = stars.querySelectorAll('i');
+
+            starIcons.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('fas', 'fa-star');
+                    star.classList.remove('far');
+                }
+            });
+        });
+
+        // Анимация открытия дней
+        document.querySelectorAll('.day-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const dayBody = this.nextElementSibling;
+                dayBody.classList.toggle('show');
+            });
+        });
+
+        // Открываем первый день по умолчанию
+        const firstDay = document.querySelector('.day-header');
+        if (firstDay) {
+            firstDay.click();
+        }
+    });
+
+    // Подсветка выбранного рейтинга
+    document.querySelectorAll('.rating-input input').forEach(input => {
+        input.addEventListener('mouseenter', function() {
+            const value = parseInt(this.value);
+            highlightStars(value);
+        });
+
+        input.addEventListener('mouseleave', function() {
+            const checked = document.querySelector('.rating-input input:checked');
+            if (checked) {
+                highlightStars(parseInt(checked.value));
+            } else {
+                resetStars();
+            }
+        });
+    });
+
+    function highlightStars(count) {
+        const labels = document.querySelectorAll('.rating-input label');
+        labels.forEach((label, index) => {
+            if (index < count) {
+                label.style.color = '#fbbf24';
+            } else {
+                label.style.color = '#e2e8f0';
+            }
+        });
+    }
+
+    function resetStars() {
+        const labels = document.querySelectorAll('.rating-input label');
+        labels.forEach(label => {
+            label.style.color = '#e2e8f0';
+        });
+    }*/
+    initMap();
+
+    async function initMap() {
+        await ymaps3.ready;
+
+        const {YMap, YMapDefaultSchemeLayer} = ymaps3;
+
+        const map = new YMap(
+            document.getElementById('map'),
+            {
+                location: {
+                    center: [37.588144, 55.733842],
+                    zoom: 10
+                }
+            }
+        );
+
+        map.addChild(new YMapDefaultSchemeLayer());
+    }
+</script>
+</body>
+</html>

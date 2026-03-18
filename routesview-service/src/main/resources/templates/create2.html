@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание дня маршрута | RouteBuddy</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Яндекс.Карты API (ключ нужно заменить на свой) -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_ключ_апи&lang=ru_RU" type="text/javascript"></script>
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-custom {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .section-title {
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--medium-gray);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--medium-gray);
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.2);
+        }
+
+        /* Карта */
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            margin: 0.5rem 0 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #4299e1;
+        }
+        .legend-dot.start { background-color: #38a169; }
+        .legend-dot.end { background-color: #f56565; }
+
+        /* Список точек */
+        .points-list {
+            margin-top: 1.5rem;
+        }
+
+        .point-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .point-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .point-header h6 {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .point-actions button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            margin-left: 0.3rem;
+            transition: color 0.2s;
+        }
+
+        .point-actions button:hover {
+            color: var(--danger-color);
+        }
+
+        .point-coords {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-add-point {
+            background: var(--light-gray);
+            border: 2px dashed var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.8rem;
+            border-radius: 50px;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-add-point:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--medium-gray);
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--medium-gray);
+        }
+
+        .summary-row {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .summary-item .label {
+            color: var(--text-secondary);
+        }
+
+        .summary-item .value {
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .photo-upload {
+            margin-top: 0.5rem;
+        }
+
+        .photo-preview {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .photo-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background: var(--medium-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            border: 1px solid var(--medium-gray);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/src/main/resources/static">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div><span class="fw-bold fs-4">RouteBuddy</span></div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2"><a class="nav-link" href="/src/main/resources/static"><i class="fas fa-home me-2"></i>Главная</a></li>
+                <li class="nav-item mx-2"><a class="nav-link active" href="/create-route.html"><i class="fas fa-plus-circle me-2"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="/routes"><i class="fas fa-route me-2"></i>Маршруты</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-2"></i>Профиль</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Выйти</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/src/main/resources/static">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/routes">Маршруты</a></li>
+            <li class="breadcrumb-item"><a href="/create-route.html">Создание маршрута</a></li>
+            <li class="breadcrumb-item active">День 1</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок -->
+    <div class="page-header">
+        <h1><i class="fas fa-calendar-plus me-3"></i>Создание дня маршрута</h1>
+        <p>Заполните информацию о дне, добавьте точки на карте и укажите порядок следования.</p>
+    </div>
+
+    <!-- Форма дня -->
+    <form id="dayForm" onsubmit="event.preventDefault(); saveDay();">
+        <!-- Основные поля -->
+        <div class="card-custom">
+            <h3 class="section-title"><i class="fas fa-info-circle"></i>Основная информация</h3>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="dayTheme" class="form-label">Тема дня *</label>
+                    <input type="text" class="form-control" id="dayTheme" placeholder="Например: Прогулка по центру" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="dayBudget" class="form-label">Бюджет дня (₽)</label>
+                    <input type="number" class="form-control" id="dayBudget" min="0" step="100" value="0">
+                </div>
+                <div class="col-md-3">
+                    <label for="dayOrder" class="form-label">Номер дня</label>
+                    <input type="number" class="form-control" id="dayOrder" min="1" value="1" readonly>
+                </div>
+                <div class="col-12">
+                    <label for="dayDescription" class="form-label">Краткое описание дня</label>
+                    <textarea class="form-control" id="dayDescription" rows="2" placeholder="Общее описание дня"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карта и точки -->
+        <div class="card-custom">
+            <h3 class="section-title"><i class="fas fa-map-marked-alt"></i>Точки на карте</h3>
+            <p class="text-muted">Кликните на карту, чтобы добавить новую точку. Затем заполните данные в списке ниже.</p>
+            <div class="map-legend">
+                <span class="legend-item"><span class="legend-dot"></span> Точка маршрута</span>
+                <span class="legend-item"><span class="legend-dot start"></span> Начало (первая точка)</span>
+                <span class="legend-item"><span class="legend-dot end"></span> Конец (последняя точка)</span>
+            </div>
+            <div id="map"></div>
+
+            <!-- Список добавленных точек -->
+            <div class="points-list" id="pointsList">
+                <!-- JS будет добавлять сюда элементы -->
+            </div>
+        </div>
+
+
+        <!-- Кнопки -->
+        <div class="d-flex gap-3 justify-content-center mt-4">
+            <button type="submit" class="btn-primary btn-lg px-5">
+                <i class="fas fa-save me-2"></i>Сохранить день
+            </button>
+            <button type="button" class="btn-secondary btn-lg px-5">
+                <i class="fas fa-times me-2"></i>Отмена
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Модальное окно для добавления/редактирования точки (упрощённо – используем inline) -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Глобальные переменные для карты и точек
+    let map;
+    let points = []; // массив объектов: { id, lat, lon, name, description, stayMinutes, order, photos (массив строк-ссылок) }
+    let nextPointId = 1;
+    let placemarks = []; // для синхронизации с картой
+
+    // Инициализация карты после загрузки API
+    ymaps.ready(initMap);
+
+    function initMap() {
+        map = new ymaps.Map('map', {
+            center: [59.935, 30.327], // центр Москвы
+            zoom: 12,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        // Обработчик клика по карте
+        map.events.add('click', function(e) {
+            const coords = e.get('coords');
+            addPointFromMap(coords);
+        });
+    }
+
+    // Добавление точки по координатам
+    function addPointFromMap(coords) {
+        const id = nextPointId++;
+        const point = {
+            id: id,
+            lat: coords[0],
+            lon: coords[1],
+            name: `Точка ${id}`,
+            description: '',
+            stayMinutes: 60,
+            order: points.length + 1,
+            photos: []
+        };
+        points.push(point);
+        renderPointsList();
+        updateMapMarkers();
+        recalcSummary();
+    }
+
+    // Удаление точки
+    function removePoint(pointId) {
+        points = points.filter(p => p.id !== pointId);
+        // Перенумеровать order
+        points.forEach((p, idx) => p.order = idx + 1);
+        nextPointId = 1
+        renderPointsList();
+        updateMapMarkers();
+        recalcSummary();
+    }
+
+    // Перемещение точки вверх/вниз
+    function movePoint(pointId, direction) {
+        const index = points.findIndex(p => p.id === pointId);
+        if (direction === 'up' && index > 0) {
+            [points[index], points[index-1]] = [points[index-1], points[index]];
+        } else if (direction === 'down' && index < points.length-1) {
+            [points[index], points[index+1]] = [points[index+1], points[index]];
+        }
+        points.forEach((p, idx) => p.order = idx + 1);
+        renderPointsList();
+        updateMapMarkers();
+        recalcSummary();
+    }
+
+    // Обновление маркеров на карте
+    function updateMapMarkers() {
+        // Удаляем старые маркеры
+        map.geoObjects.removeAll();
+
+        // Добавляем новые
+        points.forEach((p, idx) => {
+            const color = idx === 0 ? '#38a169' : (idx === points.length-1 ? '#f56565' : '#4299e1');
+            const placemark = new ymaps.Placemark([p.lat, p.lon], {
+                balloonContentHeader: `<strong>${p.name}</strong>`,
+                balloonContentBody: p.description || 'Нет описания',
+                balloonContentFooter: `Время: ${p.stayMinutes} мин`
+            }, {
+                preset: 'islands#circleIcon',
+                iconColor: color
+            });
+            map.geoObjects.add(placemark);
+            placemarks.push(placemark);
+        });
+
+        // Если точек больше 1, рисуем линию маршрута
+        if (points.length > 1) {
+            const coords = points.map(p => [p.lat, p.lon]);
+            const polyline = new ymaps.Polyline(coords, {}, {
+                strokeColor: '#2d552c',
+                strokeWidth: 3,
+                strokeOpacity: 0.7
+            });
+            map.geoObjects.add(polyline);
+        }
+
+        // Масштабирование
+        if (points.length > 0) {
+            map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 50 });
+        }
+    }
+
+    // Отрисовка списка точек в форме
+    function renderPointsList() {
+        const container = document.getElementById('pointsList');
+        if (!container) return;
+        if (points.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center py-4">Нажмите на карту, чтобы добавить первую точку.</p>';
+            return;
+        }
+
+        let html = '';
+        points.forEach(p => {
+            html += `
+                <div class="point-item" data-point-id="${p.id}">
+                    <div class="point-header">
+                        <h6><i class="fas fa-map-pin me-2"></i>${p.name}</h6>
+                        <div class="point-actions">
+                            <button type="button" onclick="movePoint(${p.id}, 'up')" title="Переместить вверх"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" onclick="movePoint(${p.id}, 'down')" title="Переместить вниз"><i class="fas fa-arrow-down"></i></button>
+                            <button type="button" onclick="removePoint(${p.id})" title="Удалить"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="point-coords">${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control form-control-sm point-name" value="${p.name}" placeholder="Название" onchange="updatePoint(${p.id}, 'name', this.value)">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control form-control-sm point-stay" value="${p.stayMinutes}" placeholder="Время (мин)" min="0" onchange="updatePoint(${p.id}, 'stayMinutes', parseInt(this.value) || 0)">
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control form-control-sm point-desc" value="${p.description}" placeholder="Краткое описание" onchange="updatePoint(${p.id}, 'description', this.value)">
+                        </div>
+                    </div>
+                    <div class="photo-upload">
+                        <label class="btn btn-sm btn-outline-gray"><i class="fas fa-camera"></i> Добавить фото</label>
+                        <input type="file" accept="image/*" style="display: none;" onchange="uploadPhoto(${p.id}, this)">
+                        <div class="photo-preview" id="photos-${p.id}">
+                            ${p.photos.map(photo => `<div class="photo-thumb"><i class="fas fa-image"></i></div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // Обновление поля точки
+    function updatePoint(pointId, field, value) {
+        const point = points.find(p => p.id === pointId);
+        if (point) {
+            point[field] = value;
+            recalcSummary();
+            updateMapMarkers(); // обновить балуны
+        }
+    }
+
+    // Имитация загрузки фото
+    function uploadPhoto(pointId, input) {
+        if (input.files && input.files[0]) {
+            const point = points.find(p => p.id === pointId);
+            if (point) {
+                // В реальном приложении здесь была бы загрузка на сервер, а мы просто добавим плейсхолдер
+                point.photos.push('photo_' + Date.now());
+                renderPointsList(); // перерисовать, чтобы показать иконку
+            }
+        }
+        input.value = ''; // сброс
+    }
+
+    // Расчёт сводки
+    function recalcSummary() {
+        const budget = parseFloat(document.getElementById('dayBudget').value) || 0;
+        const stayTotal = points.reduce((sum, p) => sum + (p.stayMinutes || 0), 0);
+
+        // Расчёт времени в пути (упрощённо: по прямой между точками, скорость 5 км/ч -> 5000 м/ч = 83.3 м/мин)
+        let travelTotal = 0;
+        if (points.length > 1) {
+            for (let i = 0; i < points.length - 1; i++) {
+                const p1 = points[i], p2 = points[i+1];
+                const dist = getDistance(p1.lat, p1.lon, p2.lat, p2.lon); // в метрах
+                const timeMin = dist / 83.33; // время в минутах при скорости 5 км/ч
+                travelTotal += timeMin;
+            }
+        }
+
+        const total = stayTotal + travelTotal;
+
+        document.getElementById('summaryBudget').innerText = budget + ' ₽';
+        document.getElementById('summaryStayTime').innerText = Math.round(stayTotal) + ' мин';
+        document.getElementById('summaryTravelTime').innerText = Math.round(travelTotal) + ' мин';
+        document.getElementById('summaryTotalTime').innerText = Math.round(total) + ' мин';
+    }
+
+    // Вычисление расстояния между двумя координатами (в метрах)
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // метров
+        const φ1 = lat1 * Math.PI/180;
+        const φ2 = lat2 * Math.PI/180;
+        const Δφ = (lat2-lat1) * Math.PI/180;
+        const Δλ = (lon2-lon1) * Math.PI/180;
+
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c;
+    }
+
+    // Сохранение дня (демо)
+    function saveDay() {
+        const theme = document.getElementById('dayTheme').value.trim();
+        if (!theme) {
+            alert('Введите тему дня');
+            return;
+        }
+        if (points.length === 0) {
+            alert('Добавьте хотя бы одну точку на карте');
+            return;
+        }
+
+        const dayData = {
+            theme: theme,
+            description: document.getElementById('dayDescription').value,
+            budget: parseFloat(document.getElementById('dayBudget').value) || 0,
+            order: parseInt(document.getElementById('dayOrder').value),
+            points: points
+        };
+
+        console.log('Сохранённый день:', dayData);
+        alert('День успешно сохранён! (демо-режим)');
+
+        // Переход на страницу маршрута (например, на ранее созданный пример)
+        window.location.href = '/route-saint-petersburg.html';
+    }
+
+    // Слушатель изменения бюджета
+    document.getElementById('dayBudget').addEventListener('input', recalcSummary);
+
+    // Инициализация: добавить пример точки для демо (можно оставить пустым)
+    window.onload = function() {
+        // Для демо добавим пару точек
+        setTimeout(() => {
+            // добавляем точки после загрузки карты
+            addPointFromMap([59.935, 30.327]); // Кремль// ГУМ
+        }, 1000);
+    };
+</script>
+
+<!-- Дополнительные стили для кнопок фото -->
+<style>
+    .btn-outline-gray {
+        border: 1px solid var(--medium-gray);
+        color: var(--text-secondary);
+        background: transparent;
+    }
+    .btn-outline-gray:hover {
+        background: var(--medium-gray);
+    }
+    .photo-preview {
+        margin-top: 0.5rem;
+    }
+    .photo-thumb {
+        background: var(--light-gray);
+        border: 1px solid var(--medium-gray);
+        color: var(--text-light);
+    }
+    .photo-thumb:hover {
+        background: var(--accent-color);
+        color: white;
+    }
+</style>
+</body>
+</html>

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Маршруты | RouteBuddy</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        /* Header стили */
+        .routes-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .routes-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .routes-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .routes-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        /* Search section */
+        .search-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            padding-left: 3.5rem;
+            border: 2px solid var(--medium-gray);
+            border-radius: 50px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            outline: none;
+            background: var(--light-gray);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.1);
+            background: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+
+        /* Маршруты */
+        .routes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .routes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .route-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--medium-gray);
+            cursor: pointer;
+        }
+
+        .route-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px var(--shadow-color);
+            border-color: var(--accent-color);
+        }
+
+        .route-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .route-header h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .route-difficulty {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .route-body {
+            padding: 1.5rem;
+        }
+
+        .route-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 0.95rem;
+        }
+
+        .route-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .route-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .route-meta-item i {
+            color: var(--accent-color);
+            font-size: 1rem;
+            width: 1.2rem;
+        }
+
+        .route-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .author-info {
+            flex: 1;
+        }
+
+        .author-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .route-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .action-btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+            color: white;
+        }
+
+        .action-btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Пагинация */
+        .pagination-container {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--medium-gray);
+        }
+
+        .page-link {
+            border: 1px solid var(--medium-gray);
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            margin: 0 3px;
+            border-radius: 8px;
+        }
+
+        .page-link:hover {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Пустое состояние */
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--light-gray), var(--medium-gray));
+            border-radius: 16px;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .empty-state i {
+            color: var(--accent-color);
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.6;
+        }
+
+        .empty-state h3 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .empty-state p {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        /* Информация о поиске */
+        .search-info {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-info-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .search-query {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .clear-search-btn {
+            background: var(--light-gray);
+            border: 1px solid var(--medium-gray);
+            color: var(--text-secondary);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .clear-search-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        /* Цвета сложности */
+        .difficulty-beginner {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .difficulty-intermediate {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .difficulty-advanced {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .difficulty-expert {
+            background: linear-gradient(135deg, #9f7aea, #805ad5);
+            color: white;
+        }
+
+        /* Анимации */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .route-card {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .route-card:nth-child(1) { animation-delay: 0.1s; }
+        .route-card:nth-child(2) { animation-delay: 0.2s; }
+        .route-card:nth-child(3) { animation-delay: 0.3s; }
+        .route-card:nth-child(4) { animation-delay: 0.4s; }
+        .route-card:nth-child(5) { animation-delay: 0.5s; }
+        .route-card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body>
+<!-- Навигационная панель -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <div class="fw-bold fs-4">RouteBuddy</div>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/">
+                        <i class="fas fa-home me-2"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes/create">
+                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link active d-flex align-items-center" href="/routes">
+                        <i class="fas fa-route me-2"></i> Маршруты
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/profile" th:if="${isAuthenticated}">
+                        <i class="fas fa-user-circle me-2"></i> Профиль
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/logout" sec:authorize="isAuthenticated()">
+                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- Заголовок страницы -->
+    <div class="routes-header">
+        <h1><i class="fas fa-route me-3"></i>Каталог маршрутов</h1>
+        <p>Исследуйте опубликованные маршруты от сообщества RouteBuddy</p>
+
+        <!-- Пользовательская информация -->
+        <div class="mt-4">
+            <div sec:authorize="isAuthenticated()" class="d-inline-block bg-white bg-opacity-10 p-3 rounded-pill">
+                <span class="text-white me-3">
+                    <i class="fas fa-user me-2"></i>
+                    Вы вошли как: <strong th:text="${username}"></strong>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Поиск -->
+    <div class="search-section">
+        <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <form method="get" action="/routes" id="searchForm">
+                <input
+                        type="text"
+                        name="search"
+                        class="search-input"
+                        placeholder="Поиск маршрутов по названию, описанию или городу..."
+                        th:value="${searchQuery}"
+                        autocomplete="off"
+                        id="searchInput">
+            </form>
+        </div>
+    </div>
+
+    <!-- Информация о поиске -->
+    <div th:if="${searchQuery != ''}" class="search-info">
+        <div class="search-info-text">
+            <i class="fas fa-search me-2"></i>
+            Результаты поиска для:
+            <span class="search-query" th:text="'«' + ${searchQuery} + '»'">поисковый запрос</span>
+        </div>
+        <a href="/routes" class="clear-search-btn">
+            <i class="fas fa-times me-1"></i> Очистить поиск
+        </a>
+    </div>
+
+    <!-- Список маршрутов -->
+    <div class="routes-grid">
+        <div class="route-card" onclick="location.href='/routes/2'">
+            <div class="route-header">
+                <h3>Пробный Маршрут
+
+                </h3>
+
+            </div>
+
+            <div class="route-body">
+                <p class="route-description">Пробный маршрут
+                    </p>
+
+                <div class="route-meta">
+                    <div class="route-meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Москва</span>
+                    </div>
+                    <div class="route-meta-item">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span></span>
+                    </div>
+                    <div class="route-meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span >1 дн</span>
+                    </div>
+                    <div class="route-meta-item">
+                        <i class="fas fa-flag-checkered"></i>
+                        <span>3 точек</span>
+                    </div>
+                </div>
+
+                <div class="route-author">
+                    <div class="author-avatar">
+                        <span>Q</span>
+                    </div>
+                    <div class="author-info">
+                        <div class="author-name">qawsed1</div>
+
+                    </div>
+                </div>
+
+                <a th:href="'/routes/2'" class="action-btn">
+                    <i class="fas fa-eye"></i> Посмотреть детали
+                </a>
+            </div>
+        </div>
+
+        <div class="route-card" onclick="location.href='/routes/1'">
+            <div class="route-header">
+                <h3>Неделя в Санкт-Петербурге: Искусство и история</h3>
+
+            </div>
+
+            <div class="route-body">
+                <p class="route-description">
+                    Культурный маршрут по основным достопримечательностям Санкт-Петербурга. Идеально подходит для первого знакомства с городом.
+                </p>
+
+                <div class="route-meta">
+                    <div class="route-meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Санкт-Петербург</span>
+                    </div>
+                    <div class="route-meta-item">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span>42.5 км</span>
+                    </div>
+                    <div class="route-meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span >7 дн</span>
+                    </div>
+                    <div class="route-meta-item">
+                        <i class="fas fa-flag-checkered"></i>
+                        <span>7 точек</span>
+                    </div>
+                </div>
+
+                <div class="route-author">
+                    <div class="author-avatar">
+                        <span>Q</span>
+                    </div>
+                    <div class="author-info">
+                        <div class="author-name">qwerty</div>
+
+                    </div>
+                </div>
+
+                <a th:href="'/routes/1'" class="action-btn">
+                    <i class="fas fa-eye"></i> Посмотреть детали
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Пагинация -->
+    <div th:if="${not #lists.isEmpty(routes)}" class="pagination-container">
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Назад">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                <li class="page-item active">
+                    <a class="page-link" href="#">1</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Вперед">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Bootstrap JS и зависимости -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script>
+    // Автоматический поиск при вводе с задержкой
+    const searchInput = document.getElementById('searchInput');
+    let searchTimeout;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            document.getElementById('searchForm').submit();
+        }, 500);
+    });
+
+    // Обработка нажатия Enter в поле поиска
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            document.getElementById('searchForm').submit();
+        }
+    });
+
+    // Анимация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Анимация появления карточек
+        const cards = document.querySelectorAll('.route-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+
+    // Показывать превью карточки при наведении
+    document.querySelectorAll('.route-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+</script>
+</body>
+</html>

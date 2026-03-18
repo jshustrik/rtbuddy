@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>День 1: Пробный день | RouteBuddy</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Яндекс.Карты API -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_ключ_апи&lang=ru_RU" type="text/javascript"></script>
+    <!-- Custom CSS -->
+
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --star-color: #fbbf24;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        /* Header */
+        .day-header-section {
+            background: linear-gradient(135deg, #2c5282, #4a5568);
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .day-header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .day-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .day-number {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .day-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        .stat-item i {
+            font-size: 1rem;
+        }
+
+        /* Описание дня */
+        .day-description-block {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        /* Карта */
+        .map-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .color-point { background-color: #4299e1; }
+        .color-start { background-color: #38a169; }
+        .color-end { background-color: #f56565; }
+
+        /* Точки маршрута */
+        .points-section {
+            margin-bottom: 2rem;
+        }
+
+        .point-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+        }
+
+        .point-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .point-header h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .point-time {
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .point-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .point-image {
+            flex: 0 0 200px;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--medium-gray);
+        }
+
+        .point-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .point-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .point-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .point-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .point-details span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .point-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--medium-gray);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-edit:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .btn-delete {
+            background: #fff5f5;
+            color: var(--danger-color);
+            border: 1px solid #feb2b2;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+
+        /* Итоги дня */
+        .summary-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .summary-card i {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .summary-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        .summary-card .label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Кнопки управления днём */
+        .day-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, var(--success-color), #2f855a);
+        }
+
+        .btn-warning {
+            background: linear-gradient(90deg, var(--warning-color), #dd6b20);
+        }
+
+        .btn-danger {
+            background: linear-gradient(90deg, var(--danger-color), #e53e3e);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .point-body {
+                flex-direction: column;
+            }
+            .point-image {
+                flex: auto;
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Навигационная панель -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/src/main/resources/static">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <div class="fw-bold fs-4">RouteBuddy</div>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/src/main/resources/static">
+                        <i class="fas fa-home me-2"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes/create">
+                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes">
+                        <i class="fas fa-route me-2"></i> Маршруты
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/profile">
+                        <i class="fas fa-user-circle me-2"></i> Профиль
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/src/main/resources/static">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/routes">Маршруты</a></li>
+            <li class="breadcrumb-item"><a href="/route-saint-petersburg.html">Пробный маршрут</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Пробный день</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок дня -->
+    <div class="day-header-section">
+
+        <h1 class="day-title">Пробный день</h1>
+        <p style="font-size: 1.1rem; max-width: 800px;"></p>
+
+
+    </div>
+
+    <!-- Карта дня -->
+    <div class="map-section">
+        <div class="map-legend">
+            <div class="legend-item">
+                <div class="legend-color color-start"></div>
+                <span>Начало дня (гостиница)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color color-point"></div>
+                <span>Точки маршрута</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color color-end"></div>
+                <span>Окончание дня</span>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Описание дня -->
+    <div class="day-description-block">
+        <h3 class="mb-3"><i class="fas fa-info-circle me-2"></i>Подробности дня</h3>
+        <p style="line-height: 1.8;"> Пробный день
+            </p>
+    </div>
+
+
+
+    <!-- Кнопки управления днём -->
+    <div class="day-actions">
+        <a href="/routes/1" class="btn-action btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>К маршруту
+        </a>
+    </div>
+</div>
+
+<!-- Яндекс.Карты -->
+<script>
+    ymaps.ready(initMap);
+
+    function initMap() {
+        // Координаты точек для первого дня в СПб
+        const points = [
+            { lat: 59.9343, lon: 30.3061, title: "Исаакиевский собор", type: "point" }, // (в реальности Казанский собор имеет другие координаты, но для демо используем)
+            { lat: 59.9356, lon: 30.3275, title: "Казанский собор", type: "point" },
+            { lat: 59.9340, lon: 30.3370, title: "Дом книги", type: "point" },
+            { lat: 59.9365, lon: 30.3290, title: "Ресторан Палкинъ", type: "point" }
+        ];
+        // Начало (гостиница) и конец (ресторан)
+        const start = [59.9340, 30.3350]; // гостиница "Гранд Отель Европа"
+        const end = [59.9365, 30.3290];
+
+        const map = new ymaps.Map('map', {
+            center: [59.935, 30.327],
+            zoom: 15,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        // Маркеры для точек
+        points.forEach(p => {
+            const placemark = new ymaps.Placemark([p.lat, p.lon], {
+                balloonContentHeader: `<strong>${p.title}</strong>`,
+                balloonContentBody: `Точка маршрута`
+            }, {
+                preset: 'islands#circleIcon',
+                iconColor: '#4299e1'
+            });
+            map.geoObjects.add(placemark);
+        });
+
+        // Маркер старта
+        const startMarker = new ymaps.Placemark(start, {
+            balloonContentHeader: '<strong>Гостиница</strong>',
+            balloonContentBody: 'Гранд Отель Европа'
+        }, {
+            preset: 'islands#greenCircleIcon'
+        });
+        map.geoObjects.add(startMarker);
+
+        // Маркер конца
+        const endMarker = new ymaps.Placemark(end, {
+            balloonContentHeader: '<strong>Окончание дня</strong>',
+            balloonContentBody: 'Ресторан "Палкинъ"'
+        }, {
+            preset: 'islands#redCircleIcon'
+        });
+        map.geoObjects.add(endMarker);
+
+        // Линия маршрута (просто соединим точки по порядку)
+        const coords = [start, [59.9343, 30.3061], [59.9356, 30.3275], [59.9340, 30.3370], end];
+        const polyline = new ymaps.Polyline(coords, {}, {
+            strokeColor: '#2d552c',
+            strokeWidth: 3,
+            strokeOpacity: 0.7
+        });
+        map.geoObjects.add(polyline);
+
+        map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 50 });
+    }
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Имитация редактирования (просто алерты) -->
+<script>
+    document.querySelectorAll('.btn-edit, .btn-action').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (this.classList.contains('btn-danger') && this.textContent.includes('Удалить')) {
+                if (!confirm('Вы уверены, что хотите удалить этот элемент?')) {
+                    e.preventDefault();
+                }
+            } else if (this.classList.contains('btn-warning') || this.classList.contains('btn-edit')) {
+                e.preventDefault();
+                alert('Функция редактирования будет доступна в следующей версии.');
+            } else if (this.classList.contains('btn-success') && this.textContent.includes('Копировать')) {
+                e.preventDefault();
+                alert('День скопирован!');
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -574,7 +574,7 @@
             <!-- Статистика пользователя -->
             <div class="user-stats">
                 <div class="stat-item">
-                    <div class="stat-value" >0</div>
+                    <div class="stat-value" >1</div>
                     <div class="stat-label">Маршрутов</div>
                 </div>
                 <div class="stat-item">
@@ -594,7 +594,7 @@
             <!-- Кнопки действий -->
             <div class="row g-3 mt-4">
                 <div class="col-md-6 col-lg-3">
-                    <button class="btn action-btn action-btn-primary w-100" onclick="window.location.href='/profile/routes'">
+                    <button class="btn action-btn action-btn-primary w-100" onclick="window.location.href='http://127.0.0.1:8083/routes'">
                         <i class="fas fa-route"></i>
                         Мои маршруты
                     </button>
@@ -622,121 +622,7 @@
     </div>
 
     <!-- Секция последних маршрутов -->
-    <div class="routes-section">
-        <h2 class="section-title d-flex align-items-center">
-            <i class="fas fa-history me-3"></i>
-            Последние маршруты
-        </h2>
 
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="route-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="card-title mb-1 fw-bold" >Название маршрута</h5>
-                                <small class="text-muted">
-                                    <i class="far fa-calendar me-1"></i>
-                                    <span>Дата создания</span>
-                                </small>
-                            </div>
-                            <span>
-                                    Сложность
-                                </span>
-                        </div>
-
-                        <p class="route-description">
-                            Описание маршрута...
-                        </p>
-
-                        <div class="route-info">
-                            <div class="route-stat">
-                                <i class="fas fa-route"></i>
-                                <span>0 км</span>
-                            </div>
-                            <div class="route-stat">
-                                <i class="fas fa-clock"></i>
-                                <span>0 мин</span>
-                            </div>
-                            <div class="route-stat">
-                                <i class="fas fa-eye"></i>
-                                <span>0</span>
-                            </div>
-                            <div class="route-stat">
-                                <div class="rating-stars">
-                                    <!-- Генерация звезд рейтинга -->
-                                    <span>
-                                            <i></i>
-                                        </span>
-                                    <span class="rating-value ms-1">0.0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="route-footer">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <span class="text-muted me-2">Статус:</span>
-                                    <span  class="badge bg-success bg-opacity-10 text-success">
-                                            <i class="fas fa-globe-americas me-1"></i> Публичный
-                                        </span>
-                                    <span  class="badge bg-secondary bg-opacity-10 text-secondary">
-                                            <i class="fas fa-lock me-1"></i> Приватный
-                                        </span>
-                                </div>
-                            </div>
-                            <div>
-                                <a
-                                   class="btn btn-sm btn-outline-gray me-2">
-                                    <i class="fas fa-external-link-alt me-1"></i> Открыть
-                                </a>
-                                <button class="btn btn-sm btn-outline-gray"
-
-                                >
-                                    <i class="fas fa-download me-1"></i> Экспорт
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Сообщение если нет маршрутов -->
-        <div class="empty-state">
-            <i class="fas fa-route"></i>
-            <h3 class="fw-bold mb-3">У вас пока нет маршрутов</h3>
-            <p class="text-muted mb-4">Начните создавать свои маршруты прямо сейчас!</p>
-            <a href="/routes/create" class="btn action-btn action-btn-primary btn-lg px-5">
-                Создать первый маршрут
-            </a>
-        </div>
-
-        <!-- Пагинация (если есть) -->
-        <div class="pagination-container">
-            <nav aria-label="Навигация по страницам">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item" >
-                        <a class="page-link"aria-label="Назад">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-
-                    <li
-                        class="page-item" >
-                        <a class="page-link">1</a>
-                    </li>
-
-                    <li class="page-item">
-                        <a class="page-link" aria-label="Вперед">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    </div>
-</div>
 
 <!-- Модальное окно для загрузки аватара -->
 <div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">

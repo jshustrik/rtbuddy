@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Неделя в Санкт-Петербурге: Искусство и история | RouteBuddy</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Яндекс.Карты API -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_ключ_апи&lang=ru_RU" type="text/javascript"></script>
+    <!-- Custom CSS -->
+
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+            --star-color: #fbbf24;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        /* Header стили */
+        .route-header-section {
+            background: linear-gradient(135deg, #2c5282, #4a5568);
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .route-header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .route-title {
+            font-size: 2.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .route-short-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            max-width: 800px;
+        }
+
+        .route-meta-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            align-items: center;
+        }
+
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .meta-tag i {
+            font-size: 0.9rem;
+        }
+
+        /* Информация о маршруте */
+        .route-info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--medium-gray);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+
+        .info-card-icon {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .info-card-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .cost-value {
+            color: var(--success-color);
+            font-weight: 700;
+        }
+
+        /* Секция карты */
+        .map-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .map-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .color-sightseeing { background-color: #4299e1; }
+        .color-accommodation { background-color: #38a169; }
+        .color-food { background-color: #ed8936; }
+        .color-transport { background-color: #9f7aea; }
+        .color-activity { background-color: #f56565; }
+
+        /* Секция дней */
+        .days-section {
+            margin-bottom: 2rem;
+        }
+
+        .day-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+        }
+
+        .day-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .day-header:hover {
+            background: linear-gradient(90deg, var(--secondary-color), var(--dark-gray));
+        }
+
+        .day-header h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .day-number {
+            background: rgba(255, 255, 255, 0.2);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .day-cost {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: auto;
+        }
+
+        .day-body {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .day-body.show {
+            display: block;
+        }
+
+        .day-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .day-points {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .point-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .point-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .icon-sightseeing { background-color: #4299e1; }
+        .icon-accommodation { background-color: #38a169; }
+        .icon-food { background-color: #ed8936; }
+        .icon-transport { background-color: #9f7aea; }
+        .icon-activity { background-color: #f56565; }
+
+        .point-content {
+            flex: 1;
+        }
+
+        .point-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .point-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .point-meta {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Секция отзывов */
+        .reviews-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--medium-gray);
+        }
+
+        .rating-overall {
+            text-align: center;
+        }
+
+        .rating-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            line-height: 1;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.2rem;
+            margin: 0.5rem 0;
+            justify-content: center;
+        }
+
+        .star {
+            color: #e2e8f0;
+            font-size: 1.2rem;
+        }
+
+        .star.filled {
+            color: var(--star-color);
+        }
+
+        .star.half {
+            position: relative;
+            color: #e2e8f0;
+        }
+
+        .star.half::before {
+            content: '\f005';
+            position: absolute;
+            width: 50%;
+            overflow: hidden;
+            color: var(--star-color);
+        }
+
+        .rating-count {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Форма отзыва */
+        .review-form {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .rating-input input {
+            display: none;
+        }
+
+        .rating-input label {
+            cursor: pointer;
+            font-size: 2rem;
+            color: #e2e8f0;
+            transition: color 0.3s;
+        }
+
+        .rating-input label:hover,
+        .rating-input label:hover ~ label,
+        .rating-input input:checked ~ label {
+            color: var(--star-color);
+        }
+
+        .rating-value-display {
+            margin-left: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        /* Список отзывов */
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .review-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .review-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .review-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .review-author-info h5 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .review-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--light-gray);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        .review-rating .stars {
+            color: var(--star-color);
+        }
+
+        .review-rating-value {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .review-comment {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Автор маршрута */
+        .author-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+        }
+
+        .author-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .author-info p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        /* Теги */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            background: var(--light-gray);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        /* Кнопки */
+        .btn-action {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--medium-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--medium-gray);
+            color: var(--text-primary);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, var(--success-color), #2f855a);
+            color: white;
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-card, .review-card {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .route-info-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .reviews-header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+
+            #map {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .route-info-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .map-controls {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- Навигационная панель -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <div class="fw-bold fs-4">RouteBuddy</div>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/">
+                        <i class="fas fa-home me-2"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes/create">
+                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/routes">
+                        <i class="fas fa-route me-2"></i> Маршруты
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/profile">
+                        <i class="fas fa-user-circle me-2"></i> Профиль
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="/logout">
+                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/routes">Маршруты</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Неделя в Санкт-Петербурге</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок маршрута -->
+    <div class="route-header-section">
+        <h1 class="route-title">Неделя в Санкт-Петербурге: Искусство и история</h1>
+        <p class="route-short-description">Культурный маршрут по основным достопримечательностям Санкт-Петербурга. Идеально подходит для первого знакомства с городом.</p>
+
+        <div class="tags-container">
+            <span class="tag">культура</span>
+            <span class="tag">история</span>
+            <span class="tag">музеи</span>
+            <span class="tag">пешеходный</span>
+            <span class="tag">архитектура</span>
+        </div>
+
+        <div class="route-meta-top">
+            <div class="meta-tag">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Санкт-Петербург, Россия</span>
+            </div>
+            <div class="meta-tag">
+                <i class="fas fa-mountain"></i>
+                <span>Средняя сложность</span>
+            </div>
+            <div class="meta-tag">
+                <i class="fas fa-eye"></i>
+                <span>1,247 просмотров</span>
+            </div>
+            <div class="meta-tag">
+                <i class="fas fa-calendar-alt"></i>
+                <span>15.12.2024</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информационные карточки -->
+    <div class="route-info-cards">
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="info-card-value">7</div>
+            <div class="info-card-label">Дней маршрута</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-ruler-combined"></i>
+            </div>
+            <div class="info-card-value">42.5 км</div>
+            <div class="info-card-label">Общая длина</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="info-card-value cost-value">35,000 ₽</div>
+            <div class="info-card-label">Общая стоимость</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="info-card-value">8.7</div>
+            <div class="info-card-label">Рейтинг (12 отзывов)</div>
+        </div>
+    </div>
+
+    <!-- Полное описание -->
+    <div class="reviews-section">
+        <h2 class="section-title mb-4"><i class="fas fa-info-circle me-2"></i>Подробное описание маршрута</h2>
+        <div class="route-description" style="white-space: pre-line; line-height: 1.8;">
+            Этот недельный маршрут специально разработан для тех, кто впервые посещает Санкт-Петербург и хочет познакомиться с его главными достопримечательностями. Маршрут охватывает исторический центр города, основные музеи, дворцы и храмы.
+
+            Основные преимущества маршрута:
+            • Посещение всех must-see достопримечательностей города
+            • Оптимальное распределение времени между объектами
+            • Учет стоимости билетов и времени работы музеев
+            • Рекомендации по питанию и транспорту
+            • Информация о лучших фото-точках
+
+            Что вас ждет:
+            Первый день посвящен знакомству с главной улицей города - Невским проспектом. Вы увидите Казанский собор, Дом книги, Аничков мост и другие знаковые места.
+
+            Второй и третий дни - погружение в мир искусства и истории в Эрмитаже и Русском музее. Эти дни требуют много времени на ногах, но впечатления стоят того.
+
+            Четвертый день - архитектурные шедевры: Исаакиевский собор и храм Спаса на Крови. Обязательно поднимитесь на колоннаду Исаакиевского собора для панорамного вида на город.
+
+            Пятый и шестой дни - поездки в пригороды: Петергоф с его знаменитыми фонтанами и Царское Село с Янтарной комнатой.
+
+            Последний день - свободное время для покупки сувениров и посещения мест, которые особенно понравились.
+
+            Советы:
+            • Покупайте билеты в музеи онлайн заранее
+            • Носите удобную обувь - предстоит много ходить
+            • Берите с собой зонт - погода в Петербурге переменчива
+            • Попробуйте местную кухню: бефстроганов, пельмени, квас
+        </div>
+    </div>
+
+    <!-- Карта маршрута -->
+    <div class="map-section">
+        <div class="map-controls">
+            <h3><i class="fas fa-map-marked-alt me-2"></i>Карта маршрута по Санкт-Петербургу</h3>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <div class="legend-color color-sightseeing"></div>
+                    <span>Достопримечательности</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-accommodation"></div>
+                    <span>Проживание</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-food"></div>
+                    <span>Питание</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color color-transport"></div>
+                    <span>Транспорт</span>
+                </div>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <!-- Структура по дням -->
+    <div class="days-section">
+        <h2 class="section-title mb-4"><i class="fas fa-calendar-check me-2"></i>Структура маршрута по дням</h2>
+
+        <div class="accordion" id="daysAccordion">
+            <!-- День 1 -->
+            <div class="day-card"><a href="/routes/1/day1">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day1">
+                    <h3>
+
+                        <span class="day-number">1</span>
+                        <span>Прибытие и Невский проспект</span>
+                        <span class="day-cost">5,000 ₽</span>
+
+                    </h3>
+            </a>
+                </div>
+
+                <div id="day1" class="collapse show" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            Знакомство с главной улицей города. Невский проспект - это сердце Санкт-Петербурга, где сосредоточены главные магазины, рестораны и исторические здания. Прогулка займет около 4-5 часов с учетом остановок.
+                        </p>
+
+                        <div class="day-points">
+                            <!-- Точка 1 -->
+                            <div class="point-item">
+                                <div class="point-icon icon-sightseeing">
+                                    <i class="fas fa-landmark"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5 class="point-title">Казанский собор</h5>
+                                    <p class="point-description">
+                                        Один из крупнейших храмов Санкт-Петербурга, построенный в стиле ампир. Внутри находится чтимый список Казанской иконы Божией Матери.
+                                    </p>
+                                    <div class="point-meta">
+                                        <span>
+                                            <i class="far fa-clock me-1"></i>
+                                            <span>1.5 часа</span>
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-wallet me-1"></i>
+                                            <span>Бесплатно</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Точка 2 -->
+                            <div class="point-item">
+                                <div class="point-icon icon-accommodation">
+                                    <i class="fas fa-hotel"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5 class="point-title">Гостиница "Гранд Отель Европа"</h5>
+                                    <p class="point-description">
+                                        Историческая пятизвездочная гостиница в самом центре города. Отель сочетает в себе классическую роскошь и современный комфорт.
+                                    </p>
+                                    <div class="point-meta">
+                                        <span>
+                                            <i class="fas fa-wallet me-1"></i>
+                                            <span>4,000 ₽/ночь</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Точка 3 -->
+                            <div class="point-item">
+                                <div class="point-icon icon-food">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5 class="point-title">Ресторан "Палкинъ"</h5>
+                                    <p class="point-description">
+                                        Легендарный ресторан русской кухни, основанный в 1785 году. Здесь подают традиционные блюда в исторических интерьерах.
+                                    </p>
+                                    <div class="point-meta">
+                                        <span>
+                                            <i class="far fa-clock me-1"></i>
+                                            <span>2 часа</span>
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-wallet me-1"></i>
+                                            <span>1,000 ₽</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- День 2 -->
+            <div class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day2">
+                    <h3>
+                        <span class="day-number">2</span>
+                        <span>Эрмитаж и Дворцовая площадь</span>
+                        <span class="day-cost">6,000 ₽</span>
+                    </h3>
+                </div>
+
+                <div id="day2" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            Культурный день в крупнейшем музее России. Государственный Эрмитаж занимает шесть исторических зданий, включая Зимний дворец. Для осмотра основных коллекций потребуется 4-5 часов.
+                        </p>
+
+                        <div class="day-points">
+                            <div class="point-item">
+                                <div class="point-icon icon-sightseeing">
+                                    <i class="fas fa-landmark"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5 class="point-title">Государственный Эрмитаж</h5>
+                                    <p class="point-description">
+                                        Один из крупнейших художественных музеев мира. Коллекция насчитывает около 3 миллионов произведений искусства от каменного века до наших дней.
+                                    </p>
+                                    <div class="point-meta">
+                                        <span>
+                                            <i class="far fa-clock me-1"></i>
+                                            <span>4-5 часов</span>
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-wallet me-1"></i>
+                                            <span>800 ₽</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- День 3 -->
+            <div class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day3">
+                    <h3>
+                        <span class="day-number">3</span>
+                        <span>Петропавловская крепость</span>
+                        <span class="day-cost">5,500 ₽</span>
+                    </h3>
+                </div>
+
+                <div id="day3" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            Исторический центр города, где началась история Санкт-Петербурга. Крепость была заложена Петром I в 1703 году. Здесь же находится Петропавловский собор - усыпальница российских императоров.
+                        </p>
+
+                        <div class="day-points">
+                            <div class="point-item">
+                                <div class="point-icon icon-sightseeing">
+                                    <i class="fas fa-landmark"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5 class="point-title">Петропавловская крепость</h5>
+                                    <p class="point-description">
+                                        Историческое ядро города, с которого началось строительство Санкт-Петербурга. На территории находятся собор, тюрьма Трубецкого бастиона и монетный двор.
+                                    </p>
+                                    <div class="point-meta">
+                                        <span>
+                                            <i class="far fa-clock me-1"></i>
+                                            <span>3 часа</span>
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-wallet me-1"></i>
+                                            <span>600 ₽</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- День 4 -->
+            <div class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day4">
+                    <h3>
+                        <span class="day-number">4</span>
+                        <span>Исаакиевский собор и храм Спаса на Крови</span>
+                        <span class="day-cost">4,500 ₽</span>
+                    </h3>
+                </div>
+
+                <div id="day4" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            День архитектурных шедевров. Исаакиевский собор - один из самых красивых соборов мира, а храм Спаса на Крови - уникальный образец русского стиля в архитектуре.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- День 5 -->
+            <div class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day5">
+                    <h3>
+                        <span class="day-number">5</span>
+                        <span>Петергоф: фонтаны и парки</span>
+                        <span class="day-cost">7,000 ₽</span>
+                    </h3>
+                </div>
+
+                <div id="day5" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            Поездка в летнюю резиденцию императоров. Петергоф известен своими фонтанами, которые работают с мая по октябрь. Дворцово-парковый ансамбль включен в список Всемирного наследия ЮНЕСКО.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- День 6 -->
+            <div class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day6">
+                    <h3>
+                        <span class="day-number">6</span>
+                        <span>Царское село и Екатерининский дворец</span>
+                        <span class="day-cost">6,500 ₽</span>
+                    </h3>
+                </div>
+
+                <div id="day6" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            Еще одна императорская резиденция. Царское Село известно своими роскошными дворцами и парками. Главная жемчужина - восстановленная Янтарная комната в Екатерининском дворце.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- День 7 -->
+            <div class="day-card">
+                <div class="day-header" data-bs-toggle="collapse" data-bs-target="#day7">
+                    <h3>
+                        <span class="day-number">7</span>
+                        <span>Свободный день и отъезд</span>
+                        <span class="day-cost">1,000 ₽</span>
+                    </h3>
+                </div>
+
+                <div id="day7" class="collapse" data-bs-parent="#daysAccordion">
+                    <div class="day-body">
+                        <p class="day-description">
+                            Последние покупки сувениров и прощание с городом. Можно посетить места, которые особенно понравились, или просто погулять по набережным Невы.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Автор маршрута -->
+    <div class="author-section">
+        <div class="author-avatar-large">
+            А
+        </div>
+        <div class="author-info">
+            <h4>Автор: qawsed1</h4>
+        </div>
+    </div>
+
+    <!-- Отзывы -->
+    <div class="reviews-section">
+        <div class="reviews-header">
+            <div>
+                <h2 class="section-title mb-0"><i class="fas fa-comments me-2"></i>Отзывы о маршруте</h2>
+                <p class="text-muted mt-2">12 отзывов</p>
+            </div>
+
+            <div class="rating-overall">
+                <div class="rating-value">8.7</div>
+                <div class="rating-stars">
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star star filled"></i>
+                    <i class="fas fa-star-half-alt star half"></i>
+                    <i class="far fa-star star"></i>
+                </div>
+                <div class="rating-count">из 10</div>
+            </div>
+        </div>
+
+        <!-- Форма добавления отзыва -->
+        <div class="review-form">
+            <h5 class="mb-3">Оставить отзыв</h5>
+            <form action="/routes/saint-petersburg/reviews" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ваша оценка:</label>
+                    <div class="rating-input">
+                        <input type="radio" id="rating10" name="rating" value="10">
+                        <label for="rating10">★</label>
+                        <input type="radio" id="rating9" name="rating" value="9">
+                        <label for="rating9">★</label>
+                        <input type="radio" id="rating8" name="rating" value="8">
+                        <label for="rating8">★</label>
+                        <input type="radio" id="rating7" name="rating" value="7">
+                        <label for="rating7">★</label>
+                        <input type="radio" id="rating6" name="rating" value="6">
+                        <label for="rating6">★</label>
+                        <input type="radio" id="rating5" name="rating" value="5">
+                        <label for="rating5">★</label>
+                        <input type="radio" id="rating4" name="rating" value="4">
+                        <label for="rating4">★</label>
+                        <input type="radio" id="rating3" name="rating" value="3">
+                        <label for="rating3">★</label>
+                        <input type="radio" id="rating2" name="rating" value="2">
+                        <label for="rating2">★</label>
+                        <input type="radio" id="rating1" name="rating" value="1">
+                        <label for="rating1">★</label>
+                        <span class="rating-value-display" id="ratingDisplay">0</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="comment" class="form-label fw-bold">Ваш комментарий:</label>
+                    <textarea class="form-control" id="comment" name="comment" rows="4"
+                              placeholder="Поделитесь впечатлениями о маршруте..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-action btn-success">
+                    <i class="fas fa-paper-plane me-2"></i>Отправить отзыв
+                </button>
+            </form>
+        </div>
+
+        <!-- Список отзывов -->
+        <div class="reviews-list">
+            <!-- Отзыв 1 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-author">
+                        <div class="review-avatar">
+                            И
+                        </div>
+                        <div class="review-author-info">
+                            <h5>путешественник_иван</h5>
+                            <div class="review-date">20.12.2024 14:30</div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="review-rating-value">9</span>
+                    </div>
+                </div>
+                <p class="review-comment">
+                    Отличный маршрут! Все четко распланировано, ничего не пропустили. Особенно понравился Эрмитаж - нужно выделить целый день! Петергоф вообще сказка, особенно в солнечную погоду. Единственное - очень много ходить, обязательно берите удобную обувь.
+                </p>
+            </div>
+
+            <!-- Отзыв 2 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-author">
+                        <div class="review-avatar">
+                            М
+                        </div>
+                        <div class="review-author-info">
+                            <h5>art_lover</h5>
+                            <div class="review-date">18.12.2024 11:15</div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="review-rating-value">8</span>
+                    </div>
+                </div>
+                <p class="review-comment">
+                    Хороший культурный маршрут. Петергоф просто потрясающий! Рекомендую взять экскурсию по парку. Единственный минус - в Эрмитаже очень много народу, лучше приходить к открытию. Янтарная комната в Царском селе того стоит!
+                </p>
+            </div>
+
+            <!-- Отзыв 3 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-author">
+                        <div class="review-avatar">
+                            С
+                        </div>
+                        <div class="review-author-info">
+                            <h5>семья_сидоровых</h5>
+                            <div class="review-date">10.12.2024 09:45</div>
+                        </div>
+                    </div>
+                    <div class="review-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="review-rating-value">9</span>
+                    </div>
+                </div>
+                <p class="review-comment">
+                    Путешествовали с двумя детьми (8 и 12 лет). Маршрут подходит для семей, но некоторые музеи детям могут показаться скучными. Детям больше всего понравились фонтаны в Петергофе и Петропавловская крепость. Совет: покупайте билеты онлайн, экономите время в очередях.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки действий -->
+    <div class="d-flex gap-3 justify-content-center mb-5">
+        <a href="/routes" class="btn-action btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Вернуться к маршрутам
+        </a>
+        <a href="/routes/create?copy=saint-petersburg" class="btn-action">
+            <i class="fas fa-copy me-2"></i>Создать похожий
+        </a>
+        <button class="btn-action" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Распечатать маршрут
+        </button>
+        <a href="#" class="btn-action btn-success">
+            <i class="fas fa-heart me-2"></i>В избранное
+        </a>
+    </div>
+</div>
+
+<!-- Bootstrap JS и зависимости -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JavaScript -->
+<script>
+    // Инициализация Яндекс.Карт
+    ymaps.ready(initMap);
+
+    function initMap() {
+        // Создаем карту
+        const map = new ymaps.Map('map', {
+            center: [59.9391, 30.3159], // Дворцовая площадь
+            zoom: 13,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+
+        // Точки маршрута по Санкт-Петербургу
+        const points = [
+            {
+                lat: 59.9343,
+                lon: 30.3061,
+                title: "Исаакиевский собор",
+                description: "Крупнейший православный храм Санкт-Петербурга",
+                type: "SIGHTSEEING"
+            },
+            {
+                lat: 59.9391,
+                lon: 30.3159,
+                title: "Дворцовая площадь",
+                description: "Главная площадь города",
+                type: "SIGHTSEEING"
+            },
+            {
+                lat: 59.9411,
+                lon: 30.3129,
+                title: "Эрмитаж",
+                description: "Главный музейный комплекс",
+                type: "SIGHTSEEING"
+            },
+            {
+                lat: 59.9500,
+                lon: 30.3167,
+                title: "Петропавловская крепость",
+                description: "Историческое ядро города",
+                type: "SIGHTSEEING"
+            },
+            {
+                lat: 59.9364,
+                lon: 30.3021,
+                title: "Храм Спаса на Крови",
+                description: "Собор Воскресения Христова",
+                type: "SIGHTSEEING"
+            },
+            {
+                lat: 59.8856,
+                lon: 29.9036,
+                title: "Петергоф",
+                description: "Дворцово-парковый ансамбль",
+                type: "SIGHTSEEING"
+            },
+            {
+                lat: 59.7167,
+                lon: 30.4167,
+                title: "Царское Село",
+                description: "Екатерининский дворец",
+                type: "SIGHTSEEING"
+            }
+        ];
+
+        // Цвета для разных типов точек
+        const typeColors = {
+            'SIGHTSEEING': '#4299e1',
+            'ACCOMMODATION': '#38a169',
+            'FOOD': '#ed8936',
+            'TRANSPORT': '#9f7aea',
+            'ACTIVITY': '#f56565',
+            'OTHER': '#718096'
+        };
+
+        // Создаем объекты для хранения меток и линий
+        const placemarks = [];
+        const coordinates = [];
+
+        // Добавляем метки на карту
+        points.forEach((point, index) => {
+            coordinates.push([point.lat, point.lon]);
+
+            const placemark = new ymaps.Placemark(
+                [point.lat, point.lon],
+                {
+                    balloonContentHeader: `<strong>${point.title}</strong>`,
+                    balloonContentBody: point.description,
+                    balloonContentFooter: `Точка ${index + 1}`
+                },
+                {
+                    preset: 'islands#circleIcon',
+                    iconColor: typeColors[point.type] || '#718096',
+                    draggable: false
+                }
+            );
+
+            placemarks.push(placemark);
+            map.geoObjects.add(placemark);
+        });
+
+        // Добавляем линию маршрута
+        if (coordinates.length > 1) {
+            const routeLine = new ymaps.Polyline(
+                coordinates,
+                {},
+                {
+                    strokeColor: '#2c5282',
+                    strokeWidth: 3,
+                    strokeOpacity: 0.7
+                }
+            );
+
+            map.geoObjects.add(routeLine);
+        }
+
+        // Масштабируем карту чтобы вместить все метки
+        if (placemarks.length > 1) {
+            map.setBounds(map.geoObjects.getBounds(), {
+                checkZoomRange: true,
+                zoomMargin: 50
+            });
+        }
+    }
+
+    // Обработка рейтинга
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обновление отображения рейтинга
+        const ratingInputs = document.querySelectorAll('.rating-input input');
+        const ratingDisplay = document.getElementById('ratingDisplay');
+
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                ratingDisplay.textContent = this.value;
+            });
+        });
+
+        // Обработка звезд рейтинга в отзывах
+        document.querySelectorAll('.review-rating .stars').forEach(stars => {
+            const rating = parseInt(stars.closest('.review-rating').querySelector('.review-rating-value').textContent);
+            const starIcons = stars.querySelectorAll('i');
+
+            starIcons.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('fas', 'fa-star');
+                    star.classList.remove('far');
+                }
+            });
+        });
+
+        // Подсветка выбранного рейтинга
+        document.querySelectorAll('.rating-input input').forEach(input => {
+            input.addEventListener('mouseenter', function() {
+                const value = parseInt(this.value);
+                highlightStars(value);
+            });
+
+            input.addEventListener('mouseleave', function() {
+                const checked = document.querySelector('.rating-input input:checked');
+                if (checked) {
+                    highlightStars(parseInt(checked.value));
+                } else {
+                    resetStars();
+                }
+            });
+        });
+
+        // Открываем все дни при загрузке
+        document.querySelectorAll('.day-header').forEach((header, index) => {
+            if (index === 0) {
+                header.click();
+            }
+        });
+    });
+
+    function highlightStars(count) {
+        const labels = document.querySelectorAll('.rating-input label');
+        labels.forEach((label, index) => {
+            if (index < count) {
+                label.style.color = '#fbbf24';
+            } else {
+                label.style.color = '#e2e8f0';
+            }
+        });
+    }
+
+    function resetStars() {
+        const labels = document.querySelectorAll('.rating-input label');
+        labels.forEach(label => {
+            label.style.color = '#e2e8f0';
+        });
+    }
+</script>
+</body>
+</html>
