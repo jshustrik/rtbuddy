@@ -38,6 +38,22 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$/create-service" />
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/export-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/export-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/review-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/review-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/routesview-service" />
         <option name="modules">
           <set>
