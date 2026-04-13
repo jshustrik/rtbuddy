@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Выгрузка маршрутов | RouteBuddy (исправленная версия)</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- jsPDF и html2canvas для генерации PDF из HTML -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --warning-color: #ed8936;
+            --danger-color: #f56565;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Roboto', 'Inter', system-ui, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        .nav-link.active {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 16px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        .export-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--medium-gray);
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            font-size: 1rem;
+        }
+
+        .btn-action {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+            color: white;
+        }
+
+        .btn-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading, .error, .empty {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            color: #6C757D;
+            margin-top: 1rem;
+        }
+
+        .error {
+            color: #dc3545;
+            border-left: 4px solid #dc3545;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+            .export-card {
+                padding: 1.5rem;
+            }
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .breadcrumb-item a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        /* Стили для скрытого контейнера PDF */
+        .pdf-preview-container {
+            position: fixed;
+            top: -10000px;
+            left: -10000px;
+            width: 800px;
+            background: white;
+            padding: 40px;
+            font-family: 'Segoe UI', 'Roboto', 'Inter', system-ui, sans-serif;
+            line-height: 1.5;
+            color: #000;
+        }
+
+        .pdf-preview-container h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .pdf-preview-container h2 {
+            font-size: 20px;
+            margin: 20px 0 10px;
+            color: #2d3748;
+        }
+
+        .pdf-preview-container h3 {
+            font-size: 18px;
+            margin: 15px 0 8px;
+            color: #4a5568;
+        }
+
+        .pdf-preview-container .route-meta {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .pdf-preview-container .day-block {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 20px;
+        }
+
+        .pdf-preview-container .point-item {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .pdf-preview-container .point-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .pdf-preview-container .point-details {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .pdf-preview-container .map-link {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <div class="fw-bold fs-4">RouteBuddy</div>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2"><a class="nav-link" href="/"><i class="fas fa-home me-2"></i>Главная</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-2"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="/routes"><i class="fas fa-route me-2"></i>Маршруты</a></li>
+                <li class="nav-item mx-2"><a class="nav-link active" href="/export"><i class="fas fa-download me-2"></i>Выгрузка</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-2"></i>Профиль</a></li>
+                <li class="nav-item mx-2"><a class="nav-link" href="#" onclick="alert('Демо-режим'); return false;"><i class="fas fa-sign-out-alt me-2"></i>Выйти</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/routes">Маршруты</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Выгрузка маршрутов</li>
+        </ol>
+    </nav>
+
+    <div class="page-header">
+        <h1><i class="fas fa-download me-3"></i>Выгрузка маршрутов</h1>
+        <p>Скачайте маршрут или отдельный день в формате PDF (демо-версия с корректным отображением русских текстов)</p>
+    </div>
+
+    <div class="export-card">
+        <div class="mb-3">
+            <label for="routeSelect" class="form-label">Выберите маршрут</label>
+            <select id="routeSelect" class="form-select">
+                <option value="">-- Загрузка маршрутов... --</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="exportVariant" class="form-label">Что выгрузить?</label>
+            <select id="exportVariant" class="form-select" disabled>
+                <option value="">Сначала выберите маршрут</option>
+            </select>
+        </div>
+
+        <div class="text-center">
+            <button id="downloadBtn" class="btn-action" disabled>
+                <i class="fas fa-file-pdf"></i> Скачать PDF
+            </button>
+        </div>
+
+        <div id="statusMessage" class="mt-3"></div>
+    </div>
+</div>
+
+<!-- Скрытый контейнер для рендеринга PDF -->
+<div id="pdfContentContainer" class="pdf-preview-container"></div>
+
+<script>
+    // Демо-данные маршрута (полные, с русским текстом)
+    const demoRoutes = [
+        {
+            id: 101,
+            title: "Неделя в Санкт-Петербурге: Искусство и история",
+            shortDescription: "Культурный маршрут по основным достопримечательностям Санкт-Петербурга. Идеально подходит для первого знакомства с городом.",
+            description: "Этот недельный маршрут специально разработан для тех, кто впервые посещает Санкт-Петербург и хочет познакомиться с его главными достопримечательностями. Маршрут охватывает исторический центр города, основные музеи, дворцы и храмы.\n\nОсновные преимущества маршрута:\n• Посещение всех must-see достопримечательностей города\n• Оптимальное распределение времени между объектами\n• Учет стоимости билетов и времени работы музеев\n• Рекомендации по питанию и транспорту\n• Информация о лучших фото-точках",
+            durationDays: 7,
+            totalCost: 35000,
+            author: {
+                id: 1,
+                username: "qawsed1",
+                avatarUrl: null
+            },
+            days: [
+                {
+                    id: 1001,
+                    orderIndex: 1,
+                    theme: "Прибытие и Невский проспект",
+                    description: "Знакомство с главной улицей города. Невский проспект - это сердце Санкт-Петербурга, где сосредоточены главные магазины, рестораны и исторические здания. Прогулка займет около 4-5 часов с учетом остановок.",
+                    totalCost: 5000,
+                    totalTravelTime: 120,
+                    points: [
+                        {
+                            id: 10001,
+                            name: "Казанский собор",
+                            description: "Один из крупнейших храмов Санкт-Петербурга, построенный в стиле ампир. Внутри находится чтимый список Казанской иконы Божией Матери.",
+                            latitude: 59.9343,
+                            longitude: 30.3246,
+                            startTime: "10:00",
+                            endTime: "11:30",
+                            cost: 0,
+                            duration: 90,
+                            orderIndex: 1,
+                            images: []
+                        },
+                        {
+                            id: 10002,
+                            name: "Дом книги (Зингер)",
+                            description: "Знаменитый дом на Невском проспекте с часовой башней. Крупнейший книжный магазин города.",
+                            latitude: 59.9356,
+                            longitude: 30.3275,
+                            startTime: "12:00",
+                            endTime: "13:30",
+                            cost: 0,
+                            duration: 90,
+                            orderIndex: 2,
+                            images: []
+                        },
+                        {
+                            id: 10003,
+                            name: "Ресторан 'Палкинъ'",
+                            description: "Легендарный ресторан русской кухни, основанный в 1785 году. Интерьеры в стиле XIX века, живая музыка. Рекомендуем попробовать бефстроганов и пирожки.",
+                            latitude: 59.9365,
+                            longitude: 30.3290,
+                            startTime: "14:00",
+                            endTime: "16:00",
+                            cost: 1500,
+                            duration: 120,
+                            orderIndex: 3,
+                            images: []
+                        }
+                    ]
+                },
+                {
+                    id: 1002,
+                    orderIndex: 2,
+                    theme: "Эрмитаж и Дворцовая площадь",
+                    description: "Культурный день в крупнейшем музее России. Государственный Эрмитаж занимает шесть исторических зданий, включая Зимний дворец. Для осмотра основных коллекций потребуется 4-5 часов.",
+                    totalCost: 6000,
+                    totalTravelTime: 180,
+                    points: [
+                        {
+                            id: 10004,
+                            name: "Государственный Эрмитаж",
+                            description: "Один из крупнейших художественных музеев мира. Коллекция насчитывает около 3 миллионов произведений искусства от каменного века до наших дней.",
+                            latitude: 59.9411,
+                            longitude: 30.3129,
+                            startTime: "10:00",
+                            endTime: "15:00",
+                            cost: 800,
+                            duration: 300,
+                            orderIndex: 1,
+                            images: []
+                        },
+                        {
+                            id: 10005,
+                            name: "Дворцовая площадь",
+                            description: "Главная площадь Санкт-Петербурга, архитектурный ансамбль, включающий Зимний дворец и Александровскую колонну.",
+                            latitude: 59.9391,
+                            longitude: 30.3159,
+                            startTime: "15:30",
+                            endTime: "17:00",
+                            cost: 0,
+                            duration: 90,
+                            orderIndex: 2,
+                            images: []
+                        }
+                    ]
+                },
+                {
+                    id: 1003,
+                    orderIndex: 3,
+                    theme: "Петропавловская крепость",
+                    description: "Исторический центр города, с которого началась история Санкт-Петербурга. Крепость была заложена Петром I в 1703 году.",
+                    totalCost: 5500,
+                    totalTravelTime: 150,
+                    points: [
+                        {
+                            id: 10006,
+                            name: "Петропавловская крепость",
+                            description: "Историческое ядро города, основанное Петром I. Здесь находятся Петропавловский собор и тюрьма Трубецкого бастиона.",
+                            latitude: 59.9500,
+                            longitude: 30.3167,
+                            startTime: "10:00",
+                            endTime: "13:00",
+                            cost: 600,
+                            duration: 180,
+                            orderIndex: 1,
+                            images: []
+                        }
+                    ]
+                }
+            ]
+        }
+    ];
+
+    const currentUser = { username: "путешественник" };
+    let selectedRouteId = null;
+    let selectedExportType = null;
+    let selectedDayId = null;
+
+    const routeSelect = document.getElementById('routeSelect');
+    const exportVariant = document.getElementById('exportVariant');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    function showMessage(text, isError = false) {
+        statusMessage.innerHTML = `<div class="${isError ? 'error' : 'loading'}">${text}</div>`;
+        if (!isError) {
+            setTimeout(() => {
+                if (statusMessage.innerHTML.includes(text)) statusMessage.innerHTML = '';
+            }, 5000);
+        }
+    }
+
+    function loadRoutes() {
+        routeSelect.innerHTML = '<option value="">-- Выберите маршрут --</option>';
+        demoRoutes.forEach(route => {
+            const option = document.createElement('option');
+            option.value = route.id;
+            option.textContent = route.title;
+            routeSelect.appendChild(option);
+        });
+        routeSelect.disabled = false;
+        routeSelect.addEventListener('change', onRouteChange);
+        // Добавляем имя пользователя в навигацию
+        const navBar = document.querySelector('.navbar-nav');
+        if (navBar && !document.querySelector('.user-greeting')) {
+            const greeting = document.createElement('li');
+            greeting.className = 'nav-item mx-2 user-greeting';
+            greeting.innerHTML = `<span class="nav-link"><i class="fas fa-user me-2"></i>${currentUser.username}</span>`;
+            navBar.insertBefore(greeting, navBar.children[navBar.children.length - 1]);
+        }
+    }
+
+    function onRouteChange() {
+        selectedRouteId = parseInt(routeSelect.value);
+        if (!selectedRouteId) {
+            exportVariant.disabled = true;
+            exportVariant.innerHTML = '<option value="">Сначала выберите маршрут</option>';
+            downloadBtn.disabled = true;
+            return;
+        }
+        const route = demoRoutes.find(r => r.id === selectedRouteId);
+        if (!route) return;
+
+        exportVariant.disabled = false;
+        let options = `<option value="route_${route.id}">📄 Весь маршрут: ${route.title}</option>`;
+        if (route.days && route.days.length) {
+            route.days.forEach(day => {
+                options += `<option value="day_${day.id}">📅 День ${day.orderIndex}: ${day.theme}</option>`;
+            });
+        }
+        exportVariant.innerHTML = options;
+        downloadBtn.disabled = false;
+        onExportVariantChange();
+        exportVariant.addEventListener('change', onExportVariantChange);
+    }
+
+    function onExportVariantChange() {
+        const value = exportVariant.value;
+        if (value.startsWith('route_')) {
+            selectedExportType = 'route';
+            selectedDayId = null;
+        } else if (value.startsWith('day_')) {
+            selectedExportType = 'day';
+            selectedDayId = parseInt(value.split('_')[1]);
+        } else {
+            selectedExportType = null;
+        }
+    }
+
+    // Функция для создания HTML содержимого PDF
+    function buildPdfHtml() {
+        if (selectedExportType === 'route') {
+            const route = demoRoutes.find(r => r.id === selectedRouteId);
+            if (!route) throw new Error('Маршрут не найден');
+            return buildRouteHtml(route);
+        } else if (selectedExportType === 'day') {
+            let foundDay = null;
+            let route = null;
+            for (const r of demoRoutes) {
+                const day = r.days.find(d => d.id === selectedDayId);
+                if (day) {
+                    foundDay = day;
+                    route = r;
+                    break;
+                }
+            }
+            if (!foundDay) throw new Error('День не найден');
+            return buildDayHtml(foundDay, route);
+        } else {
+            throw new Error('Не выбран тип экспорта');
+        }
+    }
+
+    function buildRouteHtml(route) {
+        let html = `
+            <div style="font-family: 'Segoe UI', 'Roboto', sans-serif; max-width: 800px; margin: 0 auto;">
+                <h1>${escapeHtml(route.title)}</h1>
+                <div class="route-meta">Автор: ${escapeHtml(route.author.username)}</div>
+                <div class="route-meta">Длительность: ${route.durationDays} дней &nbsp;|&nbsp; Общая стоимость: ${route.totalCost} ₽</div>
+                <p>${escapeHtml(route.shortDescription || route.description)}</p>
+                <div class="map-link">
+                    <strong>🗺️ Карта маршрута:</strong><br>
+                    Ссылка для просмотра на Яндекс.Картах:<br>
+                    <a href="https://yandex.ru/maps/?ll=30.3159,59.9391&z=12" target="_blank">https://yandex.ru/maps/?ll=30.3159,59.9391&z=12</a><br>
+                    <small>Основные точки маршрута: ${route.days.flatMap(d => d.points).map(p => p.name).join(', ')}</small>
+                </div>
+                <h2>Дни маршрута</h2>
+        `;
+        route.days.forEach(day => {
+            html += `
+                <div class="day-block">
+                    <h3>День ${day.orderIndex}: ${escapeHtml(day.theme)}</h3>
+                    <p>${escapeHtml(day.description)}</p>
+                    <div class="route-meta">Стоимость дня: ${day.totalCost} ₽ &nbsp;|&nbsp; Время в пути: ${formatDuration(day.totalTravelTime)}</div>
+                    <div style="margin-top: 10px;">
+                        <strong>Точки маршрута:</strong>
+            `;
+            day.points.forEach(point => {
+                html += `
+                    <div class="point-item">
+                        <div class="point-title">${escapeHtml(point.name)}</div>
+                        <div>${escapeHtml(point.description || '')}</div>
+                        <div class="point-details">
+                            ${point.startTime && point.endTime ? `${point.startTime} – ${point.endTime}` : ''}
+                            ${point.cost ? ` | Стоимость: ${point.cost} ₽` : ''}
+                            ${point.latitude && point.longitude ? ` | Координаты: ${point.latitude}, ${point.longitude}` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div></div>`;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    function buildDayHtml(day, route) {
+        let html = `
+            <div style="font-family: 'Segoe UI', 'Roboto', sans-serif; max-width: 800px; margin: 0 auto;">
+                <h1>День ${day.orderIndex}: ${escapeHtml(day.theme)}</h1>
+                <div class="route-meta">Маршрут: ${escapeHtml(route.title)}</div>
+                <div class="route-meta">Автор: ${escapeHtml(route.author.username)}</div>
+                <p>${escapeHtml(day.description)}</p>
+                <div class="route-meta">Стоимость дня: ${day.totalCost} ₽ &nbsp;|&nbsp; Время в пути: ${formatDuration(day.totalTravelTime)}</div>
+                <div class="map-link">
+                    <strong>🗺️ Карта дня:</strong><br>
+                    Ссылка на Яндекс.Карты с отмеченными точками:<br>
+                    <a href="https://yandex.ru/maps/?pt=${day.points.map(p => `${p.longitude},${p.latitude}`).join('~')}&z=13" target="_blank">Открыть карту</a><br>
+                    <small>Координаты точек: ${day.points.map(p => `${p.name} (${p.latitude}, ${p.longitude})`).join('; ')}</small>
+                </div>
+                <h2>Точки маршрута</h2>
+        `;
+        day.points.forEach(point => {
+            html += `
+                <div class="point-item">
+                    <div class="point-title">${escapeHtml(point.name)}</div>
+                    <div>${escapeHtml(point.description || '')}</div>
+                    <div class="point-details">
+                        ${point.startTime && point.endTime ? `${point.startTime} – ${point.endTime}` : ''}
+                        ${point.cost ? `Стоимость: ${point.cost} ₽` : ''}
+                        ${point.latitude && point.longitude ? `Координаты: ${point.latitude}, ${point.longitude}` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    function formatDuration(minutes) {
+        if (!minutes) return '—';
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        if (hours > 0) return `${hours} ч ${mins} мин`;
+        return `${mins} мин`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // Генерация PDF через html2canvas + jsPDF
+    async function generatePdf() {
+        const container = document.getElementById('pdfContentContainer');
+        try {
+            const htmlContent = buildPdfHtml();
+            container.innerHTML = htmlContent;
+            // Ждём рендеринга
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const canvas = await html2canvas(container, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+            pdf.save(`routebuddy_${selectedExportType}_${Date.now()}.pdf`);
+            return true;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            container.innerHTML = '';
+        }
+    }
+
+    async function downloadPDF() {
+        if (!selectedExportType) {
+            showMessage('Пожалуйста, выберите, что выгрузить.', true);
+            return;
+        }
+        downloadBtn.disabled = true;
+        downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Генерация PDF...';
+        showMessage('Формирование PDF...');
+
+        try {
+            await generatePdf();
+            showMessage('PDF успешно скачан!');
+        } catch (err) {
+            console.error(err);
+            showMessage('Ошибка при создании PDF: ' + err.message, true);
+        } finally {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Скачать PDF';
+        }
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRoutes();
+        downloadBtn.addEventListener('click', downloadPDF);
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

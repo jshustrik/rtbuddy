@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RouteBuddy — Редактирование маршрута</title>
+
+    <!-- Bootstrap 5 + иконки -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Яндекс.Карты API (замените apikey на свой) -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_ключ_апи&lang=ru_RU" type="text/javascript"></script>
+
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #718096;
+            --light-gray: #f7fafc;
+            --medium-gray: #e2e8f0;
+            --dark-gray: #2d3748;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #38a169;
+            --danger-color: #f56565;
+        }
+
+        body {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            color: var(--text-primary);
+        }
+
+        /* Навигация (как в примерах) */
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 0;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: white;
+        }
+        .navbar-brand i {
+            color: var(--accent-color);
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+        /* Заголовок страницы (адаптация под стиль example) */
+        .page-header {
+            background: linear-gradient(135deg, #2c5282, var(--primary-color));
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+        .page-header h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Карточки как в примерах */
+        .card-custom {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            margin-bottom: 2rem;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+        }
+        .card-header-custom {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .card-header-custom i {
+            margin-right: 0.6rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Формы */
+        .form-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid var(--medium-gray);
+            padding: 0.6rem 1rem;
+            transition: 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.2);
+        }
+
+        /* Список дней (карточки) */
+        .days-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .day-item {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.2rem;
+            border-left: 4px solid var(--accent-color);
+            transition: 0.2s;
+        }
+        .day-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        .day-number-badge {
+            background: var(--accent-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .day-title-input {
+            font-weight: 700;
+            background: white;
+            border: 1px solid var(--medium-gray);
+            border-radius: 30px;
+            padding: 0.3rem 1rem;
+            width: auto;
+            min-width: 180px;
+        }
+        .day-actions button {
+            background: white;
+            border: 1px solid var(--medium-gray);
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            margin-left: 0.5rem;
+            transition: 0.2s;
+        }
+        .day-actions button:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        .point-coord-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 0.7rem;
+        }
+        .coord-badge {
+            background: #e9ecef;
+            border-radius: 30px;
+            padding: 0.3rem 0.8rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .btn-pick-coord {
+            background: none;
+            border: 1px dashed var(--accent-color);
+            border-radius: 30px;
+            padding: 0.2rem 1rem;
+            color: var(--accent-color);
+            font-size: 0.8rem;
+        }
+        .btn-pick-coord.active {
+            background: var(--accent-color);
+            color: white;
+            border: 1px solid var(--accent-color);
+        }
+
+        /* Карта */
+        #map {
+            width: 100%;
+            height: 450px;
+            border-radius: 12px;
+            border: 1px solid var(--medium-gray);
+        }
+        .map-legend {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Кнопки (точно как в примерах) */
+        .btn-action {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
+            color: white;
+        }
+        .btn-secondary-action {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--medium-gray);
+        }
+        .btn-secondary-action:hover {
+            background: var(--medium-gray);
+            color: var(--text-primary);
+        }
+        .btn-add-day {
+            background: transparent;
+            border: 2px dashed var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .btn-add-day:hover {
+            background: var(--accent-color);
+            color: white;
+            border: 2px solid var(--accent-color);
+        }
+        .btn-success-action {
+            background: linear-gradient(90deg, var(--success-color), #2f855a);
+            color: white;
+        }
+
+        /* Модальное окно */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+        .modal-header {
+            background: var(--light-gray);
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        @media (max-width: 768px) {
+            .day-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .day-actions {
+                width: 100%;
+                display: flex;
+                justify-content: flex-start;
+            }
+            #map {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- НАВИГАЦИЯ (как в примерах) -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <i class="fas fa-mountain me-2"></i>
+            <span class="fw-bold fs-4">RouteBuddy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="#">
+                        <i class="fas fa-home me-2"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center active" href="#">
+                        <i class="fas fa-route me-2"></i> Маршруты
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="#">
+                        <i class="fas fa-user-circle me-2"></i> Профиль
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link d-flex align-items-center" href="#">
+                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-5">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-transparent">
+            <li class="breadcrumb-item"><a href="#">Главная</a></li>
+            <li class="breadcrumb-item"><a href="#">Мои маршруты</a></li>
+            <li class="breadcrumb-item active">Редактирование маршрута</li>
+        </ol>
+    </nav>
+
+    <!-- Заголовок страницы (в стиле example) -->
+    <div class="page-header">
+        <h1><i class="fas fa-pen-alt me-3"></i>Редактирование маршрута</h1>
+        <p class="mb-0">Измените название, описание, дни маршрута и их порядок. Кликните на карту, чтобы задать координаты для выбранного дня.</p>
+    </div>
+
+    <!-- Основные данные -->
+    <div class="card-custom">
+        <div class="card-header-custom">
+            <i class="fas fa-info-circle"></i> Основная информация
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">Название маршрута *</label>
+                    <input type="text" id="routeName" class="form-control" placeholder="Например: 7 дней в Петербурге">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Длительность (дни)</label>
+                    <input type="number" id="routeDuration" class="form-control" min="1" max="30" step="1">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Общая стоимость (₽)</label>
+                    <input type="number" id="routeCost" class="form-control" min="0" step="100">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Краткое описание маршрута</label>
+                    <textarea id="routeDesc" rows="3" class="form-control" placeholder="Расскажите о маршруте..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карта -->
+    <div class="card-custom">
+        <div class="card-header-custom">
+            <i class="fas fa-map-marked-alt"></i> Карта маршрута (порядок дней)
+        </div>
+        <div class="card-body p-4">
+            <div id="map"></div>
+            <div class="map-legend mt-2">
+                <span><span class="legend-dot" style="background:#718096;"></span> Дни маршрута (номера)</span>
+                <span><span class="legend-dot" style="background:#38a169;"></span> Линия следования</span>
+                <span><i class="fas fa-mouse-pointer"></i> Клик по карте → установить координаты для активного дня</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список дней -->
+    <div class="card-custom">
+        <div class="card-header-custom d-flex justify-content-between align-items-center flex-wrap">
+            <span><i class="fas fa-calendar-week"></i> Дни маршрута</span>
+            <!-- Переименованная кнопка: Открыть в конструкторе маршрутов -->
+            <button type="button" class="btn-add-day btn-sm" id="openConstructorBtn">
+                <i class="fas fa-tools"></i> Открыть в конструкторе маршрутов
+            </button>
+        </div>
+        <div class="card-body p-4">
+            <div id="daysListContainer" class="days-list">
+                <div class="text-center text-muted py-5">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопка сохранения (в стиле .btn-action) -->
+    <div class="d-flex justify-content-center mb-5">
+        <button id="saveRouteBtn" class="btn-action btn-lg px-5">
+            <i class="fas fa-save me-2"></i> Сохранить изменения
+        </button>
+    </div>
+</main>
+
+<!-- Модальное окно для редактирования дня (отдельное от добавления) -->
+<div class="modal fade" id="editDayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-light border-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-pen-alt me-2 text-secondary"></i>Редактирование дня</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDayId">
+                <div class="mb-3">
+                    <label class="form-label">Тема дня *</label>
+                    <input type="text" id="editDayTitle" class="form-control" placeholder="Тема дня">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Краткое описание</label>
+                    <textarea id="editDayDesc" rows="2" class="form-control" placeholder="Описание дня"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Примерная стоимость (₽)</label>
+                    <input type="number" id="editDayCost" class="form-control" min="0" step="100">
+                </div>
+                <div class="alert alert-info small">
+                    <i class="fas fa-map-pin"></i> Координаты можно изменить, выбрав день на карте (кнопка «Выбрать на карте»).
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" id="saveEditDayBtn" class="btn-action btn-success-action">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ---------- ГЛОБАЛЬНЫЕ ДАННЫЕ ----------
+    const STORAGE_KEY = "routebuddy_routes";
+    const CURRENT_ROUTE_ID = 101;
+
+    let routesArray = [];
+    let currentRoute = null;
+    let map = null;
+    let placemarks = [];
+    let polyline = null;
+    let activeDayId = null;
+
+    // Инициализация демо-данных (без оранжевого)
+    function initDemoData() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            routesArray = JSON.parse(stored);
+            currentRoute = routesArray.find(r => r.id === CURRENT_ROUTE_ID);
+        }
+        if (!currentRoute) {
+            currentRoute = {
+                id: CURRENT_ROUTE_ID,
+                name: "Неделя в Санкт-Петербурге",
+                description: "Культурный маршрут по основным достопримечательностям",
+                duration: 7,
+                cost: 18500,
+                days: [
+                    { id: 1001, title: "Невский проспект и Казанский", description: "Прогулка по главной улице", cost: 1200, lat: 59.9343, lon: 30.3241 },
+                    { id: 1002, title: "Эрмитаж и Дворцовая площадь", description: "Главный музей", cost: 800, lat: 59.9411, lon: 30.3129 },
+                    { id: 1003, title: "Петропавловская крепость", description: "Исторический центр", cost: 600, lat: 59.9500, lon: 30.3167 },
+                    { id: 1004, title: "Исаакиевский собор", description: "Колоннада и вид", cost: 450, lat: 59.9343, lon: 30.3061 },
+                    { id: 1005, title: "Спас на Крови", description: "Мозаики", cost: 400, lat: 59.9364, lon: 30.3248 },
+                    { id: 1006, title: "Петергоф (день)", description: "Фонтаны", cost: 1500, lat: 59.8856, lon: 29.9036 },
+                    { id: 1007, title: "Царское село", description: "Екатерининский дворец", cost: 1300, lat: 59.7167, lon: 30.4167 }
+                ]
+            };
+            routesArray = [currentRoute];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(routesArray));
+        }
+        currentRoute.days.forEach(day => {
+            if (day.lat === undefined || day.lon === undefined) {
+                day.lat = 59.9391;
+                day.lon = 30.3159;
+            }
+        });
+        if (currentRoute.duration !== currentRoute.days.length) currentRoute.duration = currentRoute.days.length;
+        if (currentRoute.cost === undefined) currentRoute.cost = currentRoute.days.reduce((s, d) => s + (d.cost || 0), 0);
+        persistRoutes();
+    }
+
+    function persistRoutes() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(routesArray));
+    }
+
+    function populateForm() {
+        document.getElementById('routeName').value = currentRoute.name || '';
+        document.getElementById('routeDesc').value = currentRoute.description || '';
+        document.getElementById('routeDuration').value = currentRoute.duration || currentRoute.days.length;
+        document.getElementById('routeCost').value = currentRoute.cost || 0;
+    }
+
+    // Рендер списка дней с кнопкой "Редактировать день"
+    function renderDaysList() {
+        const container = document.getElementById('daysListContainer');
+        if (!currentRoute.days.length) {
+            container.innerHTML = `<div class="text-center text-muted py-4"><i class="fas fa-info-circle"></i> Нет добавленных дней. Нажмите "Открыть в конструкторе маршрутов".</div>`;
+            return;
+        }
+        let html = '';
+        currentRoute.days.forEach((day, idx) => {
+            const isActive = (activeDayId === day.id);
+            html += `
+                <div class="day-item" data-day-id="${day.id}">
+                    <div class="day-header">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="day-number-badge">${idx+1}</span>
+                            <input type="text" class="form-control form-control-sm day-title-input" style="width: auto;" value="${escapeHtml(day.title)}" data-dayid="${day.id}" data-field="title">
+                        </div>
+                        <div class="day-actions">
+                            <button class="edit-day-btn" data-id="${day.id}" title="Редактировать день"><i class="fas fa-edit"></i> Редактировать</button>
+                            <button class="move-up-btn" data-id="${day.id}" ${idx===0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>
+                            <button class="move-down-btn" data-id="${day.id}" ${idx===currentRoute.days.length-1 ? 'disabled' : ''}><i class="fas fa-arrow-down"></i></button>
+                            <button class="delete-day-btn" data-id="${day.id}"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-6">
+                            <textarea class="form-control form-control-sm" rows="2" placeholder="Описание дня" data-dayid="${day.id}" data-field="description">${escapeHtml(day.description || '')}</textarea>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control form-control-sm" value="${day.cost || 0}" placeholder="Стоимость (₽)" data-dayid="${day.id}" data-field="cost" step="100">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="point-coord-row">
+                                <span class="coord-badge"><i class="fas fa-map-marker-alt"></i> ${day.lat?.toFixed(5) || '—'}, ${day.lon?.toFixed(5) || '—'}</span>
+                                <button class="btn-pick-coord ${isActive ? 'active' : ''}" data-dayid="${day.id}">
+                                    <i class="fas fa-crosshairs"></i> ${isActive ? 'Активен' : 'Выбрать на карте'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+
+        // Обработчики для полей inline-редактирования
+        document.querySelectorAll('.day-title-input, textarea[data-field="description"], input[data-field="cost"]').forEach(el => {
+            el.addEventListener('change', function() {
+                const dayId = parseInt(this.dataset.dayid);
+                const field = this.dataset.field;
+                const day = currentRoute.days.find(d => d.id === dayId);
+                if (day) {
+                    if (field === 'title') day.title = this.value;
+                    else if (field === 'description') day.description = this.value;
+                    else if (field === 'cost') day.cost = parseFloat(this.value) || 0;
+                    const totalCost = currentRoute.days.reduce((sum, d) => sum + (d.cost || 0), 0);
+                    document.getElementById('routeCost').value = totalCost;
+                    currentRoute.cost = totalCost;
+                    persistRoutes();
+                    updateMapMarkers();
+                }
+            });
+        });
+
+        // Кнопки выбора координат
+        document.querySelectorAll('.btn-pick-coord').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const dayId = parseInt(btn.dataset.dayid);
+                setActiveDay(dayId);
+            });
+        });
+        // Кнопки перемещения/удаления
+        document.querySelectorAll('.move-up-btn').forEach(btn => {
+            btn.addEventListener('click', () => moveDay(parseInt(btn.dataset.id), 'up'));
+        });
+        document.querySelectorAll('.move-down-btn').forEach(btn => {
+            btn.addEventListener('click', () => moveDay(parseInt(btn.dataset.id), 'down'));
+        });
+        document.querySelectorAll('.delete-day-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteDay(parseInt(btn.dataset.id)));
+        });
+        // Кнопки "Редактировать день" – открывают модальное окно с данными дня
+        document.querySelectorAll('.edit-day-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const dayId = parseInt(btn.dataset.id);
+                const day = currentRoute.days.find(d => d.id === dayId);
+                if (day) {
+                    openEditDayModal(day);
+                }
+            });
+        });
+    }
+
+    function setActiveDay(dayId) {
+        activeDayId = dayId;
+        renderDaysList();
+        const day = currentRoute.days.find(d => d.id === dayId);
+        if (day && map) map.panTo([day.lat, day.lon], { flying: true });
+    }
+
+    function moveDay(dayId, direction) {
+        const index = currentRoute.days.findIndex(d => d.id === dayId);
+        if (direction === 'up' && index > 0) {
+            [currentRoute.days[index-1], currentRoute.days[index]] = [currentRoute.days[index], currentRoute.days[index-1]];
+        } else if (direction === 'down' && index < currentRoute.days.length-1) {
+            [currentRoute.days[index+1], currentRoute.days[index]] = [currentRoute.days[index], currentRoute.days[index+1]];
+        }
+        document.getElementById('routeDuration').value = currentRoute.days.length;
+        currentRoute.duration = currentRoute.days.length;
+        persistRoutes();
+        renderDaysList();
+        updateMapMarkers();
+    }
+
+    function deleteDay(dayId) {
+        if (confirm('Удалить этот день из маршрута?')) {
+            currentRoute.days = currentRoute.days.filter(d => d.id !== dayId);
+            if (activeDayId === dayId) activeDayId = null;
+            document.getElementById('routeDuration').value = currentRoute.days.length;
+            currentRoute.duration = currentRoute.days.length;
+            const totalCost = currentRoute.days.reduce((sum, d) => sum + (d.cost || 0), 0);
+            document.getElementById('routeCost').value = totalCost;
+            currentRoute.cost = totalCost;
+            persistRoutes();
+            renderDaysList();
+            updateMapMarkers();
+        }
+    }
+
+    // Открыть модалку для редактирования дня
+    function openEditDayModal(day) {
+        document.getElementById('editDayId').value = day.id;
+        document.getElementById('editDayTitle').value = day.title;
+        document.getElementById('editDayDesc').value = day.description || '';
+        document.getElementById('editDayCost').value = day.cost || 0;
+        const editModal = new bootstrap.Modal(document.getElementById('editDayModal'));
+        editModal.show();
+    }
+
+    // Сохранить изменения из модалки
+    function saveEditedDay() {
+        const dayId = parseInt(document.getElementById('editDayId').value);
+        const day = currentRoute.days.find(d => d.id === dayId);
+        if (day) {
+            const newTitle = document.getElementById('editDayTitle').value.trim();
+            if (!newTitle) {
+                alert('Тема дня обязательна');
+                return;
+            }
+            day.title = newTitle;
+            day.description = document.getElementById('editDayDesc').value;
+            day.cost = parseFloat(document.getElementById('editDayCost').value) || 0;
+            // Пересчёт общей стоимости
+            const totalCost = currentRoute.days.reduce((sum, d) => sum + (d.cost || 0), 0);
+            document.getElementById('routeCost').value = totalCost;
+            currentRoute.cost = totalCost;
+            persistRoutes();
+            renderDaysList();       // обновить отображение
+            updateMapMarkers();     // обновить балуны на карте
+            // Закрыть модалку
+            const modalEl = document.getElementById('editDayModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+        }
+    }
+
+    // Карта
+    function initMap() {
+        if (!map) {
+            map = new ymaps.Map('map', {
+                center: [59.9391, 30.3159],
+                zoom: 11,
+                controls: ['zoomControl', 'fullscreenControl']
+            });
+            map.events.add('click', function(e) {
+                if (activeDayId !== null) {
+                    const coords = e.get('coords');
+                    const day = currentRoute.days.find(d => d.id === activeDayId);
+                    if (day) {
+                        day.lat = coords[0];
+                        day.lon = coords[1];
+                        persistRoutes();
+                        renderDaysList();
+                        updateMapMarkers();
+                        activeDayId = null;
+                        renderDaysList();
+                    }
+                }
+            });
+        }
+        updateMapMarkers();
+    }
+
+    function updateMapMarkers() {
+        if (!map) return;
+        map.geoObjects.removeAll();
+        placemarks = [];
+        if (!currentRoute.days.length) return;
+        const coords = [];
+        currentRoute.days.forEach((day, idx) => {
+            const lat = day.lat ?? 59.9391;
+            const lon = day.lon ?? 30.3159;
+            coords.push([lat, lon]);
+            const placemark = new ymaps.Placemark([lat, lon], {
+                balloonContentHeader: `<strong>День ${idx+1}: ${escapeHtml(day.title)}</strong>`,
+                balloonContentBody: day.description || 'Нет описания',
+                balloonContentFooter: `💰 ${day.cost} ₽`
+            }, {
+                preset: 'islands#circleIcon',
+                iconColor: '#718096',
+                iconContent: (idx+1).toString(),
+                balloonMaxWidth: 280
+            });
+            map.geoObjects.add(placemark);
+            placemarks.push(placemark);
+        });
+        if (coords.length > 1) {
+            if (polyline) map.geoObjects.remove(polyline);
+            polyline = new ymaps.Polyline(coords, {}, {
+                strokeColor: '#38a169',
+                strokeWidth: 4,
+                strokeOpacity: 0.8,
+                lineCap: 'round'
+            });
+            map.geoObjects.add(polyline);
+        }
+        if (coords.length) {
+            try { map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 50 }); } catch(e) {}
+        }
+    }
+
+    // Сохранение маршрута
+    function saveRoute() {
+        const newName = document.getElementById('routeName').value.trim();
+        if (!newName) { alert('Введите название маршрута'); return; }
+        const newDesc = document.getElementById('routeDesc').value;
+        let newDuration = parseInt(document.getElementById('routeDuration').value);
+        if (isNaN(newDuration) || newDuration < 1) newDuration = currentRoute.days.length;
+        if (newDuration > 30) newDuration = 30;
+        let newCost = parseFloat(document.getElementById('routeCost').value);
+        if (isNaN(newCost)) newCost = 0;
+        currentRoute.name = newName;
+        currentRoute.description = newDesc;
+        currentRoute.duration = newDuration;
+        currentRoute.cost = newCost;
+        persistRoutes();
+        alert('Маршрут успешно сохранён! Переход на страницу маршрута.');
+        window.location.href = `route.html?id=${currentRoute.id}`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Инициализация
+    function init() {
+        initDemoData();
+        populateForm();
+        renderDaysList();
+        ymaps.ready(() => initMap());
+
+        // Кнопка "Открыть в конструкторе маршрутов" (заглушка, ведёт на конструктор)
+        document.getElementById('openConstructorBtn').addEventListener('click', () => {
+            alert('Конструктор маршрутов из дней будет доступен в следующей версии. Здесь вы сможете комбинировать дни из разных маршрутов.');
+            // в реальном приложении: window.location.href = '/constructor';
+        });
+
+        document.getElementById('saveRouteBtn').addEventListener('click', saveRoute);
+        document.getElementById('saveEditDayBtn').addEventListener('click', saveEditedDay);
+
+        // Синхронизация полей длительности и стоимости при ручном вводе
+        document.getElementById('routeDuration').addEventListener('change', function() {
+            currentRoute.duration = parseInt(this.value) || currentRoute.days.length;
+            persistRoutes();
+        });
+        document.getElementById('routeCost').addEventListener('change', function() {
+            currentRoute.cost = parseFloat(this.value) || 0;
+            persistRoutes();
+        });
+    }
+    init();
+</script>
+</body>
+</html>
