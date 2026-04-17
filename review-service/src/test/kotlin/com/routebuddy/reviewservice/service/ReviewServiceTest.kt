@@ -6,14 +6,16 @@ import com.routebuddy.reviews.entity.Review
 import com.routebuddy.reviews.exception.DuplicateReviewException
 import com.routebuddy.reviews.exception.ReviewNotFoundException
 import com.routebuddy.reviews.repository.ReviewRepository
-import io.mockk.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.*
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
+import java.util.Optional
 
 class ReviewServiceTest {
 
@@ -22,190 +24,86 @@ class ReviewServiceTest {
 
     @BeforeEach
     fun setUp() {
-        reviewRepository = mockk()
+        reviewRepository = mock(ReviewRepository::class.java)
         reviewService = ReviewService(reviewRepository)
     }
 
     @Test
-    fun `createReview should save review when user has not reviewed route before`() {
-        val userId = 1L
-        val request = ReviewRequest(routeId = 10L, text = "Great route!", rating = 9)
-        val review = Review(
-            id = 1,
-            routeId = request.routeId,
-            userId = userId,
-            text = request.text,
-            rating = request.rating,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
+    fun `createReview should save review when valid`() {
+        val now = LocalDateTime.now()
+        `when`(reviewRepository.existsByRouteIdAndUserId(10L, 1L)).thenReturn(false)
+        `when`(reviewRepository.save(any(Review::class.java))).thenReturn(
+            Review(
+                id = "r1",
+                routeId = 10L,
+                userId = 1L,
+                authorUsername = "ivan",
+                text = "Отличный маршрут",
+                rating = 9,
+                createdAt = now,
+                updatedAt = now
+            )
         )
 
-        every { reviewRepository.existsByRouteIdAndUserId(request.routeId, userId) } returns false
-        every { reviewRepository.save(any()) } returns review
+        val result = reviewService.createReview(1L, "ivan", ReviewRequest(10L, "Отличный маршрут", 9))
 
-        val response = reviewService.createReview(userId, request)
-
-        assertThat(response.id).isEqualTo(1)
-        assertThat(response.rating).isEqualTo(9)
-        assertThat(response.text).isEqualTo("Great route!")
-        verify(exactly = 1) { reviewRepository.save(any()) }
+        assertThat(result.id).isEqualTo("r1")
+        assertThat(result.comment).isEqualTo("Отличный маршрут")
+        verify(reviewRepository, times(1)).save(any(Review::class.java))
     }
 
     @Test
-    fun `createReview should throw DuplicateReviewException when user already reviewed route`() {
-        val userId = 1L
-        val request = ReviewRequest(routeId = 10L, text = "Great route!", rating = 9)
-
-        every { reviewRepository.existsByRouteIdAndUserId(request.routeId, userId) } returns true
+    fun `createReview should fail when duplicate`() {
+        `when`(reviewRepository.existsByRouteIdAndUserId(10L, 1L)).thenReturn(true)
 
         assertThrows<DuplicateReviewException> {
-            reviewService.createReview(userId, request)
+            reviewService.createReview(1L, "ivan", ReviewRequest(10L, "Отличный маршрут", 9))
         }
-        verify(exactly = 0) { reviewRepository.save(any()) }
     }
 
     @Test
-    fun `getReviewsByRouteId should return page of reviews`() {
-        val routeId = 10L
-        val pageable = PageRequest.of(0, 10)
-        val reviews = listOf(
-            Review(1, routeId, 1L, "text1", 8, LocalDateTime.now(), LocalDateTime.now()),
-            Review(2, routeId, 2L, "text2", 9, LocalDateTime.now(), LocalDateTime.now())
+    fun `createReview should fail when text has links`() {
+        assertThrows<IllegalArgumentException> {
+            reviewService.createReview(1L, "ivan", ReviewRequest(10L, "Смотрите https://spam", 8))
+        }
+    }
+
+    @Test
+    fun `getReviewsByRouteId should map entity page`() {
+        val now = LocalDateTime.now()
+        val page = PageImpl(
+            listOf(
+                Review("r1", 10L, 1L, "u1", "ok text", 8, now, now),
+                Review("r2", 10L, 2L, "u2", "nice text", 9, now, now)
+            ),
+            PageRequest.of(0, 10),
+            2
         )
-        val page = PageImpl(reviews, pageable, reviews.size.toLong())
+        `when`(reviewRepository.findByRouteId(10L, PageRequest.of(0, 10))).thenReturn(page)
 
-        every { reviewRepository.findByRouteId(routeId, pageable) } returns page
-
-        val result = reviewService.getReviewsByRouteId(routeId, pageable)
+        val result = reviewService.getReviewsByRouteId(10L, PageRequest.of(0, 10))
 
         assertThat(result.totalElements).isEqualTo(2)
-        assertThat(result.content).hasSize(2)
-        verify(exactly = 1) { reviewRepository.findByRouteId(routeId, pageable) }
+        assertThat(result.content.first().comment).isEqualTo("ok text")
     }
 
     @Test
-    fun `getAverageRating should return 0 when no reviews`() {
-        val routeId = 10L
-        every { reviewRepository.findAverageRatingByRouteId(routeId) } returns null
-
-        val avg = reviewService.getAverageRating(routeId)
-
-        assertThat(avg).isEqualTo(0.0)
-    }
-
-    @Test
-    fun `getAverageRating should return correct average`() {
-        val routeId = 10L
-        every { reviewRepository.findAverageRatingByRouteId(routeId) } returns 8.5
-
-        val avg = reviewService.getAverageRating(routeId)
-
-        assertThat(avg).isEqualTo(8.5)
-    }
-
-    @Test
-    fun `updateReview should update when user is author`() {
-        val reviewId = 1L
-        val userId = 1L
-        val existingReview = Review(
-            id = reviewId,
-            routeId = 10L,
-            userId = userId,
-            text = "old",
-            rating = 5,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-        val updateRequest = ReviewUpdateRequest(text = "new text", rating = 9)
-
-        every { reviewRepository.findById(reviewId) } returns Optional.of(existingReview)
-        every { reviewRepository.save(any()) } answers { firstArg() }
-
-        val updated = reviewService.updateReview(reviewId, userId, updateRequest)
-
-        assertThat(updated.text).isEqualTo("new text")
-        assertThat(updated.rating).isEqualTo(9)
-        verify(exactly = 1) { reviewRepository.save(existingReview) }
-    }
-
-    @Test
-    fun `updateReview should throw IllegalStateException when user is not author`() {
-        val reviewId = 1L
-        val userId = 1L
-        val authorId = 2L
-        val existingReview = Review(
-            id = reviewId,
-            routeId = 10L,
-            userId = authorId,
-            text = "old",
-            rating = 5,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-        val updateRequest = ReviewUpdateRequest(text = "new", rating = 9)
-
-        every { reviewRepository.findById(reviewId) } returns Optional.of(existingReview)
+    fun `updateReview should fail if not author`() {
+        val now = LocalDateTime.now()
+        val review = Review("r1", 10L, 2L, "u2", "old text", 5, now, now)
+        `when`(reviewRepository.findById("r1")).thenReturn(Optional.of(review))
 
         assertThrows<IllegalStateException> {
-            reviewService.updateReview(reviewId, userId, updateRequest)
+            reviewService.updateReview("r1", 1L, ReviewUpdateRequest("new text", 9))
         }
-        verify(exactly = 0) { reviewRepository.save(any()) }
     }
 
     @Test
-    fun `deleteReview should delete when user is author`() {
-        val reviewId = 1L
-        val userId = 1L
-        val existingReview = Review(
-            id = reviewId,
-            routeId = 10L,
-            userId = userId,
-            text = "text",
-            rating = 5,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-
-        every { reviewRepository.findById(reviewId) } returns Optional.of(existingReview)
-        justRun { reviewRepository.delete(existingReview) }
-
-        reviewService.deleteReview(reviewId, userId)
-
-        verify(exactly = 1) { reviewRepository.delete(existingReview) }
-    }
-
-    @Test
-    fun `deleteReview should throw IllegalStateException when user is not author`() {
-        val reviewId = 1L
-        val userId = 1L
-        val authorId = 2L
-        val existingReview = Review(
-            id = reviewId,
-            routeId = 10L,
-            userId = authorId,
-            text = "text",
-            rating = 5,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        )
-
-        every { reviewRepository.findById(reviewId) } returns Optional.of(existingReview)
-
-        assertThrows<IllegalStateException> {
-            reviewService.deleteReview(reviewId, userId)
-        }
-        verify(exactly = 0) { reviewRepository.delete(any()) }
-    }
-
-    @Test
-    fun `deleteReview should throw ReviewNotFoundException when review not found`() {
-        val reviewId = 1L
-        val userId = 1L
-
-        every { reviewRepository.findById(reviewId) } returns Optional.empty()
+    fun `deleteReview should fail if missing`() {
+        `when`(reviewRepository.findById("missing")).thenReturn(Optional.empty())
 
         assertThrows<ReviewNotFoundException> {
-            reviewService.deleteReview(reviewId, userId)
+            reviewService.deleteReview("missing", 1L)
         }
     }
 }

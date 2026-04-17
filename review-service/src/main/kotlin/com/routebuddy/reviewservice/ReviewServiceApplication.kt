@@ -3,7 +3,7 @@ package com.routebuddy.reviewservice
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = ["com.routebuddy"])
 class ReviewServiceApplication
 
 fun main(args: Array<String>) {
