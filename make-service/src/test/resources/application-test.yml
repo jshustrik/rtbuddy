@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:make_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+
+jwt:
+  secret: 'n4uB0oP1mQ6sT8yZ0xR3vL7eF2aD5jK9sU8iE4wQ1zC3bN6rT8vY0pL7kJ2dS9aF'
