@@ -2,15 +2,17 @@ server:
   port: 8083
 
 spring:
+  # DEMO: H2 in-memory replaces PostgreSQL — no external DB needed
   datasource:
-    url: jdbc:postgresql://localhost:5432/rbtestdb
-    username: postgres
-    password: 123
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:demodb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: create-drop
+    show-sql: false
   main:
     allow-bean-definition-overriding: true
   mongodb:
@@ -22,6 +24,5 @@ jwt:
 
 logging:
   level:
-    org.springframework.web: DEBUG
-    org.springframework.boot.autoconfigure.web: DEBUG
-    org.springframework.boot.actuate.endpoint.web: DEBUG
+    root: WARN
+    org.springframework.web: INFO

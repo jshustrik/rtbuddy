@@ -17,7 +17,7 @@ class RoutesViewServiceSecurityConfig (
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/internal/**", "/profile/", "/routes").permitAll()
+                auth.requestMatchers("/internal/**", "/profile/", "/routes", "/constructor", "/constructor/**").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(
