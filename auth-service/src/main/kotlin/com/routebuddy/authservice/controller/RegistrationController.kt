@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PostMapping
+import java.net.URI
 
 @Controller
 class RegistrationController(
@@ -58,14 +59,35 @@ class RegistrationController(
             return "register"
         }
         val redirectUrl = request.getParameter("redirectUrl")
-        val targetUrl = if (!redirectUrl.isNullOrBlank()) {
-            if (redirectUrl.contains("?")) {
-                "$redirectUrl&nickname=${registrationRequest.username}"
-            } else {
-                "$redirectUrl?nickname=${registrationRequest.username}"
-            }
+        val scheme = request.scheme ?: "http"
+        val host = request.serverName ?: "127.0.0.1"
+
+        val baseTargetUrl = if (!redirectUrl.isNullOrBlank()) {
+            // Normalize host for the same cookie-scoping reason as login.
+            val normalized = runCatching { URI(redirectUrl) }.getOrNull()?.let { uri ->
+                if (uri.isAbsolute) {
+                    URI(
+                        uri.scheme ?: scheme,
+                        uri.userInfo,
+                        host,
+                        uri.port,
+                        uri.path,
+                        uri.query,
+                        uri.fragment
+                    ).toString()
+                } else {
+                    redirectUrl
+                }
+            } ?: redirectUrl
+            normalized
         } else {
-            "http://127.0.0.1:8082/profile/${registrationRequest.username}"
+            "$scheme://$host:8082/profile/${registrationRequest.username}"
+        }
+
+        val targetUrl = if (baseTargetUrl.contains("?")) {
+            "$baseTargetUrl&nickname=${registrationRequest.username}"
+        } else {
+            "$baseTargetUrl?nickname=${registrationRequest.username}"
         }
         return "redirect:$targetUrl"
     }

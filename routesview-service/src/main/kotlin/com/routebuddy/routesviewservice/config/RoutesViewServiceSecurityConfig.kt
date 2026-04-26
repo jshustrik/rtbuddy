@@ -4,6 +4,7 @@ import com.routebuddy.routesviewservice.security.JwtAuthenticationFilter
 import com.routebuddy.routesviewservice.security.JwtTokenProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
@@ -17,7 +18,13 @@ class RoutesViewServiceSecurityConfig (
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/internal/**", "/profile/", "/routes").permitAll()
+                auth
+                    // public pages
+                    .requestMatchers(HttpMethod.GET, "/", "/routes", "/routes/**").permitAll()
+                    // actions that require auth
+                    .requestMatchers(HttpMethod.POST, "/routes/*/reviews").authenticated()
+                    .requestMatchers("/routes/create", "/routes/createday", "/routes/compose", "/routes/export/**").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/routes/**").authenticated()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(

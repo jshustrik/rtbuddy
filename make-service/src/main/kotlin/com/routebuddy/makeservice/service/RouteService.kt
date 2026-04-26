@@ -266,6 +266,7 @@ class RouteService(
     }
 
     private fun buildDayEntity(route: Route, dayOrder: Int, dr: CreateDayRequest): RouteDay {
+        TzConstraints.validateOrderIndex(dayOrder, "Порядок дня")
         val day = RouteDay(
             route = route,
             dayOrder = dayOrder,
@@ -282,6 +283,7 @@ class RouteService(
         TzConstraints.validateDayTheme(dr.theme)
         TzConstraints.validateDayDescription(dr.description)
         TzConstraints.validateCostNonNegative(dr.dayCostRub)
+        TzConstraints.validateOrderIndex(dr.dayOrder, "Порядок дня")
         require(dr.points.isNotEmpty()) { "В каждом дне должна быть хотя бы одна точка" }
 
         day.theme = dr.theme.trim()
@@ -289,6 +291,10 @@ class RouteService(
         day.dayCostRub = dr.dayCostRub.stripTrailingZeros()
 
         day.points.clear()
+        val explicitPointOrders = dr.points.mapNotNull { it.orderIndex }
+        require(explicitPointOrders.toSet().size == explicitPointOrders.size) {
+            "Порядок точек содержит дубликаты"
+        }
         val sortedPoints = dr.points.withIndex().sortedBy { it.value.orderIndex ?: (it.index + 1) }
         sortedPoints.forEachIndexed { idx, indexed ->
             val pr = indexed.value
@@ -305,6 +311,10 @@ class RouteService(
         TzConstraints.validateCoordinates(pr.latitude, pr.longitude)
         TzConstraints.validateTimeHm(pr.timeStart)
         TzConstraints.validateTimeHm(pr.timeEnd)
+        TzConstraints.validateTimeRange(pr.timeStart, pr.timeEnd)
+        TzConstraints.validateStayMinutes(pr.stayMinutes)
+        TzConstraints.validateOrderIndex(pr.orderIndex, "Порядок точки")
+        TzConstraints.validateImageUrls(pr.imageUrls)
         val p = RoutePoint(
             day = day,
             orderIndex = pr.orderIndex ?: orderIndex,

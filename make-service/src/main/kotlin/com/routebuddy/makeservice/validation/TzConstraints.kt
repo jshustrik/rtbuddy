@@ -18,6 +18,7 @@ object TzConstraints {
     const val POINT_TITLE_MIN = 2
     const val POINT_TITLE_MAX = 100
     const val POINT_DESC_MAX = 300
+    const val POINT_IMAGE_MAX_MB = 5
 
     private val HTML_TAG = Regex("<[^>]+>")
 
@@ -88,6 +89,34 @@ object TzConstraints {
         if (raw.isNullOrBlank()) return
         require(raw.matches(Regex("""^([01]\d|2[0-3]):[0-5]\d$"""))) {
             "Время должно быть в формате чч:мм"
+        }
+    }
+
+    fun validateTimeRange(start: String?, end: String?) {
+        if (start.isNullOrBlank() || end.isNullOrBlank()) return
+        validateTimeHm(start)
+        validateTimeHm(end)
+        require(start < end) { "Время окончания точки должно быть позже времени начала" }
+    }
+
+    fun validateStayMinutes(stayMinutes: Int?) {
+        if (stayMinutes == null) return
+        require(stayMinutes >= 0) { "Примерное время пребывания не может быть отрицательным" }
+    }
+
+    fun validateOrderIndex(orderIndex: Int?, fieldName: String) {
+        if (orderIndex == null) return
+        require(orderIndex > 0) { "$fieldName должен быть больше 0" }
+    }
+
+    fun validateImageUrls(imageUrls: List<String>) {
+        imageUrls.forEach { raw ->
+            val url = raw.trim()
+            require(url.isNotEmpty()) { "Ссылка на изображение точки не должна быть пустой" }
+            val normalized = url.substringBefore('?').substringBefore('#').lowercase()
+            require(normalized.endsWith(".jpg") || normalized.endsWith(".png")) {
+                "Изображения точек должны быть в форматах .jpg или .png"
+            }
         }
     }
 }

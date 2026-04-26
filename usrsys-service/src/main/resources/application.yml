@@ -14,3 +14,9 @@ logging:
 jwt:
   secret: 'n4uB0oP1mQ6sT8yZ0xR3vL7eF2aD5jK9sU8iE4wQ1zC3bN6rT8vY0pL7kJ2dS9aF'
   expiration: 3600000
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB

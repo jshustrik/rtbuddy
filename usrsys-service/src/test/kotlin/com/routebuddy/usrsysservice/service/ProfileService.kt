@@ -9,7 +9,8 @@ import org.mockito.kotlin.*
 class ProfileServiceTest {
 
     private val authServiceClient = mock<AuthServiceClient>()
-    private val profileService = ProfileService(authServiceClient)
+    private val avatarStorageService = mock<AvatarStorageService>()
+    private val profileService = ProfileService(authServiceClient, avatarStorageService)
 
     @Test
     fun `getProfile should return ProfileDto from user data`() {
@@ -20,6 +21,7 @@ class ProfileServiceTest {
             role = "TEACHER"
         )
         whenever(authServiceClient.getUserByUsername("alice")).thenReturn(userDto)
+        whenever(avatarStorageService.getAvatarUrl("alice")).thenReturn(null)
         val profile = profileService.getProfile("alice")
         assertEquals(123, profile.id)
         assertEquals("alice", profile.username)

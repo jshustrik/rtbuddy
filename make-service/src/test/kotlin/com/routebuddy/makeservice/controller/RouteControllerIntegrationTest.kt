@@ -221,4 +221,42 @@ class RouteControllerIntegrationTest {
             .andExpect(jsonPath("$.durationDays").value(1))
             .andExpect(jsonPath("$.days[0].theme").exists())
     }
+
+    @Test
+    fun `create route rejects invalid point time and image format`() {
+        val invalidBody = """
+            {
+              "title": "Невалидный маршрут",
+              "description": "Описание маршрута достаточно длинное для прохождения базовой валидации.",
+              "durationDays": 1,
+              "totalCostRub": 5000,
+              "published": true,
+              "days": [
+                {
+                  "theme": "Тестовый день",
+                  "description": "Описание дня достаточно подробное для прохождения валидации дня.",
+                  "dayCostRub": 5000,
+                  "points": [
+                    {
+                      "title": "Точка с ошибкой",
+                      "latitude": 55.75,
+                      "longitude": 37.61,
+                      "timeStart": "14:00",
+                      "timeEnd": "13:00",
+                      "imageUrls": ["https://cdn.example.com/picture.webp"]
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        mockMvc.perform(
+            post("/api/v1/routes")
+                .header("Authorization", "Bearer ${TestJwtFactory.token(1L, "tester")}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidBody),
+        )
+            .andExpect(status().isBadRequest)
+    }
 }
