@@ -1,7 +1,7 @@
 package com.routebuddy.authservice.config
 
-import com.quizwhiz.authservice.model.User
-import com.quizwhiz.authservice.repository.UserRepository
+import com.routebuddy.authservice.model.User
+import com.routebuddy.authservice.repository.UserRepository
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Assertions.*
@@ -72,7 +72,7 @@ class CustomAuthenticationSuccessHandlerTest {
 
         successHandler.onAuthenticationSuccess(request, response, auth)
 
-        verify(response).sendRedirect("http://127.0.0.1:8082/profile/$username")
+        verify(response).sendRedirect("/profile/$username")
     }
 
     @Test

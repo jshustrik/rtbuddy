@@ -501,48 +501,143 @@
             border-color: var(--primary-color);
             color: white;
         }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-surface: #ffffff;
+            --rb-ink: #23312f;
+            --rb-muted: #64706d;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+        }
+        body {
+            background: var(--rb-bg);
+            color: var(--rb-ink);
+        }
+        .navbar {
+            background: var(--rb-primary-dark);
+            box-shadow: none;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+        .nav-link {
+            border-radius: 8px;
+            padding: .55rem .75rem !important;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,.1);
+            transform: none;
+        }
+        .profile-card,
+        .routes-section,
+        .route-card,
+        .modal-content,
+        .upload-area,
+        .empty-state,
+        .user-stats {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+            box-shadow: none;
+        }
+        .profile-card:hover,
+        .route-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(31,77,73,.1);
+        }
+        .avatar-section {
+            background: var(--rb-primary-dark);
+        }
+        .avatar-upload-btn,
+        .action-btn-primary,
+        .action-btn-success,
+        .action-btn-warning {
+            background: var(--rb-primary);
+            color: white;
+        }
+        .avatar-upload-btn:hover,
+        .action-btn-primary:hover,
+        .action-btn-success:hover,
+        .action-btn-warning:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+            box-shadow: none;
+        }
+        .action-btn,
+        .btn-outline-gray,
+        .form-control,
+        .input-group-text {
+            border-radius: 8px;
+        }
+        .btn-outline-gray:hover {
+            background: #eef3f0;
+            border-color: var(--rb-primary);
+        }
+        .user-stats {
+            background: #fbfcfb;
+        }
+        .stat-value {
+            color: var(--rb-primary-dark);
+        }
+        .route-badge {
+            background: #e7f1ed;
+            color: var(--rb-primary-dark);
+            border-radius: 999px;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+        .badge-easy {
+            background: #e7f1ed;
+            color: var(--rb-primary-dark);
+        }
+        .route-stat i {
+            color: var(--rb-primary);
+        }
+        .modal-header {
+            background: var(--rb-primary-dark);
+            color: white;
+        }
+        .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        @media (max-width: 768px) {
+            .container.py-5 {
+                padding-top: 1rem !important;
+            }
+            .avatar-section,
+            .user-info,
+            .routes-section {
+                padding: 1rem;
+            }
+            .route-card .d-flex {
+                align-items: stretch !important;
+            }
+            .route-card .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 <!-- Навигационная панель -->
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
-            <div>
-                <div class="fw-bold fs-4">RouteBuddy</div>
-            </div>
+        <a class="navbar-brand d-flex align-items-center" href="/routes">
+            <i class="fas fa-mountain me-2" style="font-size:1.4rem;"></i>
+            <span class="fw-bold fs-5">RouteBuddy</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/">
-                        <i class="fas fa-home me-2"></i> Главная
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/routes/create">
-                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link active d-flex align-items-center" href="/profile">
-                        <i class="fas fa-user-circle me-2"></i> Профиль
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/routes/explore">
-                        <i class="fas fa-compass me-2"></i> Исследовать
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/logout">
-                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
-                    </a>
-                </li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link active" href="/profile"><i class="fas fa-user-circle me-1"></i>Профиль</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Выйти</a></li>
             </ul>
         </div>
     </div>
@@ -553,13 +648,19 @@
     <div class="profile-card mb-5">
         <div class="avatar-section">
             <div class="avatar-container">
-                <img
-
+                <img th:if="${user.avatarUrl != null and !#strings.isEmpty(user.avatarUrl)}"
+                     th:src="${user.avatarUrl}"
                      class="avatar-img"
-                     id="currentAvatar">
+                     id="currentAvatar"
+                     alt="Аватар пользователя">
+                <img th:unless="${user.avatarUrl != null and !#strings.isEmpty(user.avatarUrl)}"
+                     src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Ccircle cx='80' cy='80' r='80' fill='%23718096'/%3E%3Ctext x='80' y='96' text-anchor='middle' font-family='Arial' font-size='48' font-weight='700' fill='white'%3ERB%3C/text%3E%3C/svg%3E"
+                     class="avatar-img"
+                     id="currentAvatar"
+                     alt="Аватар пользователя">
 
                 <!-- Кнопка изменения аватара -->
-                <div class="avatar-upload-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                <div class="avatar-upload-btn" data-bs-toggle="modal" data-bs-target="#avatarModal" title="Изменить аватар" aria-label="Изменить аватар">
                     <i class="fas fa-camera"></i>
                 </div>
             </div>
@@ -574,54 +675,59 @@
             <!-- Статистика пользователя -->
             <div class="user-stats">
                 <div class="stat-item">
-                    <div class="stat-value" >1</div>
+                    <div class="stat-value" id="routesCount">0</div>
                     <div class="stat-label">Маршрутов</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Пройдено км</div>
+                    <div class="stat-value"><i class="fas fa-globe"></i></div>
+                    <div class="stat-label">Публичный каталог</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Дней активности</div>
+                    <div class="stat-value"><i class="fas fa-file-pdf"></i></div>
+                    <div class="stat-label">Выгрузка PDF</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Друзей</div>
+                    <div class="stat-value"><i class="fas fa-camera"></i></div>
+                    <div class="stat-label">Аватар</div>
                 </div>
             </div>
 
             <!-- Кнопки действий -->
             <div class="row g-3 mt-4">
-                <div class="col-md-6 col-lg-3">
-                    <button class="btn action-btn action-btn-primary w-100" onclick="window.location.href='http://127.0.0.1:8083/routes'">
+                <div class="col-md-4">
+                    <button class="btn action-btn action-btn-primary w-100" onclick="window.location.href='/routes?my=true'">
                         <i class="fas fa-route"></i>
                         Мои маршруты
                     </button>
                 </div>
-                <div class="col-md-6 col-lg-3">
+                <div class="col-md-4">
                     <button class="btn action-btn action-btn-success w-100" onclick="window.location.href='/routes/create'">
                         <i class="fas fa-plus-circle"></i>
                         Создать маршрут
                     </button>
                 </div>
-                <div class="col-md-6 col-lg-3">
-                    <button class="btn action-btn action-btn-warning w-100" onclick="window.location.href='/routes/export'">
-                        <i class="fas fa-download"></i>
-                        Выгрузить маршрут
-                    </button>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <button class="btn action-btn action-btn-secondary w-100" onclick="window.location.href='/settings'">
-                        <i class="fas fa-cog"></i>
-                        Настройки
+                <div class="col-md-4">
+                    <button class="btn action-btn action-btn-warning w-100" onclick="window.location.href='/export'">
+                        <i class="fas fa-file-pdf"></i>
+                        Выгрузка в PDF
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Секция последних маршрутов -->
+    <!-- Секция созданных маршрутов -->
+    <div class="routes-section">
+        <h3 class="section-title">
+            <i class="fas fa-route me-2"></i>Мои маршруты
+        </h3>
+        <div id="myRoutesList">
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-spinner fa-spin fa-2x mb-3 d-block"></i>
+                Загружаем маршруты...
+            </div>
+        </div>
+    </div>
 
 
 <!-- Модальное окно для загрузки аватара -->
@@ -641,12 +747,12 @@
                         <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--accent-color);"></i>
                         <h5 class="fw-bold mb-2">Загрузите новое фото</h5>
                         <p class="text-muted mb-0">Перетащите файл сюда или нажмите для выбора</p>
-                        <small class="text-muted">JPG, PNG, GIF (до 5MB)</small>
+                        <small class="text-muted">JPG или PNG (до 5MB)</small>
                     </div>
                     <input type="file"
                            id="avatarInput"
                            name="avatar"
-                           accept="image/*"
+                           accept="image/jpeg,image/png"
                            style="display: none;"
                            onchange="previewAvatar(event)">
 
@@ -707,8 +813,8 @@
             }
 
             // Проверка типа файла
-            if (!file.type.match('image.*')) {
-                alert('Пожалуйста, выберите изображение!');
+            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                alert('Пожалуйста, выберите JPG или PNG');
                 input.value = '';
                 return;
             }
@@ -743,8 +849,8 @@
         const container = document.getElementById('avatarPreviewContainer');
 
         // Валидация URL
-        if (!url.match(/^https?:\/\/.+\/.+\.(jpg|jpeg|png|gif|webp)$/i)) {
-            alert('Пожалуйста, введите корректный URL изображения');
+        if (!url.match(/^https?:\/\/.+\/.+\.(jpg|jpeg|png)(?:\?.*)?$/i)) {
+            alert('Пожалуйста, введите корректный URL JPG или PNG');
             return;
         }
 
@@ -764,18 +870,24 @@
 
     // Отправка формы аватара
     function uploadAvatar() {
-        const form = document.getElementById('avatarForm');
-        const formData = new FormData(form);
+        const preview = document.getElementById('avatarPreview');
+        const avatarUrl = document.getElementById('avatarUrl').value.trim() || preview.getAttribute('src') || '';
+
+        if (!avatarUrl) {
+            showNotification('Выберите файл или укажите URL изображения', 'error');
+            return;
+        }
 
         // Показываем индикатор загрузки
-        const submitBtn = document.querySelector('#avatarModal .modal-footer .btn-primary');
+        const submitBtn = document.querySelector('#avatarModal .modal-footer .action-btn-primary');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Загрузка...';
         submitBtn.disabled = true;
 
         fetch('/profile/avatar', {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatarUrl })
         })
             .then(response => {
                 if (response.ok) {
@@ -800,37 +912,72 @@
             });
     }
 
-    // Экспорт маршрута
-    function exportRoute(routeId) {
-        // Показываем индикатор загрузки
-        showNotification('Подготовка файла для скачивания...', 'info');
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 
-        fetch(`/routes/${routeId}/export`, {
-            method: 'GET'
-        })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob();
-                } else {
-                    throw new Error('Export failed');
-                }
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `маршрут_${routeId}.gpx`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+    function pluralDays(n) {
+        const m = n % 10, h = n % 100;
+        if (m === 1 && h !== 11) return 'день';
+        if ([2, 3, 4].includes(m) && ![12, 13, 14].includes(h)) return 'дня';
+        return 'дней';
+    }
 
-                showNotification('Маршрут успешно экспортирован!', 'success');
-            })
-            .catch(error => {
-                console.error('Export error:', error);
-                showNotification('Ошибка при экспорте маршрута', 'error');
-            });
+    function renderRouteCard(route) {
+        const tags = route.tags ? route.tags.split(',').filter(Boolean).slice(0, 4)
+            .map(tag => `<span class="route-badge badge-easy">${escapeHtml(tag.trim())}</span>`).join(' ') : '';
+        const date = route.createdAt ? new Date(route.createdAt).toLocaleDateString('ru-RU') : '—';
+        return `
+            <div class="route-card p-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <h5 class="fw-bold mb-2">${escapeHtml(route.title)}</h5>
+                        <p class="route-description mb-2">${escapeHtml(route.description)}</p>
+                        <div>${tags}</div>
+                    </div>
+                    <a href="/routes/${route.id}" class="btn btn-outline-gray">
+                        Открыть
+                    </a>
+                </div>
+                <div class="route-info">
+                    <span class="route-stat"><i class="fas fa-calendar-day"></i>${route.durationDays || 1} ${pluralDays(route.durationDays || 1)}</span>
+                    <span class="route-stat"><i class="fas fa-ruble-sign"></i>${Number(route.totalCost || 0).toLocaleString('ru-RU')} ₽</span>
+                    <span class="route-stat"><i class="fas fa-clock"></i>${date}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    async function loadMyRoutes() {
+        const list = document.getElementById('myRoutesList');
+        try {
+            const response = await fetch('/api/proxy/routes?my=true');
+            if (!response.ok) throw new Error('routes failed');
+            const routes = await response.json();
+            document.getElementById('routesCount').textContent = Array.isArray(routes) ? routes.length : 0;
+            if (!Array.isArray(routes) || routes.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-map-signs d-block"></i>
+                        <h5 class="fw-bold">Маршрутов пока нет</h5>
+                        <p class="text-muted">Создайте первый маршрут и он появится в профиле.</p>
+                    </div>
+                `;
+                return;
+            }
+            list.innerHTML = routes.map(renderRouteCard).join('');
+        } catch (error) {
+            console.error('Routes load error:', error);
+            list.innerHTML = `
+                <div class="alert alert-warning">
+                    Не удалось загрузить список маршрутов. Откройте раздел «Мои маршруты».
+                </div>
+            `;
+        }
     }
 
     // Уведомления
@@ -912,6 +1059,7 @@
 
         // Инициализация звезд рейтинга
         initializeRatings();
+        loadMyRoutes();
     });
 
     // Инициализация рейтингов

@@ -1,7 +1,7 @@
 package com.routebuddy.authservice.service
 
-import com.quizwhiz.authservice.model.User
-import com.quizwhiz.authservice.repository.UserRepository
+import com.routebuddy.authservice.model.User
+import com.routebuddy.authservice.repository.UserRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock

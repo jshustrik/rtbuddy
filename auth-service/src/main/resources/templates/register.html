@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация - RouteBuddy</title>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link rel="stylesheet"
@@ -114,7 +115,8 @@
         .password-toggle {
             position: absolute;
             right: 12px;
-            top: 30%;
+            top: 50%;
+            transform: translateY(-50%);
             background: transparent;
             border: none;
             color: var(--text-light);
@@ -127,6 +129,10 @@
         .password-toggle:hover {
             color: var(--primary-color);
             background: rgba(113, 128, 150, 0.1);
+        }
+
+        .password-field {
+            position: relative;
         }
 
         .error-message {
@@ -299,6 +305,46 @@
                 padding: 2rem 1.5rem;
             }
         }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-ink: #23312f;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+        }
+        body { background: var(--rb-bg); color: var(--rb-ink); }
+        .register-card {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+            box-shadow: none;
+        }
+        .register-card:hover { transform: none; }
+        .header-section { background: var(--rb-primary-dark); }
+        .input-field {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+            background: #fbfcfb;
+        }
+        .input-field:focus {
+            border-color: var(--rb-primary);
+            box-shadow: 0 0 0 3px rgba(31,111,104,.12);
+        }
+        .btn-primary {
+            background: var(--rb-primary);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .btn-primary:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+            box-shadow: none;
+        }
+        .link-secondary:hover,
+        .password-toggle:hover {
+            color: var(--rb-primary);
+        }
     </style>
 </head>
 <body>
@@ -358,7 +404,7 @@
                 <!-- Email -->
                 <div class="input-group">
                     <label for="email">
-                        <i class="fas fa-envelope mr-2"></i>Email
+                        <i class="fas fa-envelope mr-2"></i>Электронная почта
                     </label>
                     <input
                             type="email"
@@ -382,23 +428,26 @@
                     <label for="password">
                         <i class="fas fa-key mr-2"></i>Пароль
                     </label>
-                    <input
-                            type="password"
-                            id="password"
-                            th:field="*{password}"
-                            placeholder="Не менее 6 символов"
-                            required
-                            class="input-field"
-                            autocomplete="new-password"
-                            oninput="checkPasswordStrength(this.value)"
-                    >
-                    <button
-                            type="button"
-                            class="password-toggle"
-                            onclick="togglePasswordVisibility('password', this), togglePasswordVisibility('confirmPassword', this)"
-                    >
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <div class="password-field">
+                        <input
+                                type="password"
+                                id="password"
+                                th:field="*{password}"
+                                placeholder="Не менее 6 символов, заглавная буква и цифра"
+                                required
+                                class="input-field"
+                                autocomplete="new-password"
+                                oninput="checkPasswordStrength(this.value)"
+                        >
+                        <button
+                                type="button"
+                                class="password-toggle"
+                                onclick="togglePasswordVisibility('password', this)"
+                                aria-label="Показать пароль"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
 
                     <!-- Индикатор сложности пароля -->
                     <div class="password-strength">
@@ -421,16 +470,26 @@
                     <label for="confirmPassword">
                         <i class="fas fa-key mr-2"></i>Подтверждение пароля
                     </label>
-                    <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            placeholder="Повторите пароль"
-                            required
-                            class="input-field"
-                            autocomplete="new-password"
-                            oninput="checkPasswordMatch()"
-                    >
+                    <div class="password-field">
+                        <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                placeholder="Повторите пароль"
+                                required
+                                class="input-field"
+                                autocomplete="new-password"
+                                oninput="checkPasswordMatch()"
+                        >
+                        <button
+                                type="button"
+                                class="password-toggle"
+                                onclick="togglePasswordVisibility('confirmPassword', this)"
+                                aria-label="Показать пароль"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
 
                     <div id="confirmMessage" class="text-xs mt-1"></div>
                 </div>
@@ -492,10 +551,10 @@
         let strength = 0;
 
         // Проверки
-        if (password.length >= 8) strength++;
+        if (password.length >= 6) strength++;
         if (/[A-Z]/.test(password)) strength++;
         if (/[0-9]/.test(password)) strength++;
-        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        if (!/[^A-Za-zА-Яа-яЁё0-9]/.test(password)) strength++;
 
         // Обновление индикатора
         if (strength <= 1) {

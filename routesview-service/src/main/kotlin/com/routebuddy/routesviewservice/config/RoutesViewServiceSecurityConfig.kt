@@ -17,7 +17,17 @@ class RoutesViewServiceSecurityConfig (
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/internal/**", "/profile/", "/routes", "/constructor", "/constructor/**", "/route", "/route/**", "/export", "/export/**").permitAll()
+                auth.requestMatchers(
+                    "/", "/internal/**", "/profile/",
+                    "/routes", "/routes/**",
+                    "/constructor", "/constructor/**",
+                    "/route", "/route/**",
+                    "/export", "/export/**",
+                    "/api/proxy/routes",          // public GET list
+                    "/api/proxy/routes/*",         // public GET single
+                    "/api/proxy/reviews/routes/**",
+                    "/api/proxy/reviews/me"
+                ).permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(

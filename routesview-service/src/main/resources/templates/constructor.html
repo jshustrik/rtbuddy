@@ -8,180 +8,261 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #4a5568;
-            --secondary-color: #2d3748;
-            --accent-color: #718096;
-            --light-gray: #f7fafc;
-            --medium-gray: #e2e8f0;
-            --dark-gray: #2d3748;
-            --card-bg: #ffffff;
-            --shadow-color: rgba(0, 0, 0, 0.08);
+            --primary: #4a5568;
+            --secondary: #2d3748;
+            --accent: #718096;
+            --border: #e2e8f0;
+            --soft: #f7fafc;
+            --paper: #ffffff;
+            --ok: #2f855a;
+            --danger: #c53030;
         }
+        * { box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--dark-gray);
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            color: var(--secondary);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         }
         .navbar {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
         }
-        .nav-link { color: rgba(255,255,255,0.9) !important; font-weight: 500; }
-        .nav-link:hover { color: #fff !important; }
+        .nav-link { color: rgba(255,255,255,.9) !important; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { color: #fff !important; }
         .page-header {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            border-radius: 16px;
-            box-shadow: 0 8px 25px var(--shadow-color);
-            padding: 2.5rem;
-            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border-radius: 14px;
             color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        .page-header::before {
-            content: '';
-            position: absolute; top: 0; right: 0;
-            width: 200px; height: 200px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-            transform: translate(50%, -50%);
-        }
-        .page-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.4rem; }
-        .section-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 4px 15px var(--shadow-color);
-            border: 1px solid var(--medium-gray);
+            padding: 2rem 2.4rem;
             margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(45,55,72,.18);
+        }
+        .page-header h1 { font-size: 1.9rem; font-weight: 800; margin: 0 0 .35rem; }
+        .panel {
+            background: var(--paper);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.07);
+            margin-bottom: 1rem;
             overflow: hidden;
         }
-        .section-card .card-header {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            font-weight: 600;
-            padding: 0.9rem 1.25rem;
-            border: none;
+        .panel-head {
+            padding: .85rem 1rem;
+            background: var(--soft);
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
         }
-        .section-card .card-body { padding: 1.25rem; }
-        .route-badge {
-            font-size: 0.72rem;
-            background: rgba(255,255,255,0.2);
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            margin-left: 0.5rem;
-            font-weight: 400;
-        }
-        .accordion-button:not(.collapsed) { background: #e9ecef; color: var(--dark-gray); box-shadow: none; }
-        .accordion-button:focus { box-shadow: none; }
-        .accordion-button { background: var(--light-gray); border-radius: 8px !important; font-size: 0.92rem; font-weight: 500; }
-        .accordion-item { background: transparent; border: none; }
-        .day-detail {
-            background: var(--light-gray);
-            border: 1px solid var(--medium-gray);
+        .panel-body { padding: 1rem; }
+        .route-row {
+            border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 1rem 1.1rem;
-        }
-        /* Points in accordion */
-        .points-section {
-            border-top: 1px solid var(--medium-gray);
-            margin-top: 0.8rem;
-            padding-top: 0.75rem;
-        }
-        .points-label {
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--accent-color);
-            margin-bottom: 0.5rem;
-        }
-        .pt-dot {
-            display: inline-flex;
-            align-items: center; justify-content: center;
-            width: 20px; height: 20px;
-            background: var(--medium-gray);
-            color: var(--dark-gray);
-            border-radius: 50%;
-            font-size: 0.68rem; font-weight: 700;
-            flex-shrink: 0; margin-top: 2px;
-        }
-        /* My Route */
-        .my-route-day {
+            padding: .9rem;
+            margin-bottom: .75rem;
             background: white;
-            border: 1px solid var(--medium-gray);
-            border-left: 4px solid var(--accent-color);
-            border-radius: 8px;
-            padding: 0.9rem 1rem;
-            margin-bottom: 0.5rem;
-            transition: border-color 0.2s;
         }
-        .my-route-day:hover { border-left-color: var(--primary-color); }
-        .day-number {
+        .route-title { font-weight: 800; line-height: 1.3; }
+        .route-meta, .day-meta, .point-meta { color: var(--accent); font-size: .8rem; }
+        .tag {
             display: inline-flex;
-            align-items: center; justify-content: center;
-            width: 26px; height: 26px;
-            background: var(--accent-color); color: white;
-            border-radius: 50%;
-            font-size: 0.78rem; font-weight: 700;
-            margin-right: 0.45rem; flex-shrink: 0;
+            align-items: center;
+            min-height: 22px;
+            padding: .15rem .5rem;
+            border-radius: 999px;
+            background: #edf2f7;
+            color: #4a5568;
+            font-size: .72rem;
+            margin: .15rem .15rem 0 0;
         }
-        .empty-my-route {
-            text-align: center; padding: 2rem 1rem;
-            color: var(--accent-color);
-            border: 2px dashed var(--medium-gray);
+        .day-pick {
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
             border-radius: 10px;
+            padding: .85rem;
+            margin-top: .65rem;
+            background: var(--soft);
         }
-        .btn-add-day {
-            background: #38a169; color: white; border: none;
-            border-radius: 6px; padding: 0.35rem 0.8rem;
-            font-size: 0.82rem; white-space: nowrap;
-            transition: background 0.2s;
+        .selected-day {
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--ok);
+            border-radius: 10px;
+            padding: .85rem;
+            margin-bottom: .7rem;
+            background: white;
         }
-        .btn-add-day:hover { background: #2f855a; color: white; }
-        .btn-remove-day {
-            background: #f56565; color: white; border: none;
-            border-radius: 6px; padding: 0.3rem 0.6rem;
-            font-size: 0.8rem; transition: background 0.2s;
+        .num {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: white;
+            font-size: .78rem;
+            font-weight: 800;
+            flex-shrink: 0;
         }
-        .btn-remove-day:hover { background: #e53e3e; color: white; }
-        .btn-move {
-            background: var(--medium-gray); color: var(--dark-gray); border: none;
-            border-radius: 6px; padding: 0.3rem 0.55rem;
-            font-size: 0.8rem; transition: background 0.2s;
+        .selected-day .num { background: var(--ok); }
+        .point-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            max-width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: .18rem .5rem;
+            margin: .15rem .15rem 0 0;
+            color: #4a5568;
+            font-size: .72rem;
+            background: white;
         }
-        .btn-move:hover:not(:disabled) { background: var(--accent-color); color: white; }
-        .btn-move:disabled { opacity: 0.4; cursor: default; }
-        .btn-save {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: white; border: none; border-radius: 50px;
-            padding: 0.8rem 2rem; font-weight: 600;
-            transition: all 0.3s; width: 100%;
+        .day-thumb {
+            width: 100%;
+            max-height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: .55rem;
         }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(45,55,72,0.25); color: white; }
-        .btn-export {
-            background: #667eea; color: white; border: none;
-            border-radius: 50px; padding: 0.8rem 2rem;
-            font-weight: 600; transition: all 0.3s; width: 100%;
+        .empty {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--accent);
+            padding: 2rem 1rem;
+            background: white;
         }
-        .btn-export:hover { background: #5a67d8; color: white; transform: translateY(-2px); }
-        .saved-summary {
-            background: #f0fff4; border: 1px solid #68d391;
-            border-radius: 12px; padding: 1.25rem 1.5rem;
+        .btn-main {
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 700;
+            padding: .75rem 1.2rem;
         }
-        .saved-summary ol { padding-left: 1.2rem; }
-        .saved-summary li { margin-bottom: 0.5rem; }
-        .review-card {
-            background: var(--light-gray); border-radius: 10px;
-            padding: 1rem 1.1rem; margin-bottom: 0.7rem;
-            border: 1px solid var(--medium-gray);
+        .btn-main:hover { color: white; transform: translateY(-1px); }
+        .btn-soft {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: white;
+            color: var(--secondary);
+            font-weight: 600;
         }
-        .stars { color: #f6ad55; letter-spacing: 1px; }
+        .btn-soft:hover { background: var(--soft); color: var(--secondary); }
+        .btn-add {
+            border: none;
+            border-radius: 999px;
+            background: var(--ok);
+            color: white;
+            font-weight: 700;
+            padding: .42rem .8rem;
+            white-space: nowrap;
+        }
+        .btn-add:hover { color: white; background: #276749; }
+        .btn-remove {
+            border: none;
+            border-radius: 999px;
+            background: #fed7d7;
+            color: var(--danger);
+            font-weight: 700;
+        }
+        .sticky-box { position: sticky; top: 78px; }
         #toast-msg {
-            position: fixed; bottom: 20px; right: 20px;
-            background: #2d3748; color: white;
-            padding: 0.7rem 1.2rem; border-radius: 10px;
-            z-index: 9999; font-size: 0.88rem;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
             display: none;
+            z-index: 9999;
+            max-width: min(420px, calc(100vw - 40px));
+            background: var(--secondary);
+            color: white;
+            border-radius: 10px;
+            padding: .75rem 1rem;
+            box-shadow: 0 4px 14px rgba(0,0,0,.22);
+        }
+        @media (max-width: 991px) {
+            .sticky-box { position: static; }
+        }
+        @media (max-width: 575px) {
+            .page-header { padding: 1.4rem 1.2rem; border-radius: 12px; }
+            .page-header h1 { font-size: 1.45rem; }
+            .panel-body { padding: .85rem; }
+            .route-row, .day-pick, .selected-day { padding: .75rem; }
+            .btn-main, .btn-soft, .btn-add { width: 100%; }
+        }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-surface: #ffffff;
+            --rb-ink: #23312f;
+            --rb-muted: #64706d;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+        }
+        body { background: var(--rb-bg); color: var(--rb-ink); }
+        .navbar {
+            background: var(--rb-primary-dark);
+            box-shadow: none;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+        .nav-link {
+            border-radius: 8px;
+            padding: .55rem .75rem !important;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,.1);
+        }
+        .page-header {
+            background: var(--rb-primary-dark);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .panel,
+        .route-row,
+        .day-pick,
+        .selected-day,
+        .empty,
+        .day-thumb {
+            border-radius: 8px;
+            box-shadow: none;
+            border-color: var(--rb-line);
+        }
+        .panel-head {
+            background: #fbfcfb;
+            border-color: var(--rb-line);
+        }
+        .day-pick,
+        .selected-day {
+            border-left-color: var(--rb-primary);
+        }
+        .num,
+        .selected-day .num,
+        .btn-main,
+        .btn-add {
+            background: var(--rb-primary);
+        }
+        .btn-main,
+        .btn-soft,
+        .btn-add,
+        .btn-remove {
+            border-radius: 8px;
+        }
+        .btn-main:hover,
+        .btn-add:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+        }
+        .tag {
+            background: #e7f1ed;
+            color: var(--rb-primary-dark);
+        }
+        @media (max-width: 575px) {
+            .container.py-4 { padding-top: 1rem !important; }
+            .page-header,
+            .panel-body { padding: 1rem; }
         }
     </style>
 </head>
@@ -189,7 +270,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
+        <a class="navbar-brand d-flex align-items-center" href="/routes">
             <i class="fas fa-mountain me-2" style="font-size:1.4rem;"></i>
             <span class="fw-bold fs-5">RouteBuddy</span>
         </a>
@@ -198,627 +279,413 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-1"><a class="nav-link" href="/route"><i class="fas fa-map me-1"></i>Маршрут</a></li>
-                <li class="nav-item mx-1"><a class="nav-link active" href="/constructor"><i class="fas fa-tools me-1"></i>Конструктор</a></li>
-                <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Предпросмотр PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-1"><a class="nav-link active" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-1"></i>Профиль</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Выйти</a></li>
             </ul>
         </div>
     </div>
 </nav>
 
-<div class="container py-4">
-
-    <div class="page-header">
-        <h1><i class="fas fa-tools me-3"></i>Конструктор маршрута</h1>
-        <p class="mb-0" style="opacity:0.9;">Составьте свой уникальный маршрут из дней других путешественников</p>
-    </div>
+<main class="container py-4">
+    <section class="page-header">
+        <h1><i class="fas fa-layer-group me-2"></i>Конструктор маршрута из дней</h1>
+        <p class="mb-0" style="opacity:.88;">Выберите дни из опубликованных маршрутов, соберите свой маршрут и сохраните его в общий сервис.</p>
+    </section>
 
     <div class="row g-4">
-
-        <!-- ====== LEFT ====== -->
-        <div class="col-lg-7">
-            <h5 class="mb-3 fw-semibold">
-                <i class="fas fa-globe-europe me-2" style="color:var(--accent-color);"></i>Опубликованные маршруты
-            </h5>
-
-            <!-- Маршруты рендерятся JS -->
-            <div id="publishedRoutes"></div>
-
-            <!-- Ссылка на страницу отзывов -->
-            <div class="section-card">
-                <div class="card-body py-3 d-flex align-items-center gap-3">
-                    <i class="fas fa-star fa-2x" style="color:var(--accent-color);"></i>
-                    <div>
-                        <div class="fw-semibold">Отзывы путешественников</div>
-                        <div class="small text-muted">Читайте и оставляйте отзывы на странице конкретного маршрута</div>
+        <section class="col-lg-7">
+            <div class="panel">
+                <div class="panel-head d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <span><i class="fas fa-globe-europe me-2"></i>Публичные маршруты</span>
+                    <button class="btn btn-sm btn-soft" type="button" onclick="loadRoutes()">
+                        <i class="fas fa-sync-alt me-1"></i>Обновить
+                    </button>
+                </div>
+                <div class="panel-body">
+                    <div id="routesList" class="routes-list">
+                        <div class="empty"><i class="fas fa-spinner fa-spin d-block mb-2"></i>Загрузка маршрутов...</div>
                     </div>
-                    <a href="/route" class="btn btn-sm ms-auto"
-                       style="background:var(--primary-color);color:white;border:none;border-radius:20px;white-space:nowrap;">
-                        <i class="fas fa-arrow-right me-1"></i>Перейти
-                    </a>
                 </div>
             </div>
-        </div><!-- /col-lg-7 -->
+        </section>
 
-        <!-- ====== RIGHT ====== -->
-        <div class="col-lg-5">
-            <div class="sticky-top" style="top: 76px;">
-                <h5 class="mb-3 fw-semibold">
-                    <i class="fas fa-suitcase-rolling me-2" style="color:var(--accent-color);"></i>Мой маршрут
-                </h5>
-                <div class="section-card mb-3">
-                    <div class="card-body py-3">
-                        <label for="routeName" class="form-label fw-semibold mb-1">Название маршрута</label>
-                        <input type="text" id="routeName" class="form-control"
-                               placeholder="Введите название..." value="Мой маршрут">
+        <aside class="col-lg-5">
+            <div class="sticky-box">
+                <div class="panel">
+                    <div class="panel-head">
+                        <i class="fas fa-suitcase-rolling me-2"></i>Новый маршрут
                     </div>
-                </div>
-                <div class="section-card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <span><i class="fas fa-list-ol me-2"></i>Выбранные дни</span>
-                        <span class="badge bg-light text-dark" id="dayCountBadge">0 дней</span>
-                    </div>
-                    <div class="card-body">
-                        <div id="myRouteList">
-                            <div class="empty-my-route">
-                                <i class="fas fa-plus-circle d-block mb-2" style="font-size:2rem;"></i>
-                                Добавьте дни из опубликованных маршрутов слева
+                    <div class="panel-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="routeTitle">Название</label>
+                            <input id="routeTitle" class="form-control" maxlength="120" value="Собранный маршрут" placeholder="Например: Петербург и Казань в спокойном темпе">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="routeDescription">Описание</label>
+                            <textarea id="routeDescription" class="form-control" rows="3" maxlength="1200" placeholder="Коротко опишите идею маршрута"></textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold" for="routeTags">Теги</label>
+                                <input id="routeTags" class="form-control" value="конструктор,маломобильных" placeholder="семейный,музеи,маломобильных">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" for="routePublic">Доступ</label>
+                                <select id="routePublic" class="form-select">
+                                    <option value="true" selected>Публичный</option>
+                                    <option value="false">Личный</option>
+                                </select>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="d-grid gap-2 mt-3">
-                    <button class="btn btn-save btn-lg" onclick="saveRoute()">
-                        <i class="fas fa-save me-2"></i>Сохранить маршрут
-                    </button>
-                    <button class="btn btn-export btn-lg" onclick="exportRoute()">
-                        <i class="fas fa-file-pdf me-2"></i>Выгрузить маршрут (PDF)
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="clearRoute()">
-                        <i class="fas fa-trash me-1"></i>Очистить маршрут
-                    </button>
-                </div>
-                <div id="savedSummary" class="mt-3" style="display:none;">
-                    <div class="saved-summary">
-                        <h6 class="text-success mb-3">
-                            <i class="fas fa-check-circle me-2"></i>Маршрут сохранён!
-                        </h6>
-                        <div id="savedContent"></div>
+
+                <div class="panel">
+                    <div class="panel-head d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-list-ol me-2"></i>Выбранные дни</span>
+                        <span id="dayCount" class="badge bg-light text-dark">0 дней</span>
+                    </div>
+                    <div class="panel-body">
+                        <div id="selectedDays">
+                            <div class="empty">Добавьте дни из списка слева.</div>
+                        </div>
+                        <div id="routeTotals" class="small text-muted mt-2"></div>
                     </div>
                 </div>
-            </div>
-        </div><!-- /col-lg-5 -->
 
+                <div class="d-grid gap-2">
+                    <button id="saveBtn" class="btn btn-main" type="button" onclick="saveConstructedRoute('open')">
+                        <i class="fas fa-save me-2"></i>Сохранить и открыть
+                    </button>
+                    <button id="exportBtn" class="btn btn-soft" type="button" onclick="saveConstructedRoute('export')">
+                        <i class="fas fa-file-pdf me-2"></i>Сохранить и выгрузить
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="clearSelectedDays()">
+                        <i class="fas fa-trash me-1"></i>Очистить выбранные дни
+                    </button>
+                </div>
+            </div>
+        </aside>
     </div>
-</div>
+</main>
 
 <div id="toast-msg"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ═══════════════════════════════════════════════════
-//  DEMO DATA — 3 маршрута, 3 дня каждый, 3 точки на день
-// ═══════════════════════════════════════════════════
-const DEMO_ROUTES = [
-    {
-        id: 'spb',
-        title: 'Неделя в Санкт-Петербурге: Искусство и история',
-        badge: '7 дней',
-        author: 'qwerty',
-        city: 'Санкт-Петербург',
-        desc: 'Культурный маршрут по основным достопримечательностям Санкт-Петербурга. Эрмитаж, Петергоф, Екатерининский дворец, каналы.',
-        days: [
-            {
-                id: 'd1',
-                title: 'День 1: Эрмитаж и Дворцовая площадь',
-                desc: 'Государственный Эрмитаж, прогулка по Дворцовой площади, Казанский собор, Невский проспект. ~8–10 км, от 1 500 ₽.',
-                meta: 'Санкт-Петербург · ~8–10 км · от 1 500 ₽',
-                points: [
-                    { name: 'Государственный Эрмитаж', desc: '3 млн экспонатов — импрессионисты, Рембрандт, Рубенс, Золотая кладовая. Планируйте минимум 3–4 часа.', lat: 59.9398, lon: 30.3146 },
-                    { name: 'Дворцовая площадь', desc: 'Парадный центр города. Александровская колонна 47 м, панорамные виды на Зимний дворец.', lat: 59.9386, lon: 30.3163 },
-                    { name: 'Казанский собор', desc: 'Один из крупнейших храмов России. Полукруглая колоннада из 96 колонн, усыпальница Кутузова.', lat: 59.9343, lon: 30.3244 }
-                ]
-            },
-            {
-                id: 'd2',
-                title: 'День 2: Петергоф — дворцы и фонтаны',
-                desc: 'Большой дворец, Нижний парк, Большой каскад, фонтан Самсон. Метеор от Эрмитажной пристани (~30 мин). от 900 ₽.',
-                meta: 'Петергоф · весь день · от 900 ₽',
-                points: [
-                    { name: 'Большой Петергофский дворец', desc: 'Главный императорский дворец в стиле барокко, вид на Финский залив. Роскошные парадные залы.', lat: 59.8850, lon: 29.9098 },
-                    { name: 'Большой каскад', desc: 'Грандиозная фонтанная система — 64 фонтана и 255 позолоченных скульптур. Главный символ Петергофа.', lat: 59.8832, lon: 29.9083 },
-                    { name: 'Фонтан «Самсон»', desc: 'Центральный фонтан Нижнего парка. Струя воды бьёт на 21 метр, посвящён победе под Полтавой.', lat: 59.8833, lon: 29.9071 }
-                ]
-            },
-            {
-                id: 'd3',
-                title: 'День 3: Пушкин и Екатерининский дворец',
-                desc: 'Екатерининский дворец, Янтарная комната, Александровский парк. от 800 ₽.',
-                meta: 'г. Пушкин · ~6 км · от 800 ₽',
-                points: [
-                    { name: 'Екатерининский дворец', desc: 'Барочный дворец 306 м в длину. Голубой с золотом фасад, парадные залы, знаменитая Янтарная комната.', lat: 59.7165, lon: 30.3956 },
-                    { name: 'Янтарная комната', desc: 'Уникальная комната, облицованная янтарём. Утеряна в войну, кропотливо восстановлена в 2003 году.', lat: 59.7162, lon: 30.3953 },
-                    { name: 'Александровский парк', desc: 'Романтичный пейзажный парк с прудами, горками и Китайской деревней.', lat: 59.7200, lon: 30.3900 }
-                ]
-            }
-        ]
-    },
-    {
-        id: 'ring',
-        title: 'Золотое кольцо: Сергиев Посад и Ростов',
-        badge: '3 дня',
-        author: 'travel_master',
-        city: 'Москва',
-        desc: 'Путешествие по историческим городам Золотого кольца России. Монастыри, кремли, старинные соборы и тихая провинциальная Россия.',
-        days: [
-            {
-                id: 'd1',
-                title: 'День 1: Сергиев Посад — Троице-Сергиева лавра',
-                desc: 'Троице-Сергиева лавра, Успенский собор, Трапезная палата. 75 км от Москвы.',
-                meta: 'Сергиев Посад · 75 км от Москвы · вход бесплатно',
-                points: [
-                    { name: 'Троице-Сергиева лавра', desc: 'Главный монастырь России. Основан Сергием Радонежским в XIV веке. Объект ЮНЕСКО, действующая обитель.', lat: 56.3100, lon: 38.1318 },
-                    { name: 'Успенский собор', desc: 'Главный собор лавры (1585 г.), строился по образцу московского — торжественный, с пятью куполами.', lat: 56.3104, lon: 38.1322 },
-                    { name: 'Трапезная палата', desc: 'Грандиозное строение XVII века. Один из самых нарядных храмов лавры — церковь Сергия Радонежского.', lat: 56.3097, lon: 38.1308 }
-                ]
-            },
-            {
-                id: 'd2',
-                title: 'День 2: Ростов Великий — Кремль и озеро Неро',
-                desc: 'Ростовский кремль, Успенский собор, Архиерейские сады, прогулка по озеру Неро. от 300 ₽.',
-                meta: 'Ростов Великий · 220 км от Москвы · от 300 ₽',
-                points: [
-                    { name: 'Ростовский кремль', desc: 'Живописный ансамбль XVII века на берегу озера Неро. Белые башни, переходы по стенам с видом на воду.', lat: 57.1853, lon: 39.4151 },
-                    { name: 'Успенский собор и звонница', desc: 'Уникальный набор из 15 колоколов. Ростовский звон — нематериальное наследие России.', lat: 57.1858, lon: 39.4148 },
-                    { name: 'Озеро Неро', desc: 'Одно из древнейших озёр России (20 тыс. лет). Лодочная прогулка вдоль стен кремля — незабываемый вид.', lat: 57.1820, lon: 39.4100 }
-                ]
-            },
-            {
-                id: 'd3',
-                title: 'День 3: Ярославль — набережная и монастыри',
-                desc: 'Спасо-Преображенский монастырь, набережная Волги, церковь Ильи Пророка (ЮНЕСКО). от 200 ₽.',
-                meta: 'Ярославль · 280 км от Москвы · от 200 ₽',
-                points: [
-                    { name: 'Спасо-Преображенский монастырь', desc: 'Один из старейших монастырей России. Здесь хранилась рукопись «Слова о полку Игореве».', lat: 57.6264, lon: 39.8878 },
-                    { name: 'Набережная Волги', desc: 'Живописная набережная с видом на реку. Памятник Ярославу Мудрому, беседки, бульвар XIX века.', lat: 57.6236, lon: 39.8987 },
-                    { name: 'Церковь Ильи Пророка', desc: 'Жемчужина ярославского зодчества XVII века. Уникальные фрески 1000 кв. м, объект ЮНЕСКО.', lat: 57.6245, lon: 39.8936 }
-                ]
-            }
-        ]
-    },
-    {
-        id: 'baikal',
-        title: 'Байкал: природа и духовность',
-        badge: '3 дня',
-        author: 'baikal_explorer',
-        city: 'Иркутск',
-        desc: 'Маршрут по берегам Байкала: Листвянка, Кругобайкальская железная дорога, остров Ольхон. Кристально чистая вода и кедровая тайга.',
-        days: [
-            {
-                id: 'd1',
-                title: 'День 1: Листвянка — ворота Байкала',
-                desc: 'Байкальский музей, Шаман-камень, смотровая Черского, рыбный рынок. 70 км от Иркутска, от 500 ₽.',
-                meta: 'Листвянка · 70 км от Иркутска · от 500 ₽',
-                points: [
-                    { name: 'Байкальский музей', desc: 'Единственный в мире музей экосистемы Байкала. Живые нерпы в аквариуме, макет дна озера, диорамы.', lat: 51.8617, lon: 104.8588 },
-                    { name: 'Шаман-камень', desc: 'Священный камень в истоке Ангары. По бурятскому преданию — окаменевший сын Байкала.', lat: 51.8630, lon: 104.8640 },
-                    { name: 'Смотровая Черского', desc: 'Лучшая панорама слияния Байкала и Ангары. Канатная дорога или 20 мин пешком.', lat: 51.8680, lon: 104.8520 }
-                ]
-            },
-            {
-                id: 'd2',
-                title: 'День 2: Кругобайкальская железная дорога',
-                desc: '39 тоннелей, виадуки, бухты. Маршрут Порт Байкал — Слюдянка вдоль самого берега. от 3 000 ₽.',
-                meta: 'Порт Байкал — Слюдянка · весь день · от 3 000 ₽',
-                points: [
-                    { name: 'Порт Байкал', desc: 'Начало маршрута КБЖД. Паром из Листвянки, исторические здания начала XX века.', lat: 51.8700, lon: 104.8333 },
-                    { name: 'Тоннели КБЖД', desc: '39 тоннелей общей длиной 9 км — уникальный инженерный памятник, «золотая пряжка» Транссиба.', lat: 51.7500, lon: 104.5000 },
-                    { name: 'Слюдянка', desc: 'Конечная станция. Вокзал 1904 года из белого мрамора — единственный полностью мраморный вокзал в мире.', lat: 51.6558, lon: 103.7114 }
-                ]
-            },
-            {
-                id: 'd3',
-                title: 'День 3: Остров Ольхон — Скала Шаманка',
-                desc: 'Скала Шаманка (мыс Бурхан), мыс Хобой, Сарайский пляж, закат. Паром 5 ч, от 400 ₽.',
-                meta: 'о. Ольхон · паром 5 ч · от 400 ₽',
-                points: [
-                    { name: 'Мыс Бурхан (Скала Шаманка)', desc: 'Главный символ Байкала. Двухглавая скала — священное место бурятского шаманизма, визитная карточка острова.', lat: 53.1940, lon: 107.3390 },
-                    { name: 'Мыс Хобой', desc: 'Самая северная точка Ольхона. Нерпы на камнях, панорама на 360°, закат над водой.', lat: 53.3840, lon: 107.3380 },
-                    { name: 'Сарайский пляж', desc: 'Лучший пляж Байкала. Белый песок, прозрачная холодная вода, кристально чистый воздух.', lat: 53.2050, lon: 107.3500 }
-                ]
-            }
-        ]
+    let routes = [];
+    let selectedDays = [];
+    let toastTimer;
+
+    function esc(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
-];
+    function pluralDays(n) {
+        const m = n % 10, h = n % 100;
+        if (m === 1 && h !== 11) return 'день';
+        if ([2, 3, 4].includes(m) && ![12, 13, 14].includes(h)) return 'дня';
+        return 'дней';
+    }
+    function money(v) {
+        const num = Number(v || 0);
+        return num > 0 ? num.toLocaleString('ru-RU') + ' ₽' : 'без бюджета';
+    }
+    function showToast(message) {
+        const el = document.getElementById('toast-msg');
+        el.textContent = message;
+        el.style.display = 'block';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.style.display = 'none'; }, 2800);
+    }
+    function pointLat(p) {
+        return Number(p.lat ?? p.latitude ?? 0);
+    }
+    function pointLon(p) {
+        return Number(p.lon ?? p.longitude ?? 0);
+    }
+    function tagsHtml(tags) {
+        return String(tags || '')
+            .split(',')
+            .map(t => t.trim())
+            .filter(Boolean)
+            .map(t => `<span class="tag">${esc(t)}</span>`)
+            .join('');
+    }
+    async function apiJson(url, options = {}) {
+        const resp = await fetch(url, {
+            headers: {'Content-Type': 'application/json', ...(options.headers || {})},
+            ...options
+        });
+        const text = await resp.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!resp.ok) {
+            const msg = data?.error || data?.message || `HTTP ${resp.status}`;
+            throw new Error(msg);
+        }
+        return data;
+    }
 
-// ═══════════════════════════════════════════════════
-//  Render published routes
-// ═══════════════════════════════════════════════════
-function renderRoutes() {
-    const container = document.getElementById('publishedRoutes');
-    container.innerHTML = DEMO_ROUTES.map(route => {
-        const daysHtml = route.days.map(day => {
-            const accId = route.id + '_' + day.id;
-            const ptsHtml = day.points.map((p, pi) => `
-                <div class="d-flex gap-2 mb-2 align-items-start">
-                    <span class="pt-dot">${pi + 1}</span>
-                    <div>
-                        <div style="font-size:0.82rem;font-weight:600;">${escHtml(p.name)}</div>
-                        <div class="text-muted" style="font-size:0.76rem;line-height:1.4;">${escHtml(p.desc)}</div>
-                    </div>
-                </div>`).join('');
+    async function loadRoutes() {
+        const list = document.getElementById('routesList');
+        list.innerHTML = '<div class="empty"><i class="fas fa-spinner fa-spin d-block mb-2"></i>Загрузка маршрутов...</div>';
+        try {
+            const briefRoutes = await apiJson('/api/proxy/routes');
+            if (!Array.isArray(briefRoutes) || briefRoutes.length === 0) {
+                list.innerHTML = '<div class="empty">Публичных маршрутов пока нет.</div>';
+                return;
+            }
+            routes = await Promise.all(briefRoutes.map(async r => {
+                try { return await apiJson(`/api/proxy/routes/${r.id}`); }
+                catch { return {...r, days: []}; }
+            }));
+            renderRoutes();
+        } catch (e) {
+            console.error(e);
+            list.innerHTML = '<div class="empty text-danger">Не удалось загрузить маршруты. Обновите страницу.</div>';
+        }
+    }
 
+    function renderRoutes() {
+        const list = document.getElementById('routesList');
+        list.innerHTML = routes.map(route => {
+            const days = Array.isArray(route.days) ? route.days : [];
+            const dayBlocks = days.length
+                ? days.map((day, idx) => renderPickDay(route, day, idx)).join('')
+                : '<div class="text-muted small mt-2">В маршруте нет дней.</div>';
             return `
-            <div class="accordion-item mb-2">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed py-2 px-3" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#${accId}">
-                        <i class="fas fa-sun text-warning me-2"></i>${escHtml(day.title)}
-                    </button>
-                </h2>
-                <div id="${accId}" class="accordion-collapse collapse">
-                    <div class="accordion-body p-2">
-                        <div class="day-detail">
-                            <div class="d-flex align-items-start justify-content-between gap-2">
-                                <div class="flex-grow-1">
-                                    <strong>${escHtml(day.title)}</strong>
-                                    <p class="small text-muted mb-1 mt-1">${escHtml(day.desc)}</p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-map-marker-alt me-1"></i>${escHtml(day.meta)}
-                                    </small>
-                                </div>
-                                <button class="btn btn-add-day flex-shrink-0"
-                                        onclick="addDay('${route.id}','${day.id}')">
-                                    <i class="fas fa-plus me-1"></i>Добавить
-                                </button>
-                            </div>
-                            <div class="points-section">
-                                <div class="points-label">
-                                    <i class="fas fa-map-pin me-1"></i>Точки маршрута (${day.points.length}):
-                                </div>
-                                ${ptsHtml}
+                <article class="route-row">
+                    <div class="d-flex justify-content-between gap-2 flex-wrap">
+                        <div>
+                            <div class="route-title">${esc(route.title)}</div>
+                            <div class="route-meta">
+                                <i class="fas fa-user me-1"></i>${esc(route.authorUsername || 'автор')} ·
+                                ${days.length || route.durationDays || 0} ${pluralDays(days.length || route.durationDays || 0)} ·
+                                ${money(route.totalCost)}
                             </div>
                         </div>
+                        <a class="btn btn-sm btn-soft align-self-start" href="/routes/${route.id}">
+                            <i class="fas fa-eye me-1"></i>Открыть
+                        </a>
                     </div>
+                    ${route.description ? `<p class="small text-muted mt-2 mb-1">${esc(route.description)}</p>` : ''}
+                    <div>${tagsHtml(route.tags)}</div>
+                    <div class="mt-2">${dayBlocks}</div>
+                </article>`;
+        }).join('');
+    }
+
+    function renderPickDay(route, day, idx) {
+        const points = Array.isArray(day.points) ? day.points : [];
+        const key = `${route.id}:${day.id}`;
+        const alreadySelected = selectedDays.some(d => d.key === key);
+        const pointChips = points.slice(0, 5).map((p, i) =>
+            `<span class="point-chip"><i class="fas fa-map-marker-alt"></i>${i + 1}. ${esc(p.name)}</span>`
+        ).join('');
+        return `
+            <div class="day-pick">
+                <div class="d-flex gap-2 align-items-start">
+                    <span class="num">${day.dayNumber || idx + 1}</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">${esc(day.title || 'День')}</div>
+                        <div class="day-meta">${money(day.cost)} · ${esc(day.travelTime || 'время не указано')} · ${points.length} точек</div>
+                        ${day.description ? `<div class="small text-muted mt-1">${esc(day.description)}</div>` : ''}
+                        ${day.photoUrl ? `<img src="${esc(day.photoUrl)}" class="day-thumb" alt="">` : ''}
+                        <div class="mt-1">${pointChips}${points.length > 5 ? `<span class="point-chip">+${points.length - 5}</span>` : ''}</div>
+                    </div>
+                    <button class="btn btn-add btn-sm" type="button" ${alreadySelected ? 'disabled' : ''}
+                            onclick="addDay(${route.id}, ${day.id})">
+                        <i class="fas fa-plus me-1"></i>${alreadySelected ? 'Добавлен' : 'Добавить'}
+                    </button>
                 </div>
             </div>`;
-        }).join('');
-
-        return `
-        <div class="section-card">
-            <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <span>
-                    <i class="fas fa-map-marked-alt me-2"></i>${escHtml(route.title)}
-                    <span class="route-badge">${escHtml(route.badge)}</span>
-                </span>
-                <small style="opacity:0.8;">
-                    <i class="fas fa-user me-1"></i>${escHtml(route.author)} · ${escHtml(route.city)}
-                </small>
-            </div>
-            <div class="card-body">
-                <p class="text-muted small mb-3">${escHtml(route.desc)}</p>
-                <div class="accordion" id="acc-${route.id}">${daysHtml}</div>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// ═══════════════════════════════════════════════════
-//  localStorage
-// ═══════════════════════════════════════════════════
-const STORAGE_KEY = 'rtbuddy_my_route_v1';
-function getMyRoute() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
-}
-function saveToStorage(days) { localStorage.setItem(STORAGE_KEY, JSON.stringify(days)); }
-
-// ═══════════════════════════════════════════════════
-//  Add day — lookup from DEMO_ROUTES, store points
-// ═══════════════════════════════════════════════════
-function addDay(routeId, dayId) {
-    const route = DEMO_ROUTES.find(r => r.id === routeId);
-    if (!route) return;
-    const day = route.days.find(d => d.id === dayId);
-    if (!day) return;
-
-    const days = getMyRoute();
-    if (days.find(d => d.routeId === routeId && d.dayId === dayId)) {
-        showToast('Этот день уже в маршруте!');
-        return;
     }
-    days.push({
-        routeId:    routeId,
-        dayId:      dayId,
-        routeTitle: route.title,
-        dayTitle:   day.title,
-        dayDesc:    day.desc,
-        points:     day.points,
-        addedAt:    new Date().toISOString()
-    });
-    saveToStorage(days);
-    renderMyRoute();
-    showToast('День добавлен: ' + day.title);
-}
 
-function removeDay(index) {
-    const days = getMyRoute();
-    days.splice(index, 1);
-    saveToStorage(days);
-    renderMyRoute();
-    showToast('День удалён');
-}
-function moveUp(index) {
-    const days = getMyRoute();
-    if (index > 0) { [days[index - 1], days[index]] = [days[index], days[index - 1]]; saveToStorage(days); renderMyRoute(); }
-}
-function moveDown(index) {
-    const days = getMyRoute();
-    if (index < days.length - 1) { [days[index], days[index + 1]] = [days[index + 1], days[index]]; saveToStorage(days); renderMyRoute(); }
-}
-
-// ═══════════════════════════════════════════════════
-//  Render My Route panel
-// ═══════════════════════════════════════════════════
-function renderMyRoute() {
-    const days = getMyRoute();
-    const listEl = document.getElementById('myRouteList');
-    document.getElementById('dayCountBadge').textContent = days.length + ' ' + pluralDays(days.length);
-
-    if (days.length === 0) {
-        listEl.innerHTML = `<div class="empty-my-route">
-            <i class="fas fa-plus-circle d-block mb-2" style="font-size:2rem;"></i>
-            Добавьте дни из опубликованных маршрутов слева</div>`;
-        return;
-    }
-    listEl.innerHTML = days.map((day, i) => {
-        const ptBadge = (day.points && day.points.length)
-            ? ` <span class="badge bg-light text-muted ms-1" style="font-size:0.67rem;">${day.points.length} точки</span>` : '';
-        return `
-        <div class="my-route-day">
-            <div class="d-flex align-items-center mb-1 gap-2">
-                <span class="day-number">${i + 1}</span>
-                <strong style="font-size:0.9rem;line-height:1.3;">${escHtml(day.dayTitle)}</strong>${ptBadge}
-            </div>
-            <div class="small text-muted mb-1">${escHtml(day.routeTitle)}</div>
-            <div class="small text-muted mb-2" style="font-size:0.78rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escHtml(day.dayDesc)}</div>
-            <div class="d-flex gap-1 flex-wrap">
-                <button class="btn btn-move btn-sm" onclick="moveUp(${i})" ${i === 0 ? 'disabled' : ''}>
-                    <i class="fas fa-chevron-up"></i> Вверх
-                </button>
-                <button class="btn btn-move btn-sm" onclick="moveDown(${i})" ${i === days.length - 1 ? 'disabled' : ''}>
-                    <i class="fas fa-chevron-down"></i> Вниз
-                </button>
-                <button class="btn btn-remove-day btn-sm ms-auto" onclick="removeDay(${i})">
-                    <i class="fas fa-times"></i> Удалить
-                </button>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// ═══════════════════════════════════════════════════
-//  Save route
-// ═══════════════════════════════════════════════════
-function saveRoute() {
-    const days = getMyRoute();
-    if (days.length === 0) { alert('Добавьте хотя бы один день!'); return; }
-    const name = document.getElementById('routeName').value.trim() || 'Мой маршрут';
-    const itemsHtml = days.map(d => `
-        <li><strong>${escHtml(d.dayTitle)}</strong><br>
-        <small class="text-muted">${escHtml(d.routeTitle)} — ${escHtml(d.dayDesc)}</small></li>`).join('');
-    document.getElementById('savedContent').innerHTML = `
-        <p class="mb-1"><strong>Название:</strong> ${escHtml(name)}</p>
-        <p class="mb-2"><strong>Дней:</strong> ${days.length}</p>
-        <hr class="my-2"><ol class="mb-0">${itemsHtml}</ol>`;
-    // Sync name to export page
-    localStorage.setItem('rtbuddy_route_name', name);
-    const summary = document.getElementById('savedSummary');
-    summary.style.display = 'block';
-    summary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    showToast('Маршрут сохранён!');
-}
-
-// ═══════════════════════════════════════════════════
-//  Export as PDF — Leaflet maps (OSM tiles, no API key)
-// ═══════════════════════════════════════════════════
-function exportRoute() {
-    const days = getMyRoute();
-    if (days.length === 0) { alert('Маршрут пуст. Добавьте дни перед выгрузкой.'); return; }
-    const name = document.getElementById('routeName').value.trim() || 'Мой маршрут';
-    const dateStr = new Date().toLocaleDateString('ru-RU');
-
-    const daysHtml = days.map((d, i) => {
-        const pts = d.points || [];
-        const ptsHtml = pts.map((p, j) => `
-            <div class="point">
-                <span class="pt-num">${j + 1}</span>
-                <div>
-                    <strong>${escHtml(p.name)}</strong><br>
-                    <span style="color:#718096;font-size:11px;">${escHtml(p.desc)}</span>
-                </div>
-            </div>`).join('');
-
-        const mapDiv = pts.length > 0
-            ? `<div style="margin-top:12px;">
-                   <div class="pts-label">🗺 Карта дня:</div>
-                   <div id="map${i}" style="height:200px;width:100%;border-radius:4px;border:1px solid #e2e8f0;margin-top:4px;"></div>
-               </div>`
-            : '';
-
-        return `
-        <div class="day">
-            <div class="day-header"><span class="num">${i + 1}</span>${escHtml(d.dayTitle)}</div>
-            <div class="source">📍 ${escHtml(d.routeTitle)}</div>
-            <div class="desc">${escHtml(d.dayDesc)}</div>
-            ${pts.length > 0 ? `<div class="pts-label">Точки маршрута:</div>${ptsHtml}` : ''}
-            ${mapDiv}
-        </div>`;
-    }).join('');
-
-    // Serialize points for JS inside the new window
-    const pointsJson = JSON.stringify(days.map(d => d.points || []));
-
-    const html = `<!DOCTYPE html>
-<html lang="ru"><head>
-<meta charset="UTF-8">
-<title>${escHtml(name)}</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-  body{font-family:Arial,Helvetica,sans-serif;max-width:700px;margin:40px auto;color:#2d3748;font-size:13px}
-  h1{font-size:22px;color:#2d3748;border-bottom:2px solid #e2e8f0;padding-bottom:10px;margin-bottom:6px}
-  .meta{color:#718096;margin-bottom:26px;font-size:11px}
-  .day{margin-bottom:22px;padding:14px 16px;border:1px solid #e2e8f0;border-left:4px solid #718096;border-radius:4px;page-break-inside:avoid}
-  .day-header{font-weight:bold;font-size:14px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
-  .num{display:inline-flex;width:22px;height:22px;background:#718096;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0}
-  .source{color:#718096;font-size:11px;margin-bottom:4px}
-  .desc{color:#4a5568;font-size:12px;margin-bottom:10px}
-  .pts-label{font-size:11px;font-weight:bold;color:#4a5568;margin:8px 0 6px}
-  .point{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
-  .pt-num{display:inline-flex;width:18px;height:18px;background:#e2e8f0;color:#4a5568;border-radius:50%;align-items:center;justify-content:center;font-size:10px;font-weight:bold;flex-shrink:0;margin-top:2px}
-  .footer{margin-top:30px;color:#a0aec0;font-size:10px;border-top:1px solid #e2e8f0;padding-top:8px}
-  #printBtn{position:fixed;bottom:24px;right:24px;background:#667eea;color:#fff;border:none;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-  #printBtn:disabled{background:#a0aec0;cursor:default;}
-  @media print{#printBtn{display:none}}
-</style>
-</head><body>
-<h1>${escHtml(name)}</h1>
-<div class="meta">Всего дней: ${days.length} &nbsp;·&nbsp; Дата: ${dateStr} &nbsp;·&nbsp; RouteBuddy</div>
-${daysHtml}
-<div class="footer">Создано в конструкторе маршрутов RouteBuddy</div>
-<button id="printBtn" disabled>⏳ Загрузка карт...</button>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
-<script>
-(function() {
-    const allPts = ${pointsJson};
-    let pending = allPts.filter(p => p && p.length > 0).length;
-    if (pending === 0) { ready(); return; }
-
-    allPts.forEach(function(pts, i) {
-        if (!pts || pts.length === 0) return;
-        var el = document.getElementById('map' + i);
-        if (!el) { pending--; if (pending <= 0) ready(); return; }
-
-        var lat = pts.reduce(function(s,p){return s+p.lat;},0)/pts.length;
-        var lon = pts.reduce(function(s,p){return s+p.lon;},0)/pts.length;
-        var map = L.map(el, {zoomControl:true, attributionControl:false}).setView([lat,lon],13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-        pts.forEach(function(p,j){
-            L.marker([p.lat,p.lon]).addTo(map).bindPopup('<strong>'+(j+1)+'. '+p.name+'</strong>');
+    function addDay(routeId, dayId) {
+        const route = routes.find(r => Number(r.id) === Number(routeId));
+        const day = route?.days?.find(d => Number(d.id) === Number(dayId));
+        if (!route || !day) return;
+        const key = `${route.id}:${day.id}`;
+        if (selectedDays.some(d => d.key === key)) {
+            showToast('Этот день уже выбран');
+            return;
+        }
+        selectedDays.push({
+            key,
+            sourceRouteId: route.id,
+            sourceRouteTitle: route.title,
+            sourceAuthor: route.authorUsername || '',
+            title: day.title || `День ${selectedDays.length + 1}`,
+            description: day.description || '',
+            cost: Number(day.cost || 0),
+                        travelTime: day.travelTime || '',
+                        photoUrl: day.photoUrl || null,
+                        points: (day.points || []).map((p, i) => ({
+                name: p.name || `Точка ${i + 1}`,
+                description: p.description || '',
+                lat: pointLat(p),
+                lon: pointLon(p),
+                photoUrl: p.photoUrl || null,
+                timeStart: p.timeStart || null,
+                timeEnd: p.timeEnd || null
+            }))
         });
-        map.once('moveend', function(){ pending--; if(pending<=0) ready(); });
-        setTimeout(function(){ pending = 0; ready(); }, 4000);
-    });
-
-    function ready() {
-        var btn = document.getElementById('printBtn');
-        btn.textContent = '🖨  Печать / Сохранить PDF';
-        btn.disabled = false;
-        btn.onclick = function(){ window.print(); };
+        renderSelectedDays();
+        renderRoutes();
+        showToast('День добавлен');
     }
-})();
-<\/script>
-</body></html>`;
 
-    const w = window.open('', '_blank', 'width=820,height=900');
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    showToast('Дождитесь загрузки карт → нажмите «Печать / Сохранить PDF»');
-}
-
-function clearRoute() {
-    if (confirm('Очистить весь маршрут?')) {
-        saveToStorage([]);
-        renderMyRoute();
-        document.getElementById('savedSummary').style.display = 'none';
+    function removeDay(index) {
+        selectedDays.splice(index, 1);
+        renderSelectedDays();
+        renderRoutes();
     }
-}
+    function moveDay(index, dir) {
+        const next = index + dir;
+        if (next < 0 || next >= selectedDays.length) return;
+        [selectedDays[index], selectedDays[next]] = [selectedDays[next], selectedDays[index]];
+        renderSelectedDays();
+    }
+    function clearSelectedDays() {
+        selectedDays = [];
+        renderSelectedDays();
+        renderRoutes();
+        showToast('Список очищен');
+    }
 
-// ═══════════════════════════════════════════════════
-//  Utilities
-// ═══════════════════════════════════════════════════
-function escHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-function pluralDays(n) {
-    const m = n % 10, h = n % 100;
-    if (m === 1 && h !== 11) return 'день';
-    if ([2,3,4].includes(m) && ![12,13,14].includes(h)) return 'дня';
-    return 'дней';
-}
-let _toastTimer;
-function showToast(msg) {
-    const el = document.getElementById('toast-msg');
-    el.textContent = msg; el.style.display = 'block';
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => el.style.display = 'none', 2500);
-}
-
-// ═══════════════════════════════════════════════════
-//  Reviews
-// ═══════════════════════════════════════════════════
-const REVIEWS_KEY = 'rtbuddy_reviews_v1';
-let _selectedStars = 0;
-
-function pickStar(val) {
-    _selectedStars = val;
-    document.querySelectorAll('.star-opt').forEach(s => {
-        s.style.color = parseInt(s.dataset.val) <= val ? '#f6ad55' : '#e2e8f0';
-    });
-}
-function submitReview() {
-    const author = document.getElementById('reviewAuthor').value.trim();
-    const text   = document.getElementById('reviewText').value.trim();
-    if (!author) { alert('Введите имя'); return; }
-    if (!text)   { alert('Напишите отзыв'); return; }
-    if (_selectedStars === 0) { alert('Выберите оценку'); return; }
-    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
-    reviews.push({ author, text, stars: _selectedStars, date: new Date().toLocaleDateString('ru-RU') });
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
-    renderUserReviews();
-    document.getElementById('reviewAuthor').value = '';
-    document.getElementById('reviewText').value = '';
-    pickStar(0);
-    showToast('Отзыв добавлен!');
-}
-function renderUserReviews() {
-    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
-    const container = document.getElementById('userReviewsList');
-    if (!reviews.length) { container.innerHTML = ''; return; }
-    container.innerHTML = reviews.map((r, i) => {
-        const stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
-        return `
-        <div class="review-card" style="position:relative;">
-            <button onclick="deleteReview(${i})" title="Удалить"
-                style="position:absolute;top:8px;right:8px;background:none;border:none;color:#a0aec0;font-size:1rem;cursor:pointer;">&times;</button>
-            <div class="d-flex justify-content-between align-items-start mb-1" style="padding-right:1.2rem;">
-                <strong>${escHtml(r.author)}</strong><span class="stars">${stars}</span>
+    function renderSelectedDays() {
+        const box = document.getElementById('selectedDays');
+        document.getElementById('dayCount').textContent = `${selectedDays.length} ${pluralDays(selectedDays.length)}`;
+        const total = selectedDays.reduce((sum, d) => sum + Number(d.cost || 0), 0);
+        document.getElementById('routeTotals').textContent = selectedDays.length
+            ? `Итого: ${selectedDays.length} ${pluralDays(selectedDays.length)}, ${money(total)}`
+            : '';
+        if (selectedDays.length === 0) {
+            box.innerHTML = '<div class="empty">Добавьте дни из списка слева.</div>';
+            return;
+        }
+        box.innerHTML = selectedDays.map((day, i) => `
+            <div class="selected-day">
+                <div class="d-flex gap-2 align-items-start">
+                    <span class="num">${i + 1}</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">${esc(day.title)}</div>
+                        <div class="day-meta">${esc(day.sourceRouteTitle)} · ${esc(day.sourceAuthor || 'автор')} · ${money(day.cost)}</div>
+                        ${day.description ? `<div class="small text-muted mt-1">${esc(day.description)}</div>` : ''}
+                        ${day.photoUrl ? `<img src="${esc(day.photoUrl)}" class="day-thumb" alt="">` : ''}
+                        <div class="point-meta mt-1">${day.points.length} точек, фото сохраняются вместе с точками</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-1 flex-wrap mt-2">
+                    <button class="btn btn-sm btn-soft" type="button" onclick="moveDay(${i}, -1)" ${i === 0 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <button class="btn btn-sm btn-soft" type="button" onclick="moveDay(${i}, 1)" ${i === selectedDays.length - 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button class="btn btn-sm btn-remove ms-auto" type="button" onclick="removeDay(${i})">
+                        <i class="fas fa-times me-1"></i>Удалить
+                    </button>
+                </div>
             </div>
-            <p class="small text-muted mb-1">${escHtml(r.text)}</p>
-            <small class="text-muted">${escHtml(r.date)}</small>
-        </div>`;
-    }).join('');
-}
-function deleteReview(i) {
-    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
-    reviews.splice(i, 1);
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
-    renderUserReviews();
-    showToast('Отзыв удалён');
-}
+        `).join('');
+    }
 
-// ═══════════════════════════════════════════════════
-//  Init
-// ═══════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-    renderRoutes();
-    renderMyRoute();
-    renderUserReviews();
-});
+    function setSaving(isSaving) {
+        const saveBtn = document.getElementById('saveBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        saveBtn.disabled = isSaving;
+        exportBtn.disabled = isSaving;
+        saveBtn.innerHTML = isSaving
+            ? '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...'
+            : '<i class="fas fa-save me-2"></i>Сохранить и открыть';
+        exportBtn.innerHTML = isSaving
+            ? '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...'
+            : '<i class="fas fa-file-pdf me-2"></i>Сохранить и выгрузить';
+    }
+
+    async function saveConstructedRoute(mode) {
+        const title = document.getElementById('routeTitle').value.trim();
+        if (!title) {
+            showToast('Введите название маршрута');
+            document.getElementById('routeTitle').focus();
+            return;
+        }
+        if (selectedDays.length === 0) {
+            showToast('Добавьте хотя бы один день');
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const totalCost = selectedDays.reduce((sum, day) => sum + Number(day.cost || 0), 0);
+            const description = document.getElementById('routeDescription').value.trim()
+                || 'Маршрут собран из дней опубликованных маршрутов RouteBuddy.';
+            const route = await apiJson('/api/proxy/routes', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title,
+                    description,
+                    tags: document.getElementById('routeTags').value.trim(),
+                    isPublic: document.getElementById('routePublic').value === 'true',
+                    durationDays: selectedDays.length,
+                    totalCost
+                })
+            });
+
+            for (let i = 0; i < selectedDays.length; i++) {
+                const day = selectedDays[i];
+                const createdDay = await apiJson(`/api/proxy/routes/${route.id}/days`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        dayNumber: i + 1,
+                        title: day.title,
+                        description: day.description,
+                        photoUrl: day.photoUrl || null,
+                        cost: day.cost,
+                        travelTime: day.travelTime
+                    })
+                });
+                for (let j = 0; j < day.points.length; j++) {
+                    const p = day.points[j];
+                    await apiJson(`/api/proxy/routes/${route.id}/days/${createdDay.id}/points`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            orderIndex: j,
+                            name: p.name,
+                            description: p.description,
+                            lat: p.lat,
+                            lon: p.lon,
+                            photoUrl: p.photoUrl,
+                            timeStart: p.timeStart,
+                            timeEnd: p.timeEnd
+                        })
+                    });
+                }
+            }
+
+            showToast('Маршрут сохранён');
+            window.location.href = mode === 'export' ? `/export?routeId=${route.id}` : `/routes/${route.id}`;
+        } catch (e) {
+            console.error(e);
+            showToast(`Не удалось сохранить: ${e.message}`);
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderSelectedDays();
+        loadRoutes();
+    });
 </script>
-
 </body>
 </html>

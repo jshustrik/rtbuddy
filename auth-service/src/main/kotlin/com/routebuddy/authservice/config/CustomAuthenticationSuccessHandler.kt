@@ -33,7 +33,7 @@ class CustomAuthenticationSuccessHandler(
         if (!redirectUrl.isNullOrEmpty()) {
             response.sendRedirect(redirectUrl)
         } else {
-            response.sendRedirect("http://127.0.0.1:8082/profile/$username")
+            response.sendRedirect("/profile/$username")
         }
     }
 }

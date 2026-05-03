@@ -1,7 +1,7 @@
 package com.routebuddy.authservice.controller
 
-import com.quizwhiz.authservice.model.User
-import com.quizwhiz.authservice.repository.UserRepository
+import com.routebuddy.authservice.model.User
+import com.routebuddy.authservice.repository.UserRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -20,7 +20,7 @@ class InternalUserControllerTest {
 
         val response: ResponseEntity<User> = controller.getUserByUsername("testuser")
         assertEquals(200, response.statusCodeValue)
-        assertEquals(user, response.body)
+        assertEquals(user, response.getBody())
     }
 
     @Test
@@ -28,6 +28,6 @@ class InternalUserControllerTest {
         whenever(userRepository.findByUsername("notfound")).thenReturn(null)
         val response = controller.getUserByUsername("notfound")
         assertEquals(404, response.statusCodeValue)
-        assertNull(response.body)
+        assertNull(response.getBody())
     }
 }

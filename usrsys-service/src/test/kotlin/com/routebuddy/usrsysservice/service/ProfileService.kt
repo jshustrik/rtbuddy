@@ -9,7 +9,7 @@ import org.mockito.kotlin.*
 class ProfileServiceTest {
 
     private val authServiceClient = mock<AuthServiceClient>()
-    private val profileService = ProfileService(authServiceClient)
+    private val profileService = ProfileService(authServiceClient, "http://127.0.0.1:8081")
 
     @Test
     fun `getProfile should return ProfileDto from user data`() {

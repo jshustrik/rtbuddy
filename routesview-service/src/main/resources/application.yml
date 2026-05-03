@@ -2,7 +2,6 @@ server:
   port: 8083
 
 spring:
-  # DEMO: H2 in-memory replaces PostgreSQL — no external DB needed
   datasource:
     url: jdbc:h2:mem:demodb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
@@ -21,6 +20,14 @@ spring:
 jwt:
   secret: 'n4uB0oP1mQ6sT8yZ0xR3vL7eF2aD5jK9sU8iE4wQ1zC3bN6rT8vY0pL7kJ2dS9aF'
   expiration: 3600000
+
+services:
+  make-service: http://localhost:8084
+  review-service: http://localhost:8085
+
+yandex:
+  maps:
+    api-key: ${YANDEX_MAPS_API_KEY:fb560341-ba13-42eb-9e2f-fad6f7701d75}
 
 logging:
   level:

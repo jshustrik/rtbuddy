@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход - RouteBuddy</title>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
     <link rel="stylesheet"
@@ -102,7 +103,8 @@
         .password-toggle {
             position: absolute;
             right: 12px;
-            top: 30 px;
+            top: 50%;
+            transform: translateY(-50%);
             background: transparent;
             border: none;
             color: var(--text-light);
@@ -115,6 +117,10 @@
         .password-toggle:hover {
             color: var(--primary-color);
             background: rgba(113, 128, 150, 0.1);
+        }
+
+        .password-field {
+            position: relative;
         }
 
         .btn-primary {
@@ -223,6 +229,46 @@
                 padding: 2rem 1.5rem;
             }
         }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-ink: #23312f;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+        }
+        body { background: var(--rb-bg); color: var(--rb-ink); }
+        .login-card {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+            box-shadow: none;
+        }
+        .login-card:hover { transform: none; }
+        .header-section { background: var(--rb-primary-dark); }
+        .input-field {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+            background: #fbfcfb;
+        }
+        .input-field:focus {
+            border-color: var(--rb-primary);
+            box-shadow: 0 0 0 3px rgba(31,111,104,.12);
+        }
+        .btn-primary {
+            background: var(--rb-primary);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .btn-primary:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+            box-shadow: none;
+        }
+        .link-secondary:hover,
+        .password-toggle:hover {
+            color: var(--rb-primary);
+        }
     </style>
 </head>
 <body>
@@ -276,22 +322,25 @@
                     <label for="password">
                         <i class="fas fa-lock mr-2"></i>Пароль
                     </label>
-                    <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Введите пароль"
-                            required
-                            class="input-field"
-                            autocomplete="current-password"
-                    >
-                    <button
-                            type="button"
-                            class="password-toggle"
-                            onclick="togglePasswordVisibility('password', this)"
-                    >
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <div class="password-field">
+                        <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Введите пароль"
+                                required
+                                class="input-field"
+                                autocomplete="current-password"
+                        >
+                        <button
+                                type="button"
+                                class="password-toggle"
+                                onclick="togglePasswordVisibility('password', this)"
+                                aria-label="Показать пароль"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Запомнить меня (опционально) -->

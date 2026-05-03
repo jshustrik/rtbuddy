@@ -1,10 +1,10 @@
 package com.routebuddy.authservice.controller
 
-import com.quizwhiz.authservice.dto.RegistrationRequest
-import com.quizwhiz.authservice.model.User
-import com.quizwhiz.authservice.repository.UserRepository
-import com.quizwhiz.authservice.service.AuthService
-import com.quizwhiz.authservice.config.JwtTokenProvider
+import com.routebuddy.authservice.config.JwtTokenProvider
+import com.routebuddy.authservice.dto.RegistrationRequest
+import com.routebuddy.authservice.model.User
+import com.routebuddy.authservice.repository.UserRepository
+import com.routebuddy.authservice.service.AuthService
 import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -67,11 +67,11 @@ class RegistrationControllerTest {
         val response = MockHttpServletResponse()
 
         // эмулируем ошибку при регистрации
-        whenever(authService.register(any())).thenThrow(RuntimeException("Username already exists"))
+        whenever(authService.register(any())).thenThrow(RuntimeException("Имя пользователя уже занято"))
 
         val viewName = controller.processRegistrationForm(registrationRequest, bindingResult, model, request, response)
         assertEquals("register", viewName)
-        assertEquals("Username already exists", model.getAttribute("error"))
+        assertEquals("Имя пользователя уже занято", model.getAttribute("error"))
     }
 
     @Test
@@ -124,6 +124,6 @@ class RegistrationControllerTest {
         whenever(jwtTokenProvider.getJwtExpirationInMs()).thenReturn(3600000L)
 
         val viewName = controller.processRegistrationForm(registrationRequest, bindingResult, model, request, response)
-        assertEquals("redirect:http://127.0.0.1:8082/profile/user", viewName)
+        assertEquals("redirect:/profile/user", viewName)
     }
 }

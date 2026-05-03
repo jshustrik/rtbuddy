@@ -1,0 +1,22 @@
+FROM eclipse-temurin@sha256:aae0b1494a5637b2c1b933080088ccc196dec7ffb83ce1cd524211ea4f640ff4 AS build
+
+ENV GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx384m -Dkotlin.daemon.jvm.options=-Xmx256m -Dorg.gradle.workers.max=1"
+WORKDIR /workspace
+
+COPY gradlew settings.gradle.kts build.gradle.kts ./
+COPY gradle ./gradle
+
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    chmod +x ./gradlew && ./gradlew dependencies --no-daemon --max-workers=1 >/dev/null
+
+COPY src ./src
+
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    ./gradlew bootJar --no-daemon --max-workers=1
+
+FROM eclipse-temurin@sha256:07c1f0f0c3f3c714cea7a9250a8418ec329baa2cea1f77dcda2a7332ff937633
+
+WORKDIR /app
+COPY --from=build /workspace/build/libs/*.jar /app/app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

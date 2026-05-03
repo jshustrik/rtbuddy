@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script th:src="|https://api-maps.yandex.ru/2.1/?apikey=${yandexMapsApiKey}&amp;lang=ru_RU|" type="text/javascript"></script>
     <!-- Custom CSS (общий стиль) -->
     <style>
         :root {
@@ -126,6 +127,13 @@
         .form-control:focus, .form-select:focus {
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.2);
+        }
+
+        .route-calc-status {
+            min-height: 1.1rem;
+            color: var(--text-light);
+            font-size: 0.78rem;
+            margin-top: 0.25rem;
         }
 
         /* Дни маршрута */
@@ -252,12 +260,144 @@
             margin-top: 0.3rem;
         }
 
+        .route-map {
+            height: 360px;
+            border-radius: 12px;
+            border: 1px solid var(--medium-gray);
+            overflow: hidden;
+            background: var(--light-gray);
+        }
+
+        .point-item.active-point {
+            box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.22);
+            border-left-color: var(--secondary-color);
+        }
+
         /* Адаптивность */
         @media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .page-header {
+                padding: 1.4rem;
+                border-radius: 12px;
+            }
+
+            .page-header h1 {
+                font-size: 1.55rem;
+            }
+
             .day-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
+            }
+
+            .d-flex.gap-3.justify-content-center {
+                flex-direction: column;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+            }
+        }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-surface: #ffffff;
+            --rb-ink: #23312f;
+            --rb-muted: #64706d;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+            --rb-accent: #b7643d;
+        }
+        body {
+            background: var(--rb-bg);
+            color: var(--rb-ink);
+        }
+        .navbar {
+            background: var(--rb-primary-dark);
+            box-shadow: none;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+        .nav-link {
+            border-radius: 8px;
+            padding: .55rem .75rem !important;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,.1);
+            transform: none;
+        }
+        .page-header {
+            background: var(--rb-primary-dark);
+            border-radius: 8px;
+            box-shadow: none;
+            padding: 2rem;
+        }
+        .page-header::before {
+            display: none;
+        }
+        .card-custom,
+        .day-item,
+        .point-item,
+        .route-map {
+            border-radius: 8px;
+            box-shadow: none;
+            border-color: var(--rb-line);
+        }
+        .card-custom {
+            background: var(--rb-surface);
+        }
+        .day-item {
+            background: #fbfcfb;
+            border-left-color: var(--rb-primary);
+        }
+        .point-item {
+            background: #ffffff;
+            border-left-color: #d7e2dd;
+        }
+        .point-item.active-point {
+            box-shadow: 0 0 0 3px rgba(31,111,104,.12);
+            border-left-color: var(--rb-primary);
+        }
+        .form-control {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+        }
+        .form-control:focus {
+            border-color: var(--rb-primary);
+            box-shadow: 0 0 0 3px rgba(31,111,104,.12);
+        }
+        .btn-primary,
+        .btn-add {
+            background: var(--rb-primary);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .btn-primary:hover,
+        .btn-add:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            border-radius: 8px;
+            background: #eef3f0;
+            color: var(--rb-ink);
+        }
+        @media (max-width: 768px) {
+            .container.py-5 {
+                padding-top: 1rem !important;
+            }
+            .page-header,
+            .card-custom {
+                padding: 1rem;
             }
         }
     </style>
@@ -266,42 +406,21 @@
 <!-- Навигационная панель (как в предыдущих шаблонах) -->
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/src/main/resources/static">
-            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
-            <div>
-                <div class="fw-bold fs-4">RouteBuddy</div>
-            </div>
+        <a class="navbar-brand d-flex align-items-center" href="/routes">
+            <i class="fas fa-mountain me-2" style="font-size:1.4rem;"></i>
+            <span class="fw-bold fs-5">RouteBuddy</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/src/main/resources/static">
-                        <i class="fas fa-home me-2"></i> Главная
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link active d-flex align-items-center" href="/create-route.html">
-                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/routes">
-                        <i class="fas fa-route me-2"></i> Маршруты
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/profile">
-                        <i class="fas fa-user-circle me-2"></i> Профиль
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/logout">
-                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
-                    </a>
-                </li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link active" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-1"></i>Профиль</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Выйти</a></li>
             </ul>
         </div>
     </div>
@@ -322,20 +441,25 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="routeTitle" class="form-label">Название маршрута *</label>
-                    <input type="text" class="form-control" id="routeTitle" placeholder="Например: Путешествие по Золотому кольцу" required>
+                    <input type="text" class="form-control" id="routeTitle" minlength="3" maxlength="100" placeholder="Например: Путешествие по Золотому кольцу" required>
                 </div>
                 <div class="col-md-3">
                     <label for="routeDuration" class="form-label">Длительность (дней) *</label>
-                    <input type="number" class="form-control" id="routeDuration" min="1" value="1" required>
+                    <input type="number" class="form-control" id="routeDuration" min="1" max="30" value="1" required>
                 </div>
                 <div class="col-md-3">
                     <label for="routeTotalCost" class="form-label">Общая стоимость (₽) *</label>
                     <input type="number" class="form-control" id="routeTotalCost" min="0" step="100" value="0" required>
                 </div>
                 <div class="col-12">
-                    <label for="routeShortDesc" class="form-label">Краткое описание маршрута *</label>
-                    <textarea class="form-control" id="routeShortDesc" rows="2" placeholder="Кратко о маршруте (макс. 200 символов)" maxlength="200" required></textarea>
-                    <div class="help-text">Краткое описание будет отображаться в карточке маршрута.</div>
+                    <label for="routeShortDesc" class="form-label">Описание маршрута *</label>
+                    <textarea class="form-control" id="routeShortDesc" rows="3" placeholder="Опишите маршрут: города, формат прогулки, для кого подходит" minlength="10" maxlength="1000" required></textarea>
+                    <div class="help-text">Описание должно содержать 10-1000 символов без HTML-тегов.</div>
+                </div>
+                <div class="col-12">
+                    <label for="routeTags" class="form-label">Теги</label>
+                    <input type="text" class="form-control" id="routeTags" placeholder="Например: культура, маломобильных, семейный">
+                    <div class="help-text">Теги участвуют в поиске. Для маршрутов с доступной средой добавьте тег «маломобильных».</div>
                 </div>
             </div>
         </div>
@@ -345,6 +469,11 @@
             <h3 class="section-title"><i class="fas fa-calendar-alt"></i>Дни маршрута</h3>
             <div id="daysContainer">
                 <!-- Сюда будут динамически добавляться дни -->
+            </div>
+            <div class="mt-4">
+                <h5 class="form-label mb-2"><i class="fas fa-map-marked-alt me-2"></i>Карта Яндекс</h5>
+                <div id="routeMap" class="route-map"></div>
+                <div class="help-text">Выберите точку в форме и кликните по карте. Координаты подставятся автоматически.</div>
             </div>
             <button type="button" class="btn-add" onclick="addDay()">
                 <i class="fas fa-plus-circle me-2"></i>Добавить день
@@ -375,10 +504,11 @@
     let dayCounter = 0;
     // Массив для хранения данных дней (для последующего сохранения)
     let daysData = [];
+    let routeMap = null;
+    let activePointElement = null;
+    let travelCalcTimer = null;
 
-    // Функция добавления нового дня
     function addDay() {
-        var qqq = window.open('/routes/createday');
         dayCounter++;
         const dayId = `day_${dayCounter}`;
         const dayNumber = dayCounter;
@@ -419,6 +549,21 @@
                 <div class="col-12">
                     <label class="form-label">Описание дня</label>
                     <textarea class="form-control day-description" rows="2" placeholder="Что планируется в этот день"></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Фото дня</label>
+                    <input type="text" class="form-control day-photo-url" placeholder="URL фото или выберите JPG/PNG ниже">
+                    <input type="file" class="form-control mt-2 day-photo-file" accept="image/jpeg,image/png" onchange="readPhotoFile(this, '.day-photo-url')">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Время в пути</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control day-travel-time" value="" placeholder="Рассчитается автоматически по точкам" readonly>
+                        <button type="button" class="btn btn-outline-secondary" onclick="calculateDayTravelTimeById('${dayId}', true)">
+                            <i class="fas fa-route me-1"></i>Пересчитать
+                        </button>
+                    </div>
+                    <div class="route-calc-status day-travel-status">Добавьте минимум 2 точки с координатами</div>
                 </div>
             </div>
             <div class="points-container" id="points-${dayId}">
@@ -480,7 +625,7 @@
             </div>
             <div class="row g-2">
                 <div class="col-md-4">
-                    <input type="text" class="form-control form-control-sm point-title" placeholder="Название точки" required>
+                    <input type="text" class="form-control form-control-sm point-title" placeholder="Название точки" oninput="updateMapMarkers()" required>
                 </div>
                 <div class="col-md-3">
                     <input type="text" class="form-control form-control-sm point-time-start" placeholder="Начало (чч:мм)">
@@ -494,9 +639,92 @@
                 <div class="col-12">
                     <textarea class="form-control form-control-sm point-desc" rows="1" placeholder="Описание точки"></textarea>
                 </div>
+                <div class="col-md-6">
+                    <input type="url" class="form-control form-control-sm point-map-url" placeholder="Ссылка на Яндекс.Карты" onchange="fillCoordsFromMapUrl(this)">
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control form-control-sm point-lat" placeholder="Широта" step="0.000001" onchange="updateMapMarkers()">
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control form-control-sm point-lon" placeholder="Долгота" step="0.000001" onchange="updateMapMarkers()">
+                </div>
+                <div class="col-12">
+                    <input type="text" class="form-control form-control-sm point-photo-url" placeholder="URL фото точки или выберите JPG/PNG ниже">
+                    <input type="file" class="form-control form-control-sm mt-2 point-photo-file" accept="image/jpeg,image/png" onchange="readPhotoFile(this, '.point-photo-url')">
+                </div>
+                <div class="col-12">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setActivePoint(this.closest('.point-item'))">
+                        <i class="fas fa-crosshairs me-1"></i>Поставить на карте
+                    </button>
+                </div>
             </div>
         `;
         pointsContainer.appendChild(pointDiv);
+        pointDiv.addEventListener('focusin', () => setActivePoint(pointDiv));
+        pointDiv.addEventListener('click', () => setActivePoint(pointDiv));
+        setActivePoint(pointDiv);
+        updateMapMarkers();
+        scheduleTravelTimeRecalculation();
+    }
+
+    function setActivePoint(pointDiv) {
+        if (!pointDiv) return;
+        document.querySelectorAll('.point-item').forEach(p => p.classList.remove('active-point'));
+        activePointElement = pointDiv;
+        pointDiv.classList.add('active-point');
+        updateMapMarkers();
+    }
+
+    function readPhotoFile(input, targetSelector) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            alert('Выберите JPG или PNG');
+            input.value = '';
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Фото должно быть не больше 5MB');
+            input.value = '';
+            return;
+        }
+        const holder = input.closest('.point-item') || input.closest('.day-item');
+        const target = holder?.querySelector(targetSelector);
+        if (!target) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            target.value = e.target.result;
+            input.classList.add('is-valid');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function parseMapCoordinates(value) {
+        const text = decodeURIComponent(String(value || ''));
+        const explicit = text.match(/[?&](?:ll|pt)=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+        if (explicit) return { lon: Number(explicit[1]), lat: Number(explicit[2]) };
+
+        const point = text.match(/point=(-?\d+(?:\.\d+)?)%2C(-?\d+(?:\.\d+)?)/);
+        if (point) return { lon: Number(point[1]), lat: Number(point[2]) };
+
+        const coords = text.match(/(-?\d{2,3}(?:\.\d+)?)[,\s]+(-?\d{2,3}(?:\.\d+)?)/);
+        if (!coords) return null;
+        const first = Number(coords[1]);
+        const second = Number(coords[2]);
+        if (Math.abs(second) <= 90 && Math.abs(first) <= 180) return { lon: first, lat: second };
+        if (Math.abs(first) <= 90 && Math.abs(second) <= 180) return { lat: first, lon: second };
+        return null;
+    }
+
+    function fillCoordsFromMapUrl(input) {
+        const coords = parseMapCoordinates(input.value);
+        if (!coords) return;
+        const point = input.closest('.point-item');
+        point.querySelector('.point-lat').value = coords.lat.toFixed(6);
+        point.querySelector('.point-lon').value = coords.lon.toFixed(6);
+        setActivePoint(point);
+        updateMapMarkers();
+        scheduleTravelTimeRecalculation();
     }
 
     // Удаление точки
@@ -513,6 +741,195 @@
                     header.innerHTML = `<i class="fas fa-map-marker-alt me-2"></i>Точка ${idx + 1}`;
                 }
             });
+            activePointElement = document.querySelector('.point-item');
+            if (activePointElement) setActivePoint(activePointElement);
+            updateMapMarkers();
+            scheduleTravelTimeRecalculation();
+        }
+    }
+
+    function initRouteMap() {
+        if (!window.ymaps) {
+            document.getElementById('routeMap').innerHTML = '<div class="text-center text-muted py-5">API Яндекс.Карт временно недоступен. Координаты можно ввести вручную.</div>';
+            return;
+        }
+        ymaps.ready(() => {
+            routeMap = new ymaps.Map('routeMap', {
+                center: [59.935, 30.327],
+                zoom: 12,
+                controls: ['zoomControl', 'searchControl', 'fullscreenControl']
+            });
+            routeMap.events.add('click', function(e) {
+                if (!activePointElement) {
+                    const firstDay = document.querySelector('.day-item');
+                    if (firstDay) addPoint(firstDay.id);
+                }
+                if (!activePointElement) return;
+                const coords = e.get('coords');
+                activePointElement.querySelector('.point-lat').value = coords[0].toFixed(6);
+                activePointElement.querySelector('.point-lon').value = coords[1].toFixed(6);
+                updateMapMarkers();
+            });
+            updateMapMarkers();
+        });
+    }
+
+    function updateMapMarkers() {
+        scheduleTravelTimeRecalculation();
+        if (!routeMap) return;
+        routeMap.geoObjects.removeAll();
+        const points = Array.from(document.querySelectorAll('.point-item'))
+            .map((point, idx) => {
+                const lat = Number(point.querySelector('.point-lat')?.value);
+                const lon = Number(point.querySelector('.point-lon')?.value);
+                const name = point.querySelector('.point-title')?.value.trim() || `Точка ${idx + 1}`;
+                return { point, idx, lat, lon, name };
+            })
+            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon) && p.lat !== 0 && p.lon !== 0);
+
+        points.forEach(p => {
+            const placemark = new ymaps.Placemark([p.lat, p.lon], {
+                balloonContentHeader: `${p.idx + 1}. ${escapeHtml(p.name)}`
+            }, {
+                preset: p.point === activePointElement ? 'islands#redDotIcon' : 'islands#blueDotIcon',
+                draggable: true
+            });
+            placemark.events.add('click', () => setActivePoint(p.point));
+            placemark.events.add('dragend', () => {
+                const coords = placemark.geometry.getCoordinates();
+                p.point.querySelector('.point-lat').value = coords[0].toFixed(6);
+                p.point.querySelector('.point-lon').value = coords[1].toFixed(6);
+                setActivePoint(p.point);
+                updateMapMarkers();
+                scheduleTravelTimeRecalculation();
+            });
+            routeMap.geoObjects.add(placemark);
+        });
+
+        if (points.length > 1) {
+            routeMap.geoObjects.add(new ymaps.Polyline(
+                points.map(p => [p.lat, p.lon]),
+                {},
+                { strokeColor: '#4a5568', strokeWidth: 4, strokeOpacity: 0.85 }
+            ));
+        }
+        const bounds = routeMap.geoObjects.getBounds();
+        if (bounds) routeMap.setBounds(bounds, { checkZoomRange: true, zoomMargin: 40 });
+    }
+
+    function pointCoordsFromElement(point) {
+        const mapUrl = point.querySelector('.point-map-url')?.value || '';
+        const parsed = parseMapCoordinates(mapUrl);
+        const lat = Number(point.querySelector('.point-lat')?.value || parsed?.lat);
+        const lon = Number(point.querySelector('.point-lon')?.value || parsed?.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat === 0 || lon === 0) return null;
+        return [lat, lon];
+    }
+
+    function dayCoords(day) {
+        return Array.from(day.querySelectorAll('.point-item'))
+            .map(pointCoordsFromElement)
+            .filter(Boolean);
+    }
+
+    function routePropText(prop) {
+        if (!prop) return '';
+        if (typeof prop === 'string') return prop;
+        return prop.text || prop.humanText || '';
+    }
+
+    async function yandexTravelTime(coords) {
+        if (coords.length < 2 || !window.ymaps) return '';
+        await new Promise(resolve => ymaps.ready(resolve));
+        return new Promise(resolve => {
+            ymaps.route(coords, {
+                multiRoute: true,
+                routingMode: 'pedestrian',
+                mapStateAutoApply: false
+            }).then(multiRoute => {
+                const activeRoute = multiRoute.getActiveRoute && multiRoute.getActiveRoute();
+                const duration = routePropText(activeRoute?.properties?.get('duration'));
+                const distance = routePropText(activeRoute?.properties?.get('distance'));
+                resolve(duration ? `${duration}${distance ? ' / ' + distance : ''}` : '');
+            }, () => resolve(''));
+        });
+    }
+
+    async function calculateDayTravelTime(day, forceStatus = false) {
+        const input = day.querySelector('.day-travel-time');
+        const status = day.querySelector('.day-travel-status');
+        if (!input || !status) return '';
+        const coords = dayCoords(day);
+        if (coords.length < 2) {
+            input.value = '';
+            status.textContent = 'Добавьте минимум 2 точки с координатами';
+            return '';
+        }
+        if (!window.ymaps) {
+            status.textContent = 'API Яндекс.Карт недоступен, время не рассчитано';
+            return input.value || '';
+        }
+        if (forceStatus) status.textContent = 'Расчёт через API Яндекс.Карт...';
+        const text = await yandexTravelTime(coords);
+        if (text) {
+            input.value = text;
+            status.textContent = 'Рассчитано через API Яндекс.Карт';
+        } else {
+            status.textContent = 'Не удалось рассчитать маршрут по этим точкам';
+        }
+        return input.value || '';
+    }
+
+    function calculateDayTravelTimeById(dayId, forceStatus = false) {
+        const day = document.getElementById(dayId);
+        if (day) calculateDayTravelTime(day, forceStatus);
+    }
+
+    function scheduleTravelTimeRecalculation() {
+        clearTimeout(travelCalcTimer);
+        travelCalcTimer = setTimeout(() => {
+            document.querySelectorAll('.day-item').forEach(day => calculateDayTravelTime(day));
+        }, 900);
+    }
+
+    async function recalculateAllDayTravelTimes() {
+        for (const day of document.querySelectorAll('.day-item')) {
+            await calculateDayTravelTime(day, true);
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function hasHtmlTags(value) {
+        return /<[^>]+>/.test(value || '');
+    }
+
+    function hasLetter(value) {
+        return /[A-Za-zА-Яа-яЁё]/.test(value || '');
+    }
+
+    async function readErrorMessage(response, fallback) {
+        const text = await response.text().catch(() => '');
+        if (!text) return fallback || `HTTP ${response.status}`;
+        try {
+            const data = JSON.parse(text);
+            const message = data.error || data.message || text;
+            if (typeof message === 'string' && message.trim().startsWith('{')) {
+                const nested = JSON.parse(message);
+                return nested.error || nested.message || message;
+            }
+            return message;
+        } catch (e) {
+            return text;
+        }
+    }
+
+    function resetSaveButton(saveBtn) {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Создать маршрут';
         }
     }
 
@@ -522,24 +939,36 @@
         document.getElementById('routeDuration').value = dayCount || 1;
     }
 
-    // Функция сбора данных и "создания" маршрута (демо)
     function createRoute() {
+        return saveRoute();
+    }
+
+    async function saveRoute() {
         // Валидация основных полей
         const title = document.getElementById('routeTitle').value.trim();
         const shortDesc = document.getElementById('routeShortDesc').value.trim();
-        const duration = parseInt(document.getElementById('routeDuration').value);
-        const totalCost = parseFloat(document.getElementById('routeTotalCost').value);
+        const tags = document.getElementById('routeTags').value.trim();
+        const duration = Number.parseInt(document.getElementById('routeDuration').value, 10);
+        const totalCost = Number.parseFloat(document.getElementById('routeTotalCost').value);
 
-        if (!title) {
-            alert('Введите название маршрута');
+        if (title.length < 3 || title.length > 100 || !hasLetter(title)) {
+            alert('Название маршрута должно содержать 3-100 символов и хотя бы одну букву');
             return;
         }
-        if (!shortDesc) {
-            alert('Введите краткое описание');
+        if (shortDesc.length < 10 || shortDesc.length > 1000 || hasHtmlTags(shortDesc)) {
+            alert('Описание маршрута должно содержать 10-1000 символов и не должно содержать HTML-теги');
             return;
         }
-        if (duration < 1) {
-            alert('Длительность должна быть не менее 1 дня');
+        if (!Number.isInteger(duration) || duration < 1 || duration > 30) {
+            alert('Длительность должна быть от 1 до 30 дней');
+            return;
+        }
+        if (!Number.isFinite(totalCost) || totalCost < 0) {
+            alert('Стоимость должна быть неотрицательным числом');
+            return;
+        }
+        if (tags.length > 200) {
+            alert('Теги должны быть не длиннее 200 символов');
             return;
         }
 
@@ -550,14 +979,49 @@
             alert('Добавьте хотя бы один день маршрута');
             return;
         }
+        const saveBtn = document.querySelector('button[type="submit"]');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Расчёт времени...'; }
+        await recalculateAllDayTravelTimes();
 
         let calculatedTotalCost = 0;
+
+        for (const day of dayElements) {
+            const dayNumber = day.dataset.dayNumber;
+            const dayTitle = day.querySelector('.day-title')?.value.trim() || '';
+            if (dayTitle.length < 3) {
+                alert(`Введите название дня ${dayNumber} длиной минимум 3 символа`);
+                resetSaveButton(saveBtn);
+                return;
+            }
+            const pointItems = day.querySelectorAll('.point-item');
+            if (pointItems.length === 0) {
+                alert(`Добавьте хотя бы одну точку в день ${dayNumber}`);
+                resetSaveButton(saveBtn);
+                return;
+            }
+            for (const point of pointItems) {
+                const pointTitle = point.querySelector('.point-title')?.value.trim() || '';
+                const coords = pointCoordsFromElement(point);
+                if (pointTitle.length < 2) {
+                    alert(`Введите название точки в день ${dayNumber}`);
+                    resetSaveButton(saveBtn);
+                    return;
+                }
+                if (!coords) {
+                    alert(`Укажите координаты точки «${pointTitle}» в день ${dayNumber}`);
+                    resetSaveButton(saveBtn);
+                    return;
+                }
+            }
+        }
 
         dayElements.forEach(day => {
             const dayTitle = day.querySelector('.day-title')?.value.trim() || `День ${day.dataset.dayNumber}`;
             const dayCost = parseFloat(day.querySelector('.day-cost')?.value) || 0;
             const dayDesc = day.querySelector('.day-description')?.value || '';
+            const dayPhotoUrl = day.querySelector('.day-photo-url')?.value.trim() || '';
             const dayDate = day.querySelector('.day-date')?.value || '';
+            const travelTime = day.querySelector('.day-travel-time')?.value.trim() || '';
 
             // Точки
             const points = [];
@@ -568,12 +1032,20 @@
                 const timeEnd = point.querySelector('.point-time-end')?.value || '';
                 const pointCost = parseFloat(point.querySelector('.point-cost')?.value) || 0;
                 const pointDesc = point.querySelector('.point-desc')?.value || '';
+                const mapUrl = point.querySelector('.point-map-url')?.value || '';
+                const parsedCoords = parseMapCoordinates(mapUrl);
+                const lat = parseFloat(point.querySelector('.point-lat')?.value) || parsedCoords?.lat || 0;
+                const lon = parseFloat(point.querySelector('.point-lon')?.value) || parsedCoords?.lon || 0;
+                const photoUrl = point.querySelector('.point-photo-url')?.value.trim() || '';
                 points.push({
                     title: pointTitle,
                     timeStart,
                     timeEnd,
                     cost: pointCost,
-                    description: pointDesc
+                    description: pointDesc,
+                    lat,
+                    lon,
+                    photoUrl
                 });
                 calculatedTotalCost += pointCost;
             });
@@ -583,6 +1055,8 @@
                 title: dayTitle,
                 cost: dayCost,
                 description: dayDesc,
+                photoUrl: dayPhotoUrl,
+                travelTime,
                 date: dayDate,
                 points: points
             });
@@ -593,29 +1067,98 @@
         // Если общая стоимость не совпадает с суммой по дням/точкам, можно предложить обновить
         if (Math.abs(calculatedTotalCost - totalCost) > 0.01) {
             if (!confirm(`Сумма по дням и точкам (${calculatedTotalCost} ₽) отличается от указанной общей стоимости (${totalCost} ₽). Продолжить?`)) {
+                resetSaveButton(saveBtn);
                 return;
             }
         }
 
-        // Выводим в консоль собранные данные (для отладки)
-        console.log({
-            title,
-            shortDescription: shortDesc,
-            duration,
-            totalCost,
-            days
-        });
+        // POST to make-service proxy (routesview-service reads JWT cookie)
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...'; }
 
-        // Имитация успешного сохранения
-        alert('Маршрут успешно создан!');
+        try {
+            // 1. Create route
+            const routeResp = await fetch('/api/proxy/routes', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    description: shortDesc,
+                    tags,
+                    isPublic: true,
+                    durationDays: duration,
+                    totalCost
+                })
+            });
+            if (!routeResp.ok) {
+                const message = await readErrorMessage(routeResp, 'Ошибка сохранения маршрута');
+                if (routeResp.status === 401) {
+                    alert(message || 'Войдите в аккаунт');
+                    window.location.href = '/login?redirectUrl=/routes/create';
+                    return;
+                }
+                throw new Error(message);
+            }
+            const createdRoute = await routeResp.json();
+            const routeId = createdRoute.id;
 
-        // Перенаправление на страницу маршрута (например, на готовый пример)
-        window.location.href = '/routes'; // или другой существующий
+            // 2. Create days + points
+            for (let di = 0; di < days.length; di++) {
+                const d = days[di];
+                const dayResp = await fetch(`/api/proxy/routes/${routeId}/days`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dayNumber: Number(d.dayNumber) || (di + 1),
+                        title: d.title,
+                        description: d.description,
+                        photoUrl: d.photoUrl || null,
+                        cost: d.cost || 0,
+                        travelTime: d.travelTime || ''
+                    })
+                });
+                if (!dayResp.ok) {
+                    const message = await readErrorMessage(dayResp, `Ошибка сохранения дня ${di + 1}`);
+                    throw new Error(message);
+                }
+                const createdDay = await dayResp.json();
+                for (let pi = 0; pi < d.points.length; pi++) {
+                    const p = d.points[pi];
+                    const pointResp = await fetch(`/api/proxy/routes/${routeId}/days/${createdDay.id}/points`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderIndex: pi,
+                            name: p.title || p.name || 'Точка',
+                            description: p.description || '',
+                            lat: p.lat || 0,
+                            lon: p.lon || 0,
+                            photoUrl: p.photoUrl || null,
+                            timeStart: p.timeStart || null,
+                            timeEnd: p.timeEnd || null
+                        })
+                    });
+                    if (!pointResp.ok) {
+                        const message = await readErrorMessage(pointResp, `Ошибка сохранения точки ${pi + 1}`);
+                        throw new Error(message);
+                    }
+                }
+            }
+
+            alert('Маршрут успешно создан!');
+            window.location.href = `/routes/${routeId}`;
+        } catch (err) {
+            alert('Ошибка сохранения: ' + err.message);
+            resetSaveButton(saveBtn);
+        }
     }
 
     // Инициализация: добавить первый день по умолчанию
     window.onload = function() {
         addDay(); // добавляем первый день
+        initRouteMap();
     };
 </script>
 

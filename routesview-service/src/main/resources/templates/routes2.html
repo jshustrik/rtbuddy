@@ -146,6 +146,25 @@
             .routes-grid {
                 grid-template-columns: 1fr;
             }
+
+            .routes-header {
+                padding: 1.5rem;
+                border-radius: 12px;
+            }
+
+            .routes-header h1 {
+                font-size: 1.65rem;
+            }
+
+            .search-section {
+                padding: 1rem;
+            }
+
+            .search-info {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: .8rem;
+            }
         }
 
         .route-card {
@@ -206,9 +225,9 @@
         }
 
         .route-meta {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem 1rem;
             margin-bottom: 1.5rem;
             padding-bottom: 1.5rem;
             border-bottom: 1px solid var(--medium-gray);
@@ -425,49 +444,212 @@
         .route-card:nth-child(4) { animation-delay: 0.4s; }
         .route-card:nth-child(5) { animation-delay: 0.5s; }
         .route-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .scope-switch {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .scope-switch a {
+            border: 1px solid var(--medium-gray);
+            border-radius: 999px;
+            padding: .55rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            background: white;
+            font-weight: 600;
+            font-size: .92rem;
+        }
+
+        .scope-switch a.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        /* RouteBuddy UI polish: calmer app surface, consistent radii, real route photos */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-surface: #ffffff;
+            --rb-ink: #23312f;
+            --rb-muted: #64706d;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+            --rb-accent: #b7643d;
+        }
+        body {
+            background: var(--rb-bg);
+            color: var(--rb-ink);
+        }
+        .navbar {
+            background: var(--rb-primary-dark);
+            box-shadow: none;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+        .nav-link {
+            border-radius: 8px;
+            padding: .55rem .75rem !important;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,.1);
+            transform: none;
+        }
+        .routes-header {
+            background: var(--rb-primary-dark);
+            border-radius: 8px;
+            box-shadow: none;
+            padding: 2rem;
+        }
+        .routes-header::before {
+            display: none;
+        }
+        .routes-header h1 {
+            letter-spacing: 0;
+        }
+        .search-section,
+        .search-info,
+        .route-card,
+        .empty-state {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+            box-shadow: none;
+        }
+        .search-input {
+            border-radius: 8px;
+            border: 1px solid var(--rb-line);
+            background: #fbfcfb;
+        }
+        .search-input:focus {
+            border-color: var(--rb-primary);
+            box-shadow: 0 0 0 3px rgba(31,111,104,.12);
+        }
+        .scope-switch a {
+            border-radius: 8px;
+            border-color: var(--rb-line);
+        }
+        .scope-switch a.active,
+        .action-btn {
+            background: var(--rb-primary);
+            border-color: var(--rb-primary);
+        }
+        .scope-switch a.active:hover,
+        .action-btn:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+            box-shadow: none;
+        }
+        .route-card {
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .route-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--rb-primary);
+            box-shadow: 0 10px 24px rgba(31,77,73,.1);
+        }
+        .route-media {
+            position: relative;
+            height: 180px;
+            background: #dfe9e4;
+            overflow: hidden;
+        }
+        .route-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .route-media-fallback {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--rb-primary-dark);
+            font-size: 2rem;
+        }
+        .route-tags-overlay {
+            position: absolute;
+            left: 12px;
+            bottom: 12px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            max-width: calc(100% - 24px);
+        }
+        .route-tag {
+            background: rgba(255,255,255,.92);
+            color: var(--rb-primary-dark);
+            border-radius: 999px;
+            padding: .28rem .55rem;
+            font-size: .72rem;
+            font-weight: 700;
+        }
+        .route-header {
+            background: transparent !important;
+            color: var(--rb-ink);
+            padding: 1.15rem 1.25rem .25rem;
+        }
+        .route-header h3 {
+            color: var(--rb-ink);
+        }
+        .route-body {
+            padding: .75rem 1.25rem 1.25rem;
+        }
+        .route-description,
+        .route-meta-item,
+        .route-date {
+            color: var(--rb-muted);
+        }
+        .author-avatar {
+            background: var(--rb-primary);
+        }
+        .route-meta {
+            border-color: var(--rb-line);
+        }
+        .routes-grid {
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+        }
+        @media (max-width: 768px) {
+            .container.py-5 {
+                padding-top: 1.25rem !important;
+            }
+            .routes-header,
+            .search-section {
+                padding: 1rem;
+            }
+            .route-media {
+                height: 160px;
+            }
+            .nav-link {
+                margin-top: .25rem;
+            }
+        }
     </style>
 </head>
 <body>
 <!-- Навигационная панель -->
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-            <i class="fas fa-mountain me-3" style="font-size: 1.5rem;"></i>
-            <div>
-                <div class="fw-bold fs-4">RouteBuddy</div>
-            </div>
+        <a class="navbar-brand d-flex align-items-center" href="/routes">
+            <i class="fas fa-mountain me-2" style="font-size:1.4rem;"></i>
+            <span class="fw-bold fs-5">RouteBuddy</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/">
-                        <i class="fas fa-home me-2"></i> Главная
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/routes/create">
-                        <i class="fas fa-plus-circle me-2"></i> Создать маршрут
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link active d-flex align-items-center" href="/routes">
-                        <i class="fas fa-route me-2"></i> Маршруты
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/profile" th:if="${isAuthenticated}">
-                        <i class="fas fa-user-circle me-2"></i> Профиль
-                    </a>
-                </li>
-                <li class="nav-item mx-2">
-                    <a class="nav-link d-flex align-items-center" href="/logout" sec:authorize="isAuthenticated()">
-                        <i class="fas fa-sign-out-alt me-2"></i> Выйти
-                    </a>
-                </li>
-
+                <li class="nav-item mx-1"><a class="nav-link active" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-1"></i>Профиль</a></li>
+                <li class="nav-item mx-1" th:if="${loggedIn}"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Выйти</a></li>
+                <li class="nav-item mx-1" th:if="${!loggedIn}"><a class="nav-link" href="/login"><i class="fas fa-sign-in-alt me-1"></i>Войти</a></li>
             </ul>
         </div>
     </div>
@@ -480,8 +662,8 @@
         <p>Исследуйте опубликованные маршруты от сообщества RouteBuddy</p>
 
         <!-- Пользовательская информация -->
-        <div class="mt-4">
-            <div sec:authorize="isAuthenticated()" class="d-inline-block bg-white bg-opacity-10 p-3 rounded-pill">
+        <div class="mt-4" th:if="${loggedIn}">
+            <div class="d-inline-block bg-white bg-opacity-10 p-3 rounded-pill">
                 <span class="text-white me-3">
                     <i class="fas fa-user me-2"></i>
                     Вы вошли как: <strong th:text="${username}"></strong>
@@ -492,14 +674,26 @@
 
     <!-- Поиск -->
     <div class="search-section">
+        <div class="scope-switch">
+            <a th:classappend="${!showMy} ? 'active' : ''" th:href="@{/routes(search=${searchQuery})}">
+                <i class="fas fa-globe me-1"></i>Все маршруты
+            </a>
+            <a th:classappend="${showMy} ? 'active' : ''" th:href="@{/routes(my=true,search=${searchQuery})}" th:if="${loggedIn}">
+                <i class="fas fa-user me-1"></i>Мои маршруты
+            </a>
+            <a href="/login" th:if="${!loggedIn}">
+                <i class="fas fa-user-lock me-1"></i>Мои маршруты
+            </a>
+        </div>
         <div class="search-box">
             <i class="fas fa-search search-icon"></i>
             <form method="get" action="/routes" id="searchForm">
+                <input type="hidden" name="my" value="true" th:if="${showMy}">
                 <input
                         type="text"
                         name="search"
                         class="search-input"
-                        placeholder="Поиск маршрутов по названию, описанию или городу..."
+                        placeholder="Поиск по названию, описанию или тегам: культура, маломобильных..."
                         th:value="${searchQuery}"
                         autocomplete="off"
                         id="searchInput">
@@ -514,107 +708,21 @@
             Результаты поиска для:
             <span class="search-query" th:text="'«' + ${searchQuery} + '»'">поисковый запрос</span>
         </div>
-        <a href="/routes" class="clear-search-btn">
+        <a th:href="${showMy} ? @{/routes(my=true)} : @{/routes}" class="clear-search-btn">
             <i class="fas fa-times me-1"></i> Очистить поиск
         </a>
     </div>
 
-    <!-- Список маршрутов -->
-    <div class="routes-grid">
-        <div class="route-card" onclick="location.href='/routes/2'">
-            <div class="route-header">
-                <h3>Пробный Маршрут
-
-                </h3>
-
-            </div>
-
-            <div class="route-body">
-                <p class="route-description">Пробный маршрут
-                    </p>
-
-                <div class="route-meta">
-                    <div class="route-meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Москва</span>
-                    </div>
-                    <div class="route-meta-item">
-                        <i class="fas fa-ruler-combined"></i>
-                        <span></span>
-                    </div>
-                    <div class="route-meta-item">
-                        <i class="fas fa-clock"></i>
-                        <span >1 дн</span>
-                    </div>
-                    <div class="route-meta-item">
-                        <i class="fas fa-flag-checkered"></i>
-                        <span>3 точек</span>
-                    </div>
-                </div>
-
-                <div class="route-author">
-                    <div class="author-avatar">
-                        <span>Q</span>
-                    </div>
-                    <div class="author-info">
-                        <div class="author-name">qawsed1</div>
-
-                    </div>
-                </div>
-
-                <a th:href="'/routes/2'" class="action-btn">
-                    <i class="fas fa-eye"></i> Посмотреть детали
-                </a>
-            </div>
-        </div>
-
-        <div class="route-card" onclick="location.href='/routes/1'">
-            <div class="route-header">
-                <h3>Неделя в Санкт-Петербурге: Искусство и история</h3>
-
-            </div>
-
-            <div class="route-body">
-                <p class="route-description">
-                    Культурный маршрут по основным достопримечательностям Санкт-Петербурга. Идеально подходит для первого знакомства с городом.
-                </p>
-
-                <div class="route-meta">
-                    <div class="route-meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Санкт-Петербург</span>
-                    </div>
-                    <div class="route-meta-item">
-                        <i class="fas fa-ruler-combined"></i>
-                        <span>42.5 км</span>
-                    </div>
-                    <div class="route-meta-item">
-                        <i class="fas fa-clock"></i>
-                        <span >7 дн</span>
-                    </div>
-                    <div class="route-meta-item">
-                        <i class="fas fa-flag-checkered"></i>
-                        <span>7 точек</span>
-                    </div>
-                </div>
-
-                <div class="route-author">
-                    <div class="author-avatar">
-                        <span>Q</span>
-                    </div>
-                    <div class="author-info">
-                        <div class="author-name">qwerty</div>
-
-                    </div>
-                </div>
-
-                <a th:href="'/routes/1'" class="action-btn">
-                    <i class="fas fa-eye"></i> Посмотреть детали
-                </a>
-            </div>
-        </div>
-
+    <!-- Список маршрутов (динамически из make-service) -->
+    <div id="loadingState" class="text-center py-5 text-muted">
+        <i class="fas fa-spinner fa-spin fa-2x mb-3 d-block"></i>Загружаем маршруты...
     </div>
+    <div id="emptyState" class="text-center py-5 text-muted" style="display:none;">
+        <i class="fas fa-map-signs fa-3x mb-3 d-block" style="opacity:.4;"></i>
+        <h5>Маршруты не найдены</h5>
+        <p>Попробуйте изменить запрос или <a href="/routes">сбросить поиск</a>.</p>
+    </div>
+    <div class="routes-grid" id="routesGrid" style="display:none;"></div>
 
     <!-- Пагинация -->
     <div th:if="${not #lists.isEmpty(routes)}" class="pagination-container">
@@ -642,51 +750,109 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Custom JavaScript -->
-<script>
-    // Автоматический поиск при вводе с задержкой
+<script th:inline="javascript">
+    const SEARCH_QUERY = /*[[${searchQuery}]]*/ '';
+    const SHOW_MY = /*[[${showMy}]]*/ false;
+
     const searchInput = document.getElementById('searchInput');
     let searchTimeout;
-
     searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            document.getElementById('searchForm').submit();
-        }, 500);
+        searchTimeout = setTimeout(() => document.getElementById('searchForm').submit(), 500);
     });
-
-    // Обработка нажатия Enter в поле поиска
     searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            clearTimeout(searchTimeout);
-            document.getElementById('searchForm').submit();
+        if (e.key === 'Enter') { clearTimeout(searchTimeout); document.getElementById('searchForm').submit(); }
+    });
+
+    function esc(s) {
+        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function fmtDate(iso) {
+        if (!iso) return '';
+        try { return new Date(iso).toLocaleDateString('ru-RU'); }
+        catch { return ''; }
+    }
+
+    function routeImage(route) {
+        const days = route.days || [];
+        for (const day of days) {
+            if (day.photoUrl) return day.photoUrl;
+            for (const point of (day.points || [])) {
+                if (point.photoUrl) return point.photoUrl;
+            }
         }
-    });
+        return '';
+    }
 
-    // Анимация при загрузке страницы
+    function routeTags(tags) {
+        return tags
+            ? tags.split(',').filter(t => t.trim()).slice(0, 4)
+                .map(t => `<span class="route-tag">${esc(t.trim())}</span>`).join('')
+            : '';
+    }
+
+    function renderRoutes(routes) {
+        document.getElementById('loadingState').style.display = 'none';
+        if (!routes || routes.length === 0) {
+            document.getElementById('emptyState').style.display = 'block';
+            return;
+        }
+        const grid = document.getElementById('routesGrid');
+        grid.style.display = '';
+        grid.innerHTML = routes.map((r, idx) => {
+            const initials = (r.authorUsername || '?')[0].toUpperCase();
+            const days = r.durationDays || (r.days ? r.days.length : 0) || '?';
+            const cost = r.totalCost > 0 ? `${r.totalCost.toLocaleString('ru-RU')} ₽` : '';
+            const dateStr = fmtDate(r.createdAt);
+            const img = routeImage(r);
+            const tags = routeTags(r.tags);
+            return `
+            <div class="route-card" onclick="location.href='/routes/${r.id}'">
+                <div class="route-media">
+                    ${img ? `<img src="${esc(img)}" alt="${esc(r.title)}">` : `<div class="route-media-fallback"><i class="fas fa-map-marked-alt"></i></div>`}
+                    ${tags ? `<div class="route-tags-overlay">${tags}</div>` : ''}
+                </div>
+                <div class="route-header">
+                    <h3>${esc(r.title)}</h3>
+                </div>
+                <div class="route-body">
+                    <p class="route-description">${esc(r.description) || '<em style="color:#a0aec0">Описание не добавлено</em>'}</p>
+                    <div class="route-meta">
+                        <div class="route-meta-item"><i class="fas fa-sun"></i><span>${days} дн.</span></div>
+                        ${cost ? `<div class="route-meta-item"><i class="fas fa-ruble-sign"></i><span>${cost}</span></div>` : ''}
+                        ${dateStr ? `<div class="route-meta-item"><i class="fas fa-calendar-alt"></i><span>${dateStr}</span></div>` : ''}
+                    </div>
+                    <div class="route-author">
+                        <div class="author-avatar"><span>${initials}</span></div>
+                        <div class="author-info"><div class="author-name">${esc(r.authorUsername || 'аноним')}</div></div>
+                    </div>
+                    <a href="/routes/${r.id}" class="action-btn" onclick="event.stopPropagation()">
+                        <i class="fas fa-eye"></i> Посмотреть маршрут
+                    </a>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Анимация появления карточек
-        const cards = document.querySelectorAll('.route-card');
-        cards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
+        let url = '/api/proxy/routes';
+        const params = [];
+        if (SEARCH_QUERY) params.push(`search=${encodeURIComponent(SEARCH_QUERY)}`);
+        if (SHOW_MY) params.push('my=true');
+        if (params.length) url += '?' + params.join('&');
 
-            setTimeout(() => {
-                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 100);
-        });
-    });
-
-    // Показывать превью карточки при наведении
-    document.querySelectorAll('.route-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px) scale(1.02)';
-        });
-
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
+        fetch(url, { credentials: 'include' })
+            .then(r => r.ok ? r.json() : Promise.reject(r.status))
+            .then(data => renderRoutes(Array.isArray(data) ? data : (data.content || [])))
+            .catch(err => {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('emptyState').innerHTML = `
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3 d-block text-warning"></i>
+                    <h5>Не удалось загрузить маршруты</h5>
+                    <p class="text-muted">Сервис маршрутов временно недоступен</p>`;
+            });
     });
 </script>
 </body>

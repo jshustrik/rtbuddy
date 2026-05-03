@@ -10,19 +10,28 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AuthService(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val emailDomainValidator: EmailDomainValidator
 ) {
 
     @Transactional
     fun register(request: RegistrationRequest) {
         if (userRepository.existsByUsername(request.username)) {
-            throw RuntimeException("Username already exists")
+            throw RuntimeException("Имя пользователя уже занято")
+        }
+        val email = request.email?.trim()?.lowercase()
+            ?: throw RuntimeException("Введите email")
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw RuntimeException("Email уже используется")
+        }
+        if (!emailDomainValidator.hasResolvableDomain(email)) {
+            throw RuntimeException("Домен email не найден в DNS")
         }
         val user = User(
             username = request.username,
             passwordHash = passwordEncoder.encode(request.password),
             role = request.role,
-            email = request.email
+            email = email
         )
         userRepository.save(user)
     }

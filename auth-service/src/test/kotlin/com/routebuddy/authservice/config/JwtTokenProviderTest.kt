@@ -1,6 +1,6 @@
 package com.routebuddy.authservice.config
 
-import com.quizwhiz.authservice.model.User
+import com.routebuddy.authservice.model.User
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.junit.jupiter.api.Assertions.*

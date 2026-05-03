@@ -65,7 +65,7 @@ class RegistrationController(
                 "$redirectUrl?nickname=${registrationRequest.username}"
             }
         } else {
-            "http://127.0.0.1:8082/profile/${registrationRequest.username}"
+            "/profile/${registrationRequest.username}"
         }
         return "redirect:$targetUrl"
     }

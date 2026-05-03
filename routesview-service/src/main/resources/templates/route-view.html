@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Маршрут | RouteBuddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script th:src="|https://api-maps.yandex.ru/2.1/?apikey=${yandexMapsApiKey}&amp;lang=ru_RU|" type="text/javascript"></script>
+    <style>
+        :root { --primary: #4a5568; --secondary: #2d3748; --accent: #718096; --border: #e2e8f0; --light: #f7fafc; }
+        body { background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; color: var(--secondary); }
+        .navbar { background: linear-gradient(135deg, var(--secondary), var(--primary)); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .nav-link { color: rgba(255,255,255,.9) !important; font-weight: 500; }
+        .nav-link:hover { color: #fff !important; }
+        .page-header { background: linear-gradient(135deg, var(--secondary), var(--primary)); border-radius: 16px; padding: 2rem 2.5rem; margin-bottom: 2rem; color: white; }
+        .route-title-row { display: flex; align-items: flex-start; gap: 14px; }
+        .route-author-avatar { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.8); background: var(--border); flex-shrink: 0; }
+        .day-card { background: white; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,.07); border: 1px solid var(--border); border-left: 5px solid var(--accent); margin-bottom: 1.5rem; overflow: hidden; }
+        .day-card-header { background: var(--light); padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .day-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--accent); color: white; border-radius: 50%; font-size: .85rem; font-weight: 700; flex-shrink: 0; }
+        .day-card-body { padding: 1.1rem 1.25rem; }
+        .pt-item { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+        .pt-dot { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--border); color: var(--secondary); border-radius: 50%; font-size: .68rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+        .map-box { height: 220px; border-radius: 8px; border: 1px solid var(--border); margin-top: .75rem; }
+        .tag-badge { background: #edf2f7; color: var(--accent); font-size: .75rem; padding: .25rem .6rem; border-radius: 20px; margin-right: 4px; }
+        .review-card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 1rem 1.2rem; margin-bottom: .8rem; }
+        .rating-num { display: inline-block; background: #667eea; color: white; border-radius: 8px; padding: .15rem .5rem; font-weight: 700; font-size: .9rem; }
+        .btn-primary-custom { background: #667eea; color: white; border: none; border-radius: 50px; padding: .5rem 1.5rem; font-weight: 600; }
+        .btn-primary-custom:hover { background: #5a67d8; color: white; }
+        .rating-input { display: flex; gap: 4px; }
+        .rating-input button { width: 32px; height: 32px; border-radius: 6px; border: 2px solid var(--border); background: white; font-weight: 600; font-size: .8rem; cursor: pointer; transition: all .15s; }
+        .rating-input button.active { background: #667eea; color: white; border-color: #667eea; }
+        .rating-input button:hover { border-color: #667eea; }
+        .author-tools { display: flex; gap: .45rem; flex-wrap: wrap; margin-top: .75rem; }
+        .author-tools .btn { border-radius: 999px; }
+        .day-photo { width: 100%; max-height: 260px; border-radius: 10px; margin-bottom: .85rem; object-fit: cover; }
+        .point-photo { max-width: 100%; max-height: 150px; border-radius: 8px; margin-top: 6px; object-fit: cover; }
+        #skeleton { animation: pulse 1.5s ease infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        @media (max-width: 768px) {
+            .page-header { padding: 1.4rem; border-radius: 12px; }
+            .page-header h1 { font-size: 1.55rem; }
+            .route-title-row { align-items: center; }
+            .route-author-avatar { width: 48px; height: 48px; }
+            .day-card-header { align-items: flex-start; }
+            .rating-input { flex-wrap: wrap; }
+        }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-surface: #ffffff;
+            --rb-ink: #23312f;
+            --rb-muted: #64706d;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+            --rb-accent: #b7643d;
+        }
+        body {
+            background: var(--rb-bg);
+            color: var(--rb-ink);
+        }
+        .navbar {
+            background: var(--rb-primary-dark);
+            box-shadow: none;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+        .nav-link {
+            border-radius: 8px;
+            padding: .55rem .75rem !important;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,.1);
+        }
+        .page-header {
+            background: var(--rb-primary-dark);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .day-card,
+        .review-card {
+            border-radius: 8px;
+            box-shadow: none;
+            border-color: var(--rb-line);
+            border-left-color: var(--rb-primary);
+        }
+        .day-card-header {
+            background: #fbfcfb;
+            border-color: var(--rb-line);
+        }
+        .day-num,
+        .rating-num,
+        .btn-primary-custom {
+            background: var(--rb-primary);
+        }
+        .btn-primary-custom {
+            border-radius: 8px;
+        }
+        .tag-badge {
+            background: #e7f1ed;
+            color: var(--rb-primary-dark);
+            border-radius: 999px;
+        }
+        .map-box,
+        .day-photo,
+        .point-photo {
+            border-radius: 8px;
+        }
+        .rating-input button {
+            border-radius: 8px;
+        }
+        .rating-input button.active,
+        .rating-input button:hover {
+            border-color: var(--rb-primary);
+        }
+        .rating-input button.active {
+            background: var(--rb-primary);
+        }
+        .author-tools .btn,
+        .btn {
+            border-radius: 8px;
+        }
+        @media (max-width: 768px) {
+            .container.py-4 {
+                padding-top: 1rem !important;
+            }
+            .day-card-header {
+                flex-wrap: wrap;
+            }
+            .author-tools {
+                width: 100%;
+            }
+            .author-tools .btn {
+                flex: 1 1 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="/routes">
+            <i class="fas fa-mountain me-2" style="font-size:1.4rem;"></i>
+            <span class="fw-bold fs-5">RouteBuddy</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-1"><a class="nav-link active" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-1"></i>Профиль</a></li>
+                <li class="nav-item mx-1" th:if="${loggedIn}"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Выйти</a></li>
+                <li class="nav-item mx-1" th:if="${!loggedIn}"><a class="nav-link" href="/login"><i class="fas fa-sign-in-alt me-1"></i>Войти</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <!-- Loading skeleton -->
+    <div id="skeleton">
+        <div style="background:#e2e8f0;border-radius:16px;height:120px;margin-bottom:2rem;"></div>
+        <div style="background:#e2e8f0;border-radius:14px;height:200px;margin-bottom:1rem;"></div>
+        <div style="background:#e2e8f0;border-radius:14px;height:150px;"></div>
+    </div>
+
+    <!-- Route content (filled by JS) -->
+    <div id="routeContent" style="display:none;">
+        <div class="page-header" id="routeHeader"></div>
+
+        <div id="daysContainer"></div>
+
+        <!-- Reviews section -->
+        <div class="day-card mt-4">
+            <div class="day-card-header">
+                <i class="fas fa-star text-warning me-2"></i>
+                <div class="fw-semibold">Отзывы</div>
+                <span id="ratingBadge" class="ms-2"></span>
+            </div>
+            <div class="day-card-body">
+                <!-- Write review (shown only when logged in) -->
+                <div id="reviewFormSection" style="display:none;" class="mb-4">
+                    <h6 class="fw-semibold mb-2">Оставить отзыв</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Оценка (1–10)</label>
+                        <div class="rating-input" id="ratingButtons">
+                            <!-- filled by JS -->
+                        </div>
+                        <input type="hidden" id="selectedRating" value="0">
+                    </div>
+                    <div class="mb-2">
+                        <textarea id="reviewText" class="form-control" rows="3" placeholder="Ваш отзыв (5–500 символов)..." maxlength="500"></textarea>
+                    </div>
+                    <button class="btn btn-primary-custom btn-sm" onclick="submitReview()">
+                        <i class="fas fa-paper-plane me-1"></i>Отправить
+                    </button>
+                    <div id="reviewError" class="text-danger small mt-1" style="display:none;"></div>
+                </div>
+
+                <div id="reviewsList"></div>
+                <div id="reviewsEmpty" class="text-muted small" style="display:none;">Отзывов пока нет. Будьте первым!</div>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <a href="/routes" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Назад
+            </a>
+            <button id="deleteBtn" class="btn btn-outline-danger" style="display:none;" onclick="deleteRoute()">
+                <i class="fas fa-trash me-1"></i>Удалить маршрут
+            </button>
+        </div>
+    </div>
+
+    <div id="errorState" style="display:none;" class="text-center py-5 text-muted">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3 d-block text-warning"></i>
+        <h5>Маршрут не найден</h5>
+        <a href="/routes" class="btn btn-outline-secondary mt-2">← Назад к списку</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const ROUTE_ID = /*[[${routeId}]]*/ 0;
+    const LOGGED_IN = /*[[${loggedIn}]]*/ false;
+
+    let currentUserId = null;
+    let currentUsername = null;
+    let selectedRating = 0;
+    let route = null;
+    let reviewsById = {};
+
+    function esc(s) {
+        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function placeholderAvatar(name) {
+        const initials = String(name || 'RB').trim().slice(0, 2).toUpperCase() || 'RB';
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="116" height="116" viewBox="0 0 116 116"><rect width="116" height="116" rx="58" fill="#718096"/><text x="58" y="68" text-anchor="middle" font-family="Arial" font-size="36" font-weight="700" fill="white">${initials}</text></svg>`;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    async function loadRouteAuthor(r) {
+        const avatar = document.getElementById('routeAuthorAvatar');
+        const name = document.getElementById('routeAuthorName');
+        if (!avatar || !name) return;
+        avatar.src = placeholderAvatar(r.authorUsername);
+        name.textContent = r.authorUsername || '—';
+        if (!r.authorId) return;
+        try {
+            const resp = await fetch(`/internal/users/by-id/${r.authorId}`);
+            if (!resp.ok) return;
+            const user = await resp.json();
+            if (user.avatarUrl) avatar.src = user.avatarUrl;
+            if (user.username) name.textContent = user.username;
+        } catch(e) {}
+    }
+
+    function pointLat(p) {
+        const v = p.latitude ?? p.lat;
+        return Number(v);
+    }
+
+    function pointLon(p) {
+        const v = p.longitude ?? p.lon;
+        return Number(v);
+    }
+
+    function coordsForDay(day) {
+        return (day.points || [])
+            .map(p => [pointLat(p), pointLon(p)])
+            .filter(([lat, lon]) => Number.isFinite(lat) && Number.isFinite(lon) && lat !== 0 && lon !== 0);
+    }
+
+    function routePropText(prop) {
+        if (!prop) return '';
+        if (typeof prop === 'string') return prop;
+        return prop.text || prop.humanText || '';
+    }
+
+    async function yandexTravelTime(coords) {
+        if (coords.length < 2 || !window.ymaps) return '';
+        await new Promise(resolve => ymaps.ready(resolve));
+        return new Promise(resolve => {
+            ymaps.route(coords, {
+                multiRoute: true,
+                routingMode: 'pedestrian',
+                mapStateAutoApply: false
+            }).then(multiRoute => {
+                const activeRoute = multiRoute.getActiveRoute && multiRoute.getActiveRoute();
+                const duration = routePropText(activeRoute?.properties?.get('duration'));
+                const distance = routePropText(activeRoute?.properties?.get('distance'));
+                resolve(duration ? `${duration}${distance ? ' / ' + distance : ''}` : '');
+            }, () => resolve(''));
+        });
+    }
+
+    function canEditRoute() {
+        return currentUserId !== null && route && String(currentUserId) === String(route.authorId);
+    }
+
+    function pluralDays(n) {
+        const m = n%10, h = n%100;
+        if (m===1&&h!==11) return 'день';
+        if ([2,3,4].includes(m)&&![12,13,14].includes(h)) return 'дня';
+        return 'дней';
+    }
+
+    async function loadUserInfo() {
+        if (!LOGGED_IN) return;
+        try {
+            const r = await fetch('/api/proxy/reviews/me');
+            if (r.ok) {
+                const data = await r.json();
+                currentUserId = data.userId;
+                currentUsername = data.username;
+                document.getElementById('reviewFormSection').style.display = 'block';
+                buildRatingButtons();
+            }
+        } catch(e) {}
+    }
+
+    function buildRatingButtons() {
+        const container = document.getElementById('ratingButtons');
+        container.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = i;
+            btn.dataset.v = i;
+            btn.onclick = () => setRating(i);
+            container.appendChild(btn);
+        }
+    }
+
+    function setRating(v) {
+        selectedRating = v;
+        document.getElementById('selectedRating').value = v;
+        document.querySelectorAll('#ratingButtons button').forEach(b => {
+            b.classList.toggle('active', Number(b.dataset.v) <= v);
+        });
+    }
+
+    function renderRoute(r) {
+        route = r;
+        document.getElementById('skeleton').style.display = 'none';
+        document.getElementById('routeContent').style.display = 'block';
+
+        const tags = r.tags ? r.tags.split(',').filter(t=>t.trim()).map(t =>
+            `<span class="tag-badge">${esc(t.trim())}</span>`).join('') : '';
+        const cost = r.totalCost > 0 ? `&nbsp;·&nbsp;~${r.totalCost.toLocaleString('ru-RU')} ₽` : '';
+        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ru-RU') : '';
+        const authorTools = String(currentUserId) === String(r.authorId)
+            ? `<div class="author-tools">
+                    <button class="btn btn-sm btn-light" onclick="editRouteBasics()"><i class="fas fa-pen me-1"></i>Редактировать маршрут</button>
+                    <button class="btn btn-sm btn-light" onclick="addDayToRoute()"><i class="fas fa-plus me-1"></i>Добавить день</button>
+               </div>`
+            : '';
+
+        document.getElementById('routeHeader').innerHTML = `
+            <div class="route-title-row">
+                <img id="routeAuthorAvatar" class="route-author-avatar" src="${placeholderAvatar(r.authorUsername)}" alt="">
+                <div class="flex-grow-1">
+                    <h1 class="mb-1 fw-bold">${esc(r.title)}</h1>
+                    <div style="opacity:.85;" class="mb-2">
+                        <span id="routeAuthorName">${esc(r.authorUsername)}</span>
+                        &nbsp;·&nbsp;${r.durationDays} ${pluralDays(r.durationDays)}${cost}
+                        ${dateStr ? `&nbsp;·&nbsp;<i class="fas fa-calendar-alt me-1"></i>${dateStr}` : ''}
+                        &nbsp; ${tags}
+                    </div>
+                </div>
+            </div>
+            <p class="mb-0">${esc(r.description)}</p>
+            <div class="mt-2">
+                <a href="/export?routeId=${r.id}" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border-radius:20px;">
+                    <i class="fas fa-file-pdf me-1"></i>Выгрузить в PDF
+                </a>
+            </div>
+            ${authorTools}`;
+        loadRouteAuthor(r);
+
+        if (currentUserId === r.authorId) {
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+        }
+
+        const container = document.getElementById('daysContainer');
+        container.innerHTML = (r.days || []).map((d, i) => {
+            const pts = d.points || [];
+            const ptsHtml = pts.map((p, j) => `
+                <div class="pt-item">
+                    <span class="pt-dot">${j+1}</span>
+                    <div>
+                        <div style="font-size:.85rem;font-weight:600;">${esc(p.name)}
+                            ${(p.timeStart||p.timeEnd) ? `<span class="text-muted ms-2" style="font-size:.78rem;">${esc(p.timeStart||'')}${p.timeEnd?' – '+esc(p.timeEnd):''}</span>` : ''}
+                        </div>
+                        <div class="text-muted" style="font-size:.78rem;">${esc(p.description)}</div>
+                        ${p.photoUrl ? `<img src="${esc(p.photoUrl)}" class="point-photo" alt="">` : ''}
+                        ${canEditRoute() ? `<div class="author-tools">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editPoint('${d.id}','${p.id}')"><i class="fas fa-pen me-1"></i>Точка</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePoint('${d.id}','${p.id}')"><i class="fas fa-trash me-1"></i>Удалить</button>
+                        </div>` : ''}
+                    </div>
+                </div>`).join('');
+
+            const mapId = `day-map-${i}`;
+            const ptsWithCoords = pts.filter(p => Number.isFinite(pointLat(p)) && Number.isFinite(pointLon(p)) && pointLat(p) !== 0 && pointLon(p) !== 0);
+            const mapBlock = ptsWithCoords.length > 0
+                ? `<div class="pts-label mt-3" style="font-size:.78rem;font-weight:600;color:var(--accent);"><i class="fas fa-map me-1"></i>Карта дня:</div>
+                   <div id="${mapId}" class="map-box"></div>`
+                : '';
+
+            const cost = d.cost > 0 ? `<span class="text-muted ms-3" style="font-size:.78rem;"><i class="fas fa-ruble-sign me-1"></i>${d.cost.toLocaleString('ru-RU')} ₽</span>` : '';
+            const travel = `<span id="travel-time-${esc(d.id)}" class="text-muted ms-3" style="font-size:.78rem;">${d.travelTime ? `<i class="fas fa-road me-1"></i>${esc(d.travelTime)} в пути` : ''}</span>`;
+
+            return `
+            <div class="day-card">
+                <div class="day-card-header">
+                    <span class="day-num">${i+1}</span>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">${esc(d.title)}${cost}${travel}</div>
+                        <div style="font-size:.78rem;color:var(--accent);">День ${d.dayNumber}</div>
+                    </div>
+	                    ${canEditRoute() ? `<div class="author-tools ms-auto">
+	                        <button class="btn btn-sm btn-outline-secondary" onclick="editDay('${d.id}')"><i class="fas fa-pen me-1"></i>День</button>
+	                        <button class="btn btn-sm btn-outline-secondary" onclick="addPointToDay('${d.id}')"><i class="fas fa-plus me-1"></i>Точка</button>
+	                        <button class="btn btn-sm btn-outline-secondary" onclick="recalculateAndSaveDayTravelTime('${d.id}', true)"><i class="fas fa-route me-1"></i>Время</button>
+	                        <button class="btn btn-sm btn-outline-danger" onclick="deleteDay('${d.id}')"><i class="fas fa-trash me-1"></i></button>
+	                    </div>` : ''}
+                </div>
+                <div class="day-card-body">
+                    ${d.photoUrl ? `<img src="${esc(d.photoUrl)}" class="day-photo" alt="">` : ''}
+                    <p class="text-muted small">${esc(d.description)}</p>
+                    ${pts.length > 0 ? `<div style="font-size:.78rem;font-weight:600;color:var(--accent);" class="mb-2"><i class="fas fa-map-pin me-1"></i>Точки (${pts.length}):</div>${ptsHtml}` : ''}
+                    ${mapBlock}
+                </div>
+            </div>`;
+        }).join('');
+
+        initYandexMaps(r.days || []);
+    }
+
+    function initYandexMaps(days) {
+        if (!window.ymaps) {
+            document.querySelectorAll('.map-box').forEach(el => {
+                el.innerHTML = '<div class="text-center text-muted py-5">API Яндекс.Карт временно недоступен</div>';
+            });
+            return;
+        }
+        ymaps.ready(() => {
+            days.forEach((d, i) => {
+                const pts = (d.points || []).filter(p =>
+                    Number.isFinite(pointLat(p)) && Number.isFinite(pointLon(p)) && pointLat(p) !== 0 && pointLon(p) !== 0
+                );
+                if (!pts.length) return;
+                const el = document.getElementById(`day-map-${i}`);
+                if (!el) return;
+                const lat = pts.reduce((s,p)=>s+pointLat(p),0)/pts.length;
+                const lon = pts.reduce((s,p)=>s+pointLon(p),0)/pts.length;
+                const map = new ymaps.Map(el, {
+                    center: [lat, lon],
+                    zoom: 13,
+                    controls: ['zoomControl', 'fullscreenControl']
+                });
+                pts.forEach((p,j) => {
+                    map.geoObjects.add(new ymaps.Placemark([pointLat(p), pointLon(p)], {
+                        balloonContentHeader: `${j + 1}. ${esc(p.name)}`,
+                        balloonContentBody: esc(p.description || '')
+                    }, { preset: 'islands#blueDotIcon' }));
+                });
+                if (pts.length > 1) {
+                    map.geoObjects.add(new ymaps.Polyline(
+                        pts.map(p => [pointLat(p), pointLon(p)]),
+                        {},
+                        { strokeColor: '#667eea', strokeWidth: 4, strokeOpacity: 0.85 }
+                    ));
+                }
+                const bounds = map.geoObjects.getBounds();
+                if (bounds) map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 40 });
+            });
+        });
+    }
+
+    async function loadReviews() {
+        try {
+            document.getElementById('reviewsEmpty').style.display = 'none';
+            document.getElementById('reviewsList').innerHTML = '';
+            const [reviewsResp, ratingResp] = await Promise.all([
+                fetch(`/api/proxy/reviews/routes/${ROUTE_ID}`),
+                fetch(`/api/proxy/reviews/routes/${ROUTE_ID}/rating`)
+            ]);
+            if (ratingResp.ok) {
+                const rating = await ratingResp.json();
+                if (rating.reviewsCount > 0) {
+                    document.getElementById('ratingBadge').innerHTML =
+                        `<span class="rating-num">${rating.averageRating}</span> <span class="text-muted small">/ 10 (${rating.reviewsCount} отзывов)</span>`;
+                }
+            }
+            if (reviewsResp.ok) {
+                const data = await reviewsResp.json();
+                const reviews = data.content || data || [];
+                reviewsById = Object.fromEntries(reviews.map(rv => [String(rv.id), rv]));
+                const list = document.getElementById('reviewsList');
+                if (!reviews.length) {
+                    document.getElementById('reviewsEmpty').style.display = 'block';
+                    return;
+                }
+                list.innerHTML = reviews.map(rv => {
+                    const own = currentUserId && String(rv.authorId ?? rv.userId) === String(currentUserId);
+                    const comment = rv.comment ?? rv.text ?? '';
+                    return `
+                    <div class="review-card" id="review-${esc(rv.id)}">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div>
+                                <span class="fw-semibold">${esc(rv.authorUsername)}</span>
+                                <span class="rating-num ms-2">${rv.rating}</span>
+                                <span class="text-muted small ms-1">/ 10</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="text-muted small">${new Date(rv.createdAt).toLocaleDateString('ru-RU')}</span>
+                                ${own
+                                    ? `<button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="editReview('${esc(rv.id)}')"><i class="fas fa-pen"></i></button>
+                                       <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteReview('${esc(rv.id)}')">×</button>` : ''}
+                            </div>
+                        </div>
+                        <p class="mb-0 text-muted small">${esc(comment)}</p>
+                    </div>`;
+                }).join('');
+            }
+        } catch(e) {
+            console.error('Reviews load error', e);
+        }
+    }
+
+    async function submitReview() {
+        const text = document.getElementById('reviewText').value.trim();
+        const rating = selectedRating;
+        const errEl = document.getElementById('reviewError');
+        errEl.style.display = 'none';
+
+        if (rating === 0) { errEl.textContent = 'Выберите оценку от 1 до 10'; errEl.style.display='block'; return; }
+        if (text.length < 5) { errEl.textContent = 'Отзыв должен содержать не менее 5 символов'; errEl.style.display='block'; return; }
+
+        try {
+            const resp = await fetch('/api/proxy/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ routeId: ROUTE_ID, text, rating })
+            });
+            if (resp.ok) {
+                document.getElementById('reviewText').value = '';
+                setRating(0);
+                await loadReviews();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                errEl.textContent = resp.status === 409
+                    ? 'Вы уже оставили отзыв на этот маршрут'
+                    : (err.error || 'Ошибка при отправке отзыва');
+                errEl.style.display = 'block';
+            }
+        } catch(e) {
+            errEl.textContent = 'Ошибка сети'; errEl.style.display='block';
+        }
+    }
+
+    async function deleteReview(reviewId) {
+        if (!confirm('Удалить отзыв?')) return;
+        try {
+            const resp = await fetch(`/api/proxy/reviews/${reviewId}`, { method: 'DELETE' });
+            if (resp.ok || resp.status === 204) {
+                document.getElementById(`review-${reviewId}`)?.remove();
+                await loadReviews();
+            }
+        } catch(e) {}
+    }
+
+    async function editReview(reviewId) {
+        const review = reviewsById[String(reviewId)] || {};
+        const text = prompt('Текст отзыва', review.comment || review.text || '');
+        if (text === null) return;
+        const rating = Number(prompt('Оценка 1–10', review.rating || selectedRating || 10));
+        if (!text.trim() || rating < 1 || rating > 10) return alert('Нужен текст и оценка от 1 до 10');
+        const resp = await fetch(`/api/proxy/reviews/${reviewId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text.trim(), rating })
+        });
+        if (resp.ok) await loadReviews();
+        else alert('Ошибка редактирования отзыва');
+    }
+
+    async function deleteRoute() {
+        if (!confirm('Удалить маршрут безвозвратно?')) return;
+        const resp = await fetch(`/api/proxy/routes/${ROUTE_ID}`, { method: 'DELETE' });
+        if (resp.ok || resp.status === 204) window.location.href = '/routes';
+        else alert('Ошибка удаления');
+    }
+
+    function parseMapCoordinates(value) {
+        const text = decodeURIComponent(String(value || ''));
+        const explicit = text.match(/[?&](?:ll|pt)=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+        if (explicit) return { lon: Number(explicit[1]), lat: Number(explicit[2]) };
+        const coords = text.match(/(-?\d{2,3}(?:\.\d+)?)[,\s]+(-?\d{2,3}(?:\.\d+)?)/);
+        if (!coords) return null;
+        const first = Number(coords[1]);
+        const second = Number(coords[2]);
+        if (Math.abs(second) <= 90 && Math.abs(first) <= 180) return { lon: first, lat: second };
+        if (Math.abs(first) <= 90 && Math.abs(second) <= 180) return { lat: first, lon: second };
+        return null;
+    }
+
+    async function apiJson(url, method, body) {
+        const resp = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return resp.status === 204 ? null : resp.json().catch(() => null);
+    }
+
+    async function fetchRouteFresh() {
+        const resp = await fetch(`/api/proxy/routes/${ROUTE_ID}`);
+        if (!resp.ok) throw new Error('Route reload failed');
+        return resp.json();
+    }
+
+    async function recalculateAndSaveDayTravelTime(dayId, reload = false) {
+        if (!canEditRoute()) return '';
+        const freshRoute = await fetchRouteFresh();
+        const day = (freshRoute.days || []).find(d => String(d.id) === String(dayId));
+        if (!day) return '';
+        const coords = coordsForDay(day);
+        let travelTime = '';
+        if (coords.length >= 2) {
+            travelTime = await yandexTravelTime(coords);
+            if (!travelTime) {
+                if (reload) alert('Не удалось рассчитать время через API Яндекс.Карт');
+                return day.travelTime || '';
+            }
+        }
+        await apiJson(`/api/proxy/routes/${ROUTE_ID}/days/${dayId}`, 'PUT', {
+            dayNumber: day.dayNumber,
+            title: day.title,
+            description: day.description || '',
+            photoUrl: day.photoUrl || null,
+            cost: day.cost || 0,
+            travelTime
+        });
+        const el = document.getElementById(`travel-time-${dayId}`);
+        if (el) {
+            el.innerHTML = travelTime ? `<i class="fas fa-road me-1"></i>${esc(travelTime)} в пути` : '';
+        }
+        if (reload) await init();
+        return travelTime;
+    }
+
+    async function editRouteBasics() {
+        if (!canEditRoute()) return;
+        const title = prompt('Название маршрута', route.title || '');
+        if (title === null) return;
+        const description = prompt('Описание', route.description || '');
+        if (description === null) return;
+        const tags = prompt('Теги через запятую', route.tags || '');
+        if (tags === null) return;
+        const durationDays = Number(prompt('Длительность в днях', route.durationDays || (route.days || []).length || 1));
+        const totalCost = Number(prompt('Стоимость', route.totalCost || 0));
+        await apiJson(`/api/proxy/routes/${ROUTE_ID}`, 'PUT', {
+            title: title.trim(),
+            description: description.trim(),
+            tags: tags.trim(),
+            isPublic: route.isPublic !== false,
+            durationDays: durationDays || 1,
+            totalCost: totalCost || 0
+        });
+        await init();
+    }
+
+    async function addDayToRoute() {
+        if (!canEditRoute()) return;
+        const title = prompt('Название дня', `День ${(route.days || []).length + 1}`);
+        if (!title) return;
+        const description = prompt('Описание дня', '') || '';
+        const photoUrl = prompt('URL фото дня', '') || null;
+        const cost = Number(prompt('Стоимость дня', '0')) || 0;
+        await apiJson(`/api/proxy/routes/${ROUTE_ID}/days`, 'POST', {
+            dayNumber: (route.days || []).length + 1,
+            title: title.trim(),
+            description,
+            photoUrl,
+            cost,
+            travelTime: ''
+        });
+        await init();
+    }
+
+    async function editDay(dayId) {
+        const day = (route.days || []).find(d => String(d.id) === String(dayId));
+        if (!day) return;
+        const title = prompt('Название дня', day.title || '');
+        if (title === null) return;
+        const description = prompt('Описание дня', day.description || '');
+        if (description === null) return;
+        const photoUrl = prompt('URL фото дня', day.photoUrl || '') || null;
+        const cost = Number(prompt('Стоимость дня', day.cost || 0)) || 0;
+        await apiJson(`/api/proxy/routes/${ROUTE_ID}/days/${dayId}`, 'PUT', {
+            dayNumber: day.dayNumber,
+            title: title.trim(),
+            description,
+            photoUrl,
+            cost,
+            travelTime: day.travelTime || ''
+        });
+        await init();
+    }
+
+    async function deleteDay(dayId) {
+        if (!confirm('Удалить день и все точки?')) return;
+        await fetch(`/api/proxy/routes/${ROUTE_ID}/days/${dayId}`, { method: 'DELETE' });
+        await init();
+    }
+
+    function pointPayload(existing = {}) {
+        const name = prompt('Название точки', existing.name || '');
+        if (!name) return null;
+        const description = prompt('Описание точки', existing.description || '') || '';
+        const mapUrl = prompt('Ссылка на карту или координаты', '') || '';
+        const parsed = parseMapCoordinates(mapUrl);
+        const lat = Number(prompt('Широта', pointLat(existing) || parsed?.lat || 0)) || parsed?.lat || 0;
+        const lon = Number(prompt('Долгота', pointLon(existing) || parsed?.lon || 0)) || parsed?.lon || 0;
+        const photoUrl = prompt('URL фото', existing.photoUrl || '') || null;
+        const timeStart = prompt('Начало (чч:мм)', existing.timeStart || '') || null;
+        const timeEnd = prompt('Конец (чч:мм)', existing.timeEnd || '') || null;
+        return {
+            orderIndex: existing.orderIndex || 0,
+            name: name.trim(),
+            description,
+            lat,
+            lon,
+            photoUrl,
+            timeStart,
+            timeEnd
+        };
+    }
+
+    async function addPointToDay(dayId) {
+        const day = (route.days || []).find(d => String(d.id) === String(dayId));
+        const payload = pointPayload({ orderIndex: (day?.points || []).length });
+        if (!payload) return;
+        await apiJson(`/api/proxy/routes/${ROUTE_ID}/days/${dayId}/points`, 'POST', payload);
+        await recalculateAndSaveDayTravelTime(dayId);
+        await init();
+    }
+
+    async function editPoint(dayId, pointId) {
+        const day = (route.days || []).find(d => String(d.id) === String(dayId));
+        const point = (day?.points || []).find(p => String(p.id) === String(pointId));
+        if (!point) return;
+        const payload = pointPayload(point);
+        if (!payload) return;
+        await apiJson(`/api/proxy/routes/${ROUTE_ID}/days/${dayId}/points/${pointId}`, 'PUT', payload);
+        await recalculateAndSaveDayTravelTime(dayId);
+        await init();
+    }
+
+    async function deletePoint(dayId, pointId) {
+        if (!confirm('Удалить точку?')) return;
+        await fetch(`/api/proxy/routes/${ROUTE_ID}/days/${dayId}/points/${pointId}`, { method: 'DELETE' });
+        await recalculateAndSaveDayTravelTime(dayId);
+        await init();
+    }
+
+    async function init() {
+        try {
+            await loadUserInfo();
+            const resp = await fetch(`/api/proxy/routes/${ROUTE_ID}`);
+            if (!resp.ok) throw new Error('not found');
+            const data = await resp.json();
+            renderRoute(data);
+            await loadReviews();
+        } catch(e) {
+            document.getElementById('skeleton').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

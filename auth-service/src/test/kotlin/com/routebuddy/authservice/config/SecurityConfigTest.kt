@@ -1,6 +1,6 @@
 package com.routebuddy.authservice.config
 
-import com.quizwhiz.authservice.service.CustomUserDetailsService
+import com.routebuddy.authservice.service.CustomUserDetailsService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any

@@ -1,77 +1,66 @@
 package com.routebuddy.routesviewservice.controller
 
+import com.routebuddy.routesviewservice.security.JwtTokenProvider
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ModelAttribute
-import org.springframework.web.bind.annotation.PostMapping
-import com.routebuddy.routesviewservice.security.JwtTokenProvider
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 import jakarta.servlet.http.HttpServletRequest
 
 @Controller
-class RoutesController (private val jwtTokenProvider: JwtTokenProvider)  {
+class RoutesController(
+    private val jwtTokenProvider: JwtTokenProvider
+) {
+
     @GetMapping("/routes")
-    fun viewRoutes(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
-        //model.addAttribute("routes", routes)
-        //model.addAttribute("searchQuery", searchQuery)
-        //model.addAttribute("isAuthenticated", auth != null && auth.isAuthenticated)
-        model.addAttribute("username", username)
+    fun viewRoutes(
+        @RequestParam(required = false) search: String?,
+        @RequestParam(required = false) my: Boolean?,
+        request: HttpServletRequest,
+        model: Model
+    ): Any {
+        if (my == true && !hasValidToken(request)) return httpRedirect("/login")
+        model.addAttribute("searchQuery", search ?: "")
+        model.addAttribute("showMy", my == true)
+        val loggedIn = hasValidToken(request)
+        model.addAttribute("loggedIn", loggedIn)
+        if (loggedIn) {
+            extractToken(request)?.let { model.addAttribute("username", jwtTokenProvider.getUsernameFromJWT(it)) }
+        }
         return "routes2"
     }
 
-    @GetMapping("/routes/1")
-    fun viewRoute1(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
-        return "example1"
-    }
-
-    @GetMapping("/routes/1/day1")
-    fun viewRouteDay2(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
-        return "day1"
-    }
-
-    @GetMapping("/routes/2/day1")
-    fun viewRouteDay1(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
-        return "day2"
-    }
-
-    @GetMapping("/routes/2")
-    fun viewRoute2(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
-        return "example2"
-    }
+    @GetMapping("/")
+    fun home() = httpRedirect("/routes")
 
     @GetMapping("/routes/create")
-    fun viewCreateRoute(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
+    fun viewCreateRoute(request: HttpServletRequest): Any {
+        if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/create")
         return "create1"
     }
 
     @GetMapping("/routes/createday")
-    fun viewCreateRouteDay(request: HttpServletRequest, model: Model): String {
-        val token = extractToken(request) ?: throw RuntimeException("Invalid token")
-        val username = jwtTokenProvider.getUsernameFromJWT(token) ?: throw RuntimeException("Invalid token")
-        return "create2"
+    fun viewCreateRouteDay(request: HttpServletRequest): Any {
+        if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/create")
+        return httpRedirect("/routes/create")
+    }
+
+    @GetMapping("/routes/{id}")
+    fun viewRoute(@PathVariable id: Long, request: HttpServletRequest, model: Model): String {
+        model.addAttribute("routeId", id)
+        model.addAttribute("loggedIn", hasValidToken(request))
+        return "route-view"
     }
 
     private fun extractToken(request: HttpServletRequest): String? {
-        val bearerToken = request.getHeader("Authorization")
-        if (!bearerToken.isNullOrEmpty() && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7)
-        }
-        request.cookies?.forEach {
-            if (it.name == "JWT") return it.value
-        }
-        return null
+        request.cookies?.forEach { if (it.name == "JWT") return it.value }
+        val bearer = request.getHeader("Authorization") ?: return null
+        return if (bearer.startsWith("Bearer ")) bearer.substring(7) else null
     }
 
+    private fun hasValidToken(request: HttpServletRequest): Boolean {
+        val token = extractToken(request) ?: return false
+        return jwtTokenProvider.validateToken(token)
+    }
 }

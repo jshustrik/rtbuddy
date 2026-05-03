@@ -1,0 +1,9 @@
+.git
+.idea
+.omx
+**/.gradle
+**/build
+**/.DS_Store
+**/out
+output
+.playwright-cli

@@ -15,5 +15,8 @@ data class User(
     @Column(nullable = false, length = 20)
     val role: String,
     @Column(length = 100)
-    val email: String?
+    val email: String?,
+
+    @Column(columnDefinition = "TEXT")
+    var avatarUrl: String? = null
 )

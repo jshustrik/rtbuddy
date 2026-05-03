@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Предпросмотр маршрута | RouteBuddy</title>
+    <title>Выгрузка маршрутов PDF | RouteBuddy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script th:src="|https://api-maps.yandex.ru/2.1/?apikey=${yandexMapsApiKey}&amp;lang=ru_RU|" type="text/javascript"></script>
     <style>
         :root { --primary: #4a5568; --secondary: #2d3748; --accent: #718096; --border: #e2e8f0; --light: #f7fafc; }
         body { background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; color: var(--secondary); }
@@ -17,16 +17,24 @@
         .page-header { background: linear-gradient(135deg, var(--secondary), var(--primary)); border-radius: 16px; padding: 2rem 2.5rem; margin-bottom: 2rem; color: white; }
         .page-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: .3rem; }
 
+        /* Route selector */
+        .route-selector { background: white; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,.07); border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 2rem; }
+        .route-select { width: 100%; padding: .75rem 1rem; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; outline: none; transition: border-color .2s; background: var(--light); }
+        .route-select:focus { border-color: var(--accent); }
+        .author-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid white; background: var(--border); }
+        .author-row { display: flex; align-items: center; gap: 12px; }
+
         .day-card { background: white; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,.07); border: 1px solid var(--border); border-left: 5px solid var(--accent); margin-bottom: 1.5rem; overflow: hidden; }
         .day-card-header { background: var(--light); padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .day-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: var(--accent); color: white; border-radius: 50%; font-size: .85rem; font-weight: 700; flex-shrink: 0; }
         .day-card-body { padding: 1.1rem 1.25rem; }
-        .source-tag { color: var(--accent); font-size: .82rem; margin-bottom: .5rem; }
-        .desc-text { color: #4a5568; font-size: .88rem; margin-bottom: 1rem; }
         .pts-label { font-size: .78rem; font-weight: 600; color: var(--accent); margin-bottom: .5rem; }
         .pt-item { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
         .pt-dot { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--border); color: var(--secondary); border-radius: 50%; font-size: .68rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+        .day-photo { width: 100%; max-height: 240px; border-radius: 8px; margin-bottom: .85rem; object-fit: cover; }
+        .point-photo { max-width: 100%; max-height: 150px; border-radius: 8px; margin-top: 6px; object-fit: cover; }
         .map-box { height: 220px; border-radius: 8px; border: 1px solid var(--border); margin-top: .75rem; }
+        .static-map-img { width: 100%; max-height: 260px; border-radius: 8px; border: 1px solid var(--border); object-fit: cover; margin-top: .75rem; background: var(--light); }
 
         .empty-state { text-align: center; padding: 4rem 2rem; color: var(--accent); }
         .empty-state i { font-size: 3rem; margin-bottom: 1rem; }
@@ -38,9 +46,89 @@
         #toast-msg { position: fixed; bottom: 20px; right: 20px; background: #2d3748; color: white; padding: .7rem 1.2rem; border-radius: 10px; z-index: 9999; font-size: .88rem; box-shadow: 0 4px 14px rgba(0,0,0,.22); display: none; }
 
         @media print {
-            .navbar, .page-header, #actionBar { display: none !important; }
+            .navbar, .page-header, #actionBar, .route-selector { display: none !important; }
             body { background: white; }
             .day-card { box-shadow: none; page-break-inside: avoid; }
+            .day-photo { max-height: 150px; }
+            .point-photo { max-height: 120px; }
+            .map-box { display: none !important; }
+            .static-map-img { display: block !important; max-height: 220px; }
+        }
+
+        /* RouteBuddy UI polish */
+        :root {
+            --rb-bg: #f3f7f4;
+            --rb-surface: #ffffff;
+            --rb-ink: #23312f;
+            --rb-muted: #64706d;
+            --rb-line: #d8e3dd;
+            --rb-primary: #1f6f68;
+            --rb-primary-dark: #174d49;
+        }
+        body {
+            background: var(--rb-bg);
+            color: var(--rb-ink);
+        }
+        .navbar {
+            background: var(--rb-primary-dark);
+            box-shadow: none;
+            border-bottom: 1px solid rgba(255,255,255,.12);
+        }
+        .nav-link {
+            border-radius: 8px;
+            padding: .55rem .75rem !important;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,.1);
+        }
+        .page-header {
+            background: var(--rb-primary-dark);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .route-selector,
+        .day-card,
+        .route-select,
+        .map-box,
+        .static-map-img,
+        .day-photo,
+        .point-photo {
+            border-radius: 8px;
+            box-shadow: none;
+            border-color: var(--rb-line);
+        }
+        .day-card {
+            border-left-color: var(--rb-primary);
+        }
+        .day-card-header {
+            background: #fbfcfb;
+            border-color: var(--rb-line);
+        }
+        .day-num,
+        .btn-print {
+            background: var(--rb-primary);
+        }
+        .btn-print {
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .btn-print:hover {
+            background: var(--rb-primary-dark);
+            transform: none;
+        }
+        .route-select:focus {
+            border-color: var(--rb-primary);
+            box-shadow: 0 0 0 3px rgba(31,111,104,.12);
+        }
+        @media (max-width: 768px) {
+            .container.py-4 {
+                padding-top: 1rem !important;
+            }
+            .page-header,
+            .route-selector {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
@@ -48,7 +136,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
+        <a class="navbar-brand d-flex align-items-center" href="/routes">
             <i class="fas fa-mountain me-2" style="font-size:1.4rem;"></i>
             <span class="fw-bold fs-5">RouteBuddy</span>
         </a>
@@ -57,9 +145,12 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-1"><a class="nav-link" href="/route"><i class="fas fa-map me-1"></i>Маршрут</a></li>
-                <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-tools me-1"></i>Конструктор</a></li>
-                <li class="nav-item mx-1"><a class="nav-link active" href="/export"><i class="fas fa-file-pdf me-1"></i>Предпросмотр PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
+                <li class="nav-item mx-1"><a class="nav-link active" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/profile"><i class="fas fa-user-circle me-1"></i>Профиль</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt me-1"></i>Выйти</a></li>
             </ul>
         </div>
     </div>
@@ -68,37 +159,57 @@
 <div class="container py-4">
 
     <div class="page-header">
-        <h1><i class="fas fa-file-pdf me-3"></i>Предпросмотр маршрута</h1>
-        <p class="mb-0" style="opacity:.85;">Проверьте маршрут перед сохранением в PDF. Карты загружаются автоматически.</p>
+        <h1><i class="fas fa-file-pdf me-3"></i>Выгрузка маршрута в PDF</h1>
+        <p class="mb-0" style="opacity:.85;">Выберите любой публичный маршрут и сохраните его как PDF для печати или хранения.</p>
     </div>
 
-    <!-- Пустое состояние (скрывается если есть дни) -->
+    <!-- Выбор маршрута -->
+    <div class="route-selector" id="routeSelector">
+        <div class="row g-3">
+            <div class="col-md-7">
+                <label for="routeSelect" class="form-label fw-semibold">
+                    <i class="fas fa-list me-2" style="color:var(--accent);"></i>Маршрут
+                </label>
+                <select id="routeSelect" class="route-select" onchange="loadRoute(this.value)">
+                    <option value="">— загрузка маршрутов... —</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label for="daySelect" class="form-label fw-semibold">
+                    <i class="fas fa-calendar-day me-2" style="color:var(--accent);"></i>Объём выгрузки
+                </label>
+                <select id="daySelect" class="route-select" onchange="renderSelectedScope()" disabled>
+                    <option value="all">Весь маршрут</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Пустое состояние -->
     <div id="emptyState" class="empty-state" style="display:none;">
         <i class="fas fa-map-signs d-block"></i>
-        <h4 class="mb-2">Маршрут пуст</h4>
-        <p class="text-muted mb-3">Сначала добавьте дни в конструкторе маршрутов.</p>
-        <a href="/constructor" class="btn btn-print">
-            <i class="fas fa-tools me-2"></i>Перейти в конструктор
-        </a>
+        <h4 class="mb-2">Маршрут не выбран</h4>
+        <p class="text-muted mb-3">Выберите маршрут из списка выше.</p>
     </div>
 
     <!-- Заголовок маршрута -->
     <div id="routeHeader" style="display:none;">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
-            <div>
-                <h2 id="routeNameDisplay" class="mb-1 fw-bold"></h2>
-                <div class="text-muted small">
-                    <span id="dayCountDisplay"></span> &nbsp;·&nbsp;
-                    Дата: <span id="dateDisplay"></span> &nbsp;·&nbsp; RouteBuddy
+            <div class="author-row">
+                <img id="authorAvatarDisplay" class="author-avatar" alt="">
+                <div>
+                    <h2 id="routeNameDisplay" class="mb-1 fw-bold"></h2>
+                    <div class="text-muted small">
+                        <span id="dayCountDisplay"></span> &nbsp;·&nbsp;
+                        Автор: <span id="authorDisplay"></span> &nbsp;·&nbsp;
+                        Создан: <span id="createdAtDisplay"></span> &nbsp;·&nbsp; RouteBuddy
+                    </div>
                 </div>
             </div>
             <div id="actionBar" class="d-flex gap-2 flex-wrap">
                 <button id="printBtn" class="btn btn-print" disabled>
                     <i class="fas fa-spinner fa-spin me-2"></i>Загрузка карт...
                 </button>
-                <a href="/constructor" class="btn btn-outline-secondary">
-                    <i class="fas fa-edit me-1"></i>Изменить
-                </a>
             </div>
         </div>
     </div>
@@ -111,12 +222,17 @@
 <div id="toast-msg"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    const STORAGE_KEY = 'rtbuddy_my_route_v1';
+<script th:inline="javascript">
+    const YANDEX_MAPS_API_KEY = /*[[${yandexMapsApiKey}]]*/ '';
+    let _maps = [];
+    let currentRoute = null;
 
     function esc(s) {
-        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(s||'')
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;');
     }
     function pluralDays(n) {
         const m = n%10, h = n%100;
@@ -130,113 +246,255 @@
         el.textContent = msg; el.style.display = 'block';
         clearTimeout(_toastT); _toastT = setTimeout(() => el.style.display='none', 2500);
     }
+    function fmtDate(isoStr) {
+        if (!isoStr) return '—';
+        try { return new Date(isoStr).toLocaleDateString('ru-RU'); }
+        catch { return isoStr; }
+    }
+    function pointLat(p) {
+        return Number(p.latitude ?? p.lat);
+    }
+    function pointLon(p) {
+        return Number(p.longitude ?? p.lon);
+    }
+    function hasCoords(p) {
+        return Number.isFinite(pointLat(p)) && Number.isFinite(pointLon(p)) && pointLat(p) !== 0 && pointLon(p) !== 0;
+    }
+    function placeholderAvatar(name) {
+        const initials = String(name || 'RB').trim().slice(0, 2).toUpperCase() || 'RB';
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="104" height="104" viewBox="0 0 104 104"><rect width="104" height="104" rx="52" fill="#718096"/><text x="52" y="60" text-anchor="middle" font-family="Arial" font-size="32" font-weight="700" fill="white">${esc(initials)}</text></svg>`;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+    function resetMaps() {
+        _maps.forEach(m => { try { m.destroy(); } catch {} });
+        _maps = [];
+    }
+    function setPrintLoading(text = 'Загрузка карт...') {
+        const btn = document.getElementById('printBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${text}`;
+    }
+    function enablePrint() {
+        const btn = document.getElementById('printBtn');
+        btn.innerHTML = '<i class="fas fa-print me-2"></i>Сохранить как PDF';
+        btn.disabled = false;
+        btn.onclick = () => window.print();
+    }
 
-    function init() {
-        let days;
-        try { days = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-        catch { days = []; }
+    function staticMapUrl(points) {
+        const pts = points.filter(hasCoords).map(p => ({ lat: pointLat(p), lon: pointLon(p) }));
+        if (!pts.length || !YANDEX_MAPS_API_KEY) return '';
+        const lat = pts.reduce((s,p)=>s+p.lat,0)/pts.length;
+        const lon = pts.reduce((s,p)=>s+p.lon,0)/pts.length;
+        const params = new URLSearchParams({
+            lang: 'ru_RU',
+            ll: `${lon},${lat}`,
+            size: '650,300',
+            z: pts.length > 1 ? '12' : '14',
+            apikey: YANDEX_MAPS_API_KEY
+        });
+        params.set('pt', pts.map((p, i) => `${p.lon},${p.lat},pmwtm${Math.min(i + 1, 99)}`).join('~'));
+        if (pts.length > 1) {
+            params.set('pl', `c:667eea,w:4,${pts.map(p => `${p.lon},${p.lat}`).join(',')}`);
+        }
+        return `https://static-maps.yandex.ru/v1?${params.toString()}`;
+    }
 
-        if (days.length === 0) {
+    async function loadRouteList() {
+        const sel = document.getElementById('routeSelect');
+        try {
+            const resp = await fetch('/api/proxy/routes');
+            const routes = await resp.json();
+            if (!Array.isArray(routes) || routes.length === 0) {
+                sel.innerHTML = '<option value="">Публичных маршрутов нет</option>';
+                return;
+            }
+            sel.innerHTML = '<option value="">— выберите маршрут —</option>' +
+                routes.map(r => `<option value="${r.id}">${esc(r.title)} (${r.durationDays || 1} ${pluralDays(r.durationDays||1)}, автор: ${esc(r.authorUsername||'—')})</option>`).join('');
+            const preselectedRouteId = new URLSearchParams(window.location.search).get('routeId');
+            if (preselectedRouteId && routes.some(r => String(r.id) === preselectedRouteId)) {
+                sel.value = preselectedRouteId;
+                loadRoute(preselectedRouteId);
+            }
+        } catch(e) {
+            sel.innerHTML = '<option value="">Ошибка загрузки маршрутов</option>';
+            console.error(e);
+        }
+    }
+
+    async function loadAuthor(route) {
+        const avatar = document.getElementById('authorAvatarDisplay');
+        avatar.src = placeholderAvatar(route.authorUsername);
+        document.getElementById('authorDisplay').textContent = route.authorUsername || '—';
+        if (!route.authorId) return;
+        try {
+            const resp = await fetch(`/internal/users/by-id/${route.authorId}`);
+            if (!resp.ok) return;
+            const user = await resp.json();
+            if (user.avatarUrl) avatar.src = user.avatarUrl;
+            if (user.username) document.getElementById('authorDisplay').textContent = user.username;
+        } catch(e) {}
+    }
+
+    function populateDaySelect(days) {
+        const sel = document.getElementById('daySelect');
+        sel.disabled = false;
+        sel.innerHTML = '<option value="all">Весь маршрут</option>' +
+            days.map((d, i) => `<option value="${d.id}">День ${d.dayNumber || i + 1}: ${esc(d.title || 'без названия')}</option>`).join('');
+        const preselectedDayId = new URLSearchParams(window.location.search).get('dayId');
+        if (preselectedDayId && days.some(d => String(d.id) === preselectedDayId)) sel.value = preselectedDayId;
+    }
+
+    async function loadRoute(routeId) {
+        resetMaps();
+        currentRoute = null;
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('routeHeader').style.display = 'none';
+        document.getElementById('daysContainer').innerHTML = '';
+        document.getElementById('daySelect').disabled = true;
+        setPrintLoading('Загрузка...');
+
+        if (!routeId) {
             document.getElementById('emptyState').style.display = 'block';
             return;
         }
 
-        // Show route header
-        const routeName = localStorage.getItem('rtbuddy_route_name') || 'Мой маршрут';
-        document.getElementById('routeHeader').style.display = 'block';
-        document.getElementById('routeNameDisplay').textContent = routeName;
-        document.getElementById('dayCountDisplay').textContent = days.length + ' ' + pluralDays(days.length);
-        document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('ru-RU');
+        try {
+            const resp = await fetch(`/api/proxy/routes/${routeId}`);
+            if (!resp.ok) throw new Error('Маршрут не найден');
+            currentRoute = await resp.json();
 
-        // Render day cards
+            document.getElementById('routeNameDisplay').textContent = currentRoute.title || 'Маршрут';
+            document.getElementById('createdAtDisplay').textContent = fmtDate(currentRoute.createdAt);
+            document.getElementById('routeHeader').style.display = 'block';
+
+            const days = currentRoute.days || [];
+            populateDaySelect(days);
+            await loadAuthor(currentRoute);
+            renderSelectedScope();
+        } catch(e) {
+            showToast('Ошибка загрузки маршрута');
+            console.error(e);
+            document.getElementById('routeHeader').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+    }
+
+    function renderSelectedScope() {
+        if (!currentRoute) return;
+        resetMaps();
+        setPrintLoading();
+
+        const selected = document.getElementById('daySelect').value;
+        const allDays = currentRoute.days || [];
+        const days = selected === 'all'
+            ? allDays
+            : allDays.filter(d => String(d.id) === String(selected));
+
+        document.getElementById('dayCountDisplay').textContent =
+            selected === 'all'
+                ? `${currentRoute.durationDays || allDays.length || 1} ${pluralDays(currentRoute.durationDays || allDays.length || 1)}`
+                : '1 день';
+
         const container = document.getElementById('daysContainer');
-        container.innerHTML = days.map((d, i) => {
-            const pts = d.points || [];
-            const ptsHtml = pts.map((p, j) => `
-                <div class="pt-item">
-                    <span class="pt-dot">${j+1}</span>
-                    <div>
-                        <div style="font-size:.85rem;font-weight:600;">${esc(p.name)}</div>
-                        <div class="text-muted" style="font-size:.78rem;">${esc(p.desc)}</div>
-                    </div>
-                </div>`).join('');
-
-            const mapBlock = pts.length > 0
-                ? `<div class="pts-label mt-3">🗺 Карта дня:</div>
-                   <div id="map${i}" class="map-box"></div>`
-                : '';
-
-            return `
-            <div class="day-card">
-                <div class="day-card-header">
-                    <span class="day-num">${i+1}</span>
-                    <div>
-                        <div class="fw-semibold">${esc(d.dayTitle)}</div>
-                        <div style="font-size:.78rem;color:var(--accent);">${esc(d.routeTitle)}</div>
-                    </div>
-                </div>
-                <div class="day-card-body">
-                    <div class="desc-text">${esc(d.dayDesc)}</div>
-                    ${pts.length > 0 ? `<div class="pts-label">📍 Точки маршрута (${pts.length}):</div>${ptsHtml}` : ''}
-                    ${mapBlock}
-                </div>
-            </div>`;
-        }).join('');
-
-        // Init Leaflet maps
-        let mapsReady = 0;
-        const mapsTotal = days.filter(d => d.points && d.points.length > 0).length;
-
-        if (mapsTotal === 0) {
+        if (days.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times d-block"></i><h4>Дней нет</h4><p class="text-muted">Маршрут не содержит выбранный день.</p></div>';
             enablePrint();
             return;
         }
 
-        days.forEach((d, i) => {
-            const pts = d.points || [];
-            if (!pts.length) return;
+        container.innerHTML = days.map((d, i) => renderDayCard(d, i)).join('');
+        if (!days.some(d => (d.points || []).some(hasCoords))) {
+            enablePrint();
+            return;
+        }
+        initYandexMaps(days);
+    }
 
-            const el = document.getElementById('map' + i);
-            if (!el) return;
+    function renderDayCard(d, i) {
+        const pts = d.points || [];
+        const ptsHtml = pts.map((p, j) => `
+            <div class="pt-item">
+                <span class="pt-dot">${j+1}</span>
+                <div>
+                    <div style="font-size:.85rem;font-weight:600;">${esc(p.name)}</div>
+                    <div class="text-muted" style="font-size:.78rem;">${esc(p.description||'')}</div>
+                    ${hasCoords(p) ? `<div class="text-muted" style="font-size:.72rem;"><i class="fas fa-map-marker-alt me-1"></i>${pointLat(p).toFixed(5)}, ${pointLon(p).toFixed(5)}</div>` : ''}
+                    ${(p.timeStart || p.timeEnd) ? `<div class="text-muted" style="font-size:.72rem;"><i class="far fa-clock me-1"></i>${esc(p.timeStart || '')}${p.timeEnd ? ' - ' + esc(p.timeEnd) : ''}</div>` : ''}
+                    ${p.photoUrl ? `<img src="${esc(p.photoUrl)}" class="point-photo" alt="Фото точки">` : ''}
+                </div>
+            </div>`).join('');
 
-            const lat = pts.reduce((s,p) => s+p.lat, 0) / pts.length;
-            const lon = pts.reduce((s,p) => s+p.lon, 0) / pts.length;
-            const map = L.map(el, { zoomControl: true, attributionControl: false })
-                         .setView([lat, lon], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-            pts.forEach((p, j) => {
-                L.marker([p.lat, p.lon]).addTo(map)
-                 .bindPopup(`<strong>${j+1}. ${p.name}</strong>`);
+        const ptsWithCoords = pts.filter(hasCoords);
+        const staticUrl = staticMapUrl(ptsWithCoords);
+        const mapBlock = ptsWithCoords.length
+            ? `<div class="pts-label mt-3"><i class="fas fa-map me-1"></i>Карта дня:</div>
+               ${staticUrl ? `<img src="${esc(staticUrl)}" class="static-map-img" alt="Карта дня" onerror="this.style.display='none'">` : ''}
+               <div id="map${i}" class="map-box"></div>`
+            : '';
+        const dayCost = d.cost > 0 ? `<span class="text-muted ms-2" style="font-size:.78rem;">${Number(d.cost).toLocaleString('ru-RU')} ₽</span>` : '';
+        const travel = d.travelTime ? `<span class="text-muted ms-2" style="font-size:.78rem;">${esc(d.travelTime)} в пути</span>` : '';
+
+        return `<div class="day-card">
+            <div class="day-card-header">
+                <span class="day-num">${d.dayNumber||i+1}</span>
+                <div>
+                    <div class="fw-semibold">${esc(d.title||('День '+(d.dayNumber||i+1)))}${dayCost}${travel}</div>
+                    ${d.description ? `<div style="font-size:.78rem;color:var(--accent);">${esc(d.description)}</div>` : ''}
+                </div>
+            </div>
+            <div class="day-card-body">
+                ${d.photoUrl ? `<img src="${esc(d.photoUrl)}" class="day-photo" alt="Фото дня">` : ''}
+                ${pts.length > 0 ? `<div class="pts-label"><i class="fas fa-map-pin me-1"></i>Точки маршрута (${pts.length}):</div>${ptsHtml}` : '<p class="text-muted small">Точки не добавлены.</p>'}
+                ${mapBlock}
+            </div>
+        </div>`;
+    }
+
+    function initYandexMaps(days) {
+        if (!window.ymaps) {
+            document.querySelectorAll('.map-box').forEach(el => {
+                el.innerHTML = '<div class="text-center text-muted py-5">API Яндекс.Карт временно недоступен</div>';
             });
-            map.once('moveend', () => {
-                mapsReady++;
-                if (mapsReady >= mapsTotal) enablePrint();
+            enablePrint();
+            return;
+        }
+        ymaps.ready(() => {
+            days.forEach((d, i) => {
+                const pts = (d.points||[]).filter(hasCoords);
+                if (!pts.length) return;
+                const el = document.getElementById('map'+i);
+                if (!el) return;
+                const lat = pts.reduce((s,p) => s+pointLat(p), 0) / pts.length;
+                const lon = pts.reduce((s,p) => s+pointLon(p), 0) / pts.length;
+                const map = new ymaps.Map(el, {
+                    center: [lat, lon],
+                    zoom: 13,
+                    controls: ['zoomControl', 'fullscreenControl']
+                });
+                pts.forEach((p,j) => map.geoObjects.add(new ymaps.Placemark([pointLat(p), pointLon(p)], {
+                    balloonContentHeader: `${j + 1}. ${esc(p.name)}`,
+                    balloonContentBody: esc(p.description || '')
+                }, { preset: 'islands#blueDotIcon' })));
+                if (pts.length > 1) {
+                    map.geoObjects.add(new ymaps.Polyline(
+                        pts.map(p => [pointLat(p), pointLon(p)]),
+                        {},
+                        { strokeColor: '#667eea', strokeWidth: 4, strokeOpacity: 0.85 }
+                    ));
+                }
+                const bounds = map.geoObjects.getBounds();
+                if (bounds) map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 40 });
+                _maps.push(map);
             });
+            setTimeout(enablePrint, 900);
         });
-
-        // Fallback — enable print after 5s regardless
-        setTimeout(enablePrint, 5000);
     }
 
-    function enablePrint() {
-        const btn = document.getElementById('printBtn');
-        if (!btn || !btn.disabled) return;
-        btn.innerHTML = '<i class="fas fa-print me-2"></i>Сохранить как PDF';
-        btn.disabled = false;
-        btn.onclick = () => {
-            // Store route name for print
-            const nameEl = document.getElementById('routeNameDisplay');
-            if (nameEl) localStorage.setItem('rtbuddy_route_name', nameEl.textContent);
-            window.print();
-        };
-    }
-
-    // Save route name input if navigating back from constructor
     document.addEventListener('DOMContentLoaded', () => {
-        // Sync route name from constructor if available
-        const constructorName = localStorage.getItem('rtbuddy_route_name_constructor');
-        if (constructorName) localStorage.setItem('rtbuddy_route_name', constructorName);
-        init();
+        loadRouteList();
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('authorAvatarDisplay').src = placeholderAvatar('RB');
     });
 </script>
 </body>
