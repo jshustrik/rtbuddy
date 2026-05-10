@@ -35,8 +35,10 @@ class RoutesController(
     fun home() = httpRedirect("/routes")
 
     @GetMapping("/routes/create")
-    fun viewCreateRoute(request: HttpServletRequest): Any {
+    fun viewCreateRoute(request: HttpServletRequest, model: Model): Any {
         if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/create")
+        model.addAttribute("editMode", false)
+        model.addAttribute("editRouteId", null)
         return "create1"
     }
 
@@ -46,11 +48,32 @@ class RoutesController(
         return httpRedirect("/routes/create")
     }
 
+    @GetMapping("/routes/{id}/edit")
+    fun viewEditRoute(@PathVariable id: Long, request: HttpServletRequest, model: Model): Any {
+        if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/$id/edit")
+        model.addAttribute("editMode", true)
+        model.addAttribute("editRouteId", id)
+        return "create1"
+    }
+
     @GetMapping("/routes/{id}")
     fun viewRoute(@PathVariable id: Long, request: HttpServletRequest, model: Model): String {
         model.addAttribute("routeId", id)
         model.addAttribute("loggedIn", hasValidToken(request))
         return "route-view"
+    }
+
+    @GetMapping("/routes/{routeId}/days/{dayId}")
+    fun viewRouteDay(
+        @PathVariable routeId: Long,
+        @PathVariable dayId: Long,
+        request: HttpServletRequest,
+        model: Model
+    ): String {
+        model.addAttribute("routeId", routeId)
+        model.addAttribute("dayId", dayId)
+        model.addAttribute("loggedIn", hasValidToken(request))
+        return "day-view"
     }
 
     private fun extractToken(request: HttpServletRequest): String? {

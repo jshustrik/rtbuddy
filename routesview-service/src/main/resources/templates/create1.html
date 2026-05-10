@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Создание нового маршрута | RouteBuddy</title>
+    <title th:text="${editMode} ? 'Редактирование маршрута | RouteBuddy' : 'Создание нового маршрута | RouteBuddy'">Создание нового маршрута | RouteBuddy</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -260,6 +261,57 @@
             margin-top: 0.3rem;
         }
 
+        .required-hint {
+            color: var(--text-secondary);
+        }
+
+        .validation-summary {
+            display: none;
+            align-items: flex-start;
+            gap: 0.6rem;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #9b2c2c;
+            border-radius: 8px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .validation-summary.show {
+            display: flex;
+        }
+
+        .form-control.is-invalid,
+        .form-select.is-invalid {
+            border-color: #c53030;
+            box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.12);
+        }
+
+        .form-control.is-invalid:focus,
+        .form-select.is-invalid:focus {
+            border-color: #c53030;
+            box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.18);
+        }
+
+        .field-error {
+            display: none;
+            margin-top: 0.3rem;
+            color: #c53030;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        .day-item.has-error,
+        .point-item.has-error {
+            border-color: #c53030;
+            box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.08);
+        }
+
         .route-map {
             height: 360px;
             border-radius: 12px;
@@ -415,7 +467,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Каталог маршрутов</a></li>
                 <li class="nav-item mx-1"><a class="nav-link active" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
@@ -429,12 +481,13 @@
 <div class="container py-5">
     <!-- Заголовок страницы -->
     <div class="page-header">
-        <h1><i class="fas fa-plus-circle me-3"></i>Создание нового маршрута</h1>
-        <p>Заполните информацию о маршруте, добавьте дни и ключевые точки. Все поля можно будет отредактировать позже.</p>
+        <h1 id="pageTitle"><i class="fas fa-plus-circle me-3"></i>Создание нового маршрута</h1>
+        <p id="pageSubtitle">Заполните информацию о маршруте, добавьте дни и ключевые точки. Все поля можно будет отредактировать позже.</p>
     </div>
 
     <!-- Форма создания маршрута (данные сохраняются в JS) -->
-    <form id="routeForm" onsubmit="event.preventDefault(); createRoute();">
+    <form id="routeForm" novalidate onsubmit="event.preventDefault(); saveRoute();">
+        <div id="formErrorSummary" class="validation-summary" role="alert" aria-live="polite"></div>
         <!-- Основная информация -->
         <div class="card-custom">
             <h3 class="section-title"><i class="fas fa-info-circle"></i>Основная информация</h3>
@@ -442,24 +495,32 @@
                 <div class="col-md-6">
                     <label for="routeTitle" class="form-label">Название маршрута *</label>
                     <input type="text" class="form-control" id="routeTitle" minlength="3" maxlength="100" placeholder="Например: Путешествие по Золотому кольцу" required>
+                    <div class="help-text required-hint">Обязательно: 3-100 символов, минимум одна буква.</div>
+                    <div class="field-error" data-error-for="routeTitle"></div>
                 </div>
                 <div class="col-md-3">
                     <label for="routeDuration" class="form-label">Длительность (дней) *</label>
-                    <input type="number" class="form-control" id="routeDuration" min="1" max="30" value="1" required>
+                    <input type="number" class="form-control" id="routeDuration" min="1" max="30" value="1" readonly required>
+                    <div class="help-text required-hint">Рассчитывается автоматически по количеству дней.</div>
+                    <div class="field-error" data-error-for="routeDuration"></div>
                 </div>
                 <div class="col-md-3">
                     <label for="routeTotalCost" class="form-label">Общая стоимость (₽) *</label>
-                    <input type="number" class="form-control" id="routeTotalCost" min="0" step="100" value="0" required>
+                    <input type="number" class="form-control" id="routeTotalCost" min="0" step="1" value="0" readonly required>
+                    <div class="help-text required-hint">Рассчитывается автоматически как сумма расходов дней и точек.</div>
+                    <div class="field-error" data-error-for="routeTotalCost"></div>
                 </div>
                 <div class="col-12">
                     <label for="routeShortDesc" class="form-label">Описание маршрута *</label>
                     <textarea class="form-control" id="routeShortDesc" rows="3" placeholder="Опишите маршрут: города, формат прогулки, для кого подходит" minlength="10" maxlength="1000" required></textarea>
-                    <div class="help-text">Описание должно содержать 10-1000 символов без HTML-тегов.</div>
+                    <div class="help-text required-hint">Обязательно: 10-1000 символов без HTML-тегов.</div>
+                    <div class="field-error" data-error-for="routeShortDesc"></div>
                 </div>
                 <div class="col-12">
                     <label for="routeTags" class="form-label">Теги</label>
-                    <input type="text" class="form-control" id="routeTags" placeholder="Например: культура, маломобильных, семейный">
-                    <div class="help-text">Теги участвуют в поиске. Для маршрутов с доступной средой добавьте тег «маломобильных».</div>
+                    <input type="text" class="form-control" id="routeTags" placeholder="Например: культура, маломобильные, семейный">
+                    <div class="help-text">Теги участвуют в поиске. Для маршрутов с доступной средой добавьте тег «маломобильные».</div>
+                    <div class="field-error" data-error-for="routeTags"></div>
                 </div>
             </div>
         </div>
@@ -470,6 +531,7 @@
             <div id="daysContainer">
                 <!-- Сюда будут динамически добавляться дни -->
             </div>
+            <div id="daysError" class="field-error"></div>
             <div class="mt-4">
                 <h5 class="form-label mb-2"><i class="fas fa-map-marked-alt me-2"></i>Карта Яндекс</h5>
                 <div id="routeMap" class="route-map"></div>
@@ -482,10 +544,10 @@
 
         <!-- Кнопки -->
         <div class="d-flex gap-3 justify-content-center mt-4">
-            <button type="submit" class="btn-primary btn-lg px-5">
+            <button type="submit" id="saveRouteBtn" class="btn-primary btn-lg px-5">
                 <i class="fas fa-save me-2"></i>Создать маршрут
             </button>
-            <button type="button" class="btn-secondary btn-lg px-5" onclick="window.location.href='/routes'">
+            <button type="button" id="cancelRouteBtn" class="btn-secondary btn-lg px-5" onclick="window.location.href='/routes'">
                 <i class="fas fa-times me-2"></i>Отмена
             </button>
         </div>
@@ -499,7 +561,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Основной скрипт для управления днями и точками -->
-<script>
+<script th:inline="javascript">
     // Глобальный счётчик дней
     let dayCounter = 0;
     // Массив для хранения данных дней (для последующего сохранения)
@@ -507,17 +569,21 @@
     let routeMap = null;
     let activePointElement = null;
     let travelCalcTimer = null;
+    let originalRoute = null;
+    const EDIT_MODE = /*[[${editMode}]]*/ false;
+    const EDIT_ROUTE_ID = /*[[${editRouteId}]]*/ null;
 
-    function addDay() {
+    function addDay(existingDay = null) {
         dayCounter++;
-        const dayId = `day_${dayCounter}`;
-        const dayNumber = dayCounter;
+        const dayId = existingDay?.id ? `day-${existingDay.id}` : `day_${dayCounter}`;
+        const dayNumber = existingDay?.dayNumber || dayCounter;
 
         // Создаём структуру дня
         const dayDiv = document.createElement('div');
         dayDiv.className = 'day-item';
         dayDiv.id = dayId;
         dayDiv.dataset.dayNumber = dayNumber;
+        if (existingDay?.id) dayDiv.dataset.existingId = existingDay.id;
 
         // Заголовок дня с кнопками
         const dayHeader = document.createElement('div');
@@ -525,6 +591,8 @@
         dayHeader.innerHTML = `
             <h4><i class="fas fa-sun me-2"></i>День ${dayNumber}</h4>
             <div class="day-actions">
+                <button type="button" class="btn btn-sm" onclick="moveDay('${dayId}', -1)" title="Переместить выше"><i class="fas fa-arrow-up"></i></button>
+                <button type="button" class="btn btn-sm" onclick="moveDay('${dayId}', 1)" title="Переместить ниже"><i class="fas fa-arrow-down"></i></button>
                 <button type="button" class="btn btn-sm" onclick="removeDay('${dayId}')" title="Удалить день"><i class="fas fa-trash"></i></button>
             </div>
         `;
@@ -536,19 +604,23 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
                     <label class="form-label">Название дня *</label>
-                    <input type="text" class="form-control day-title" placeholder="Например: Прибытие и обзорная прогулка" required>
+                    <input type="text" class="form-control day-title" minlength="3" maxlength="100" placeholder="Например: Прибытие и обзорная прогулка" required>
+                    <div class="help-text required-hint">Обязательно: 3-100 символов.</div>
+                    <div class="field-error day-title-error"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Стоимость дня (₽)</label>
-                    <input type="number" class="form-control day-cost" min="0" step="100" value="0">
+                    <input type="number" class="form-control day-cost" min="0" step="1" value="0" oninput="updateRouteTotals()">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Дата (необязательно)</label>
                     <input type="date" class="form-control day-date">
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Описание дня</label>
-                    <textarea class="form-control day-description" rows="2" placeholder="Что планируется в этот день"></textarea>
+                    <label class="form-label">Описание дня *</label>
+                    <textarea class="form-control day-description" rows="2" minlength="10" maxlength="500" placeholder="Что планируется в этот день" required></textarea>
+                    <div class="help-text required-hint">Обязательно: 10-500 символов без HTML-тегов.</div>
+                    <div class="field-error day-description-error"></div>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Фото дня</label>
@@ -569,6 +641,7 @@
             <div class="points-container" id="points-${dayId}">
                 <!-- Сюда будут добавляться точки -->
             </div>
+            <div class="field-error day-points-error"></div>
             <button type="button" class="btn-add" onclick="addPoint('${dayId}')">
                 <i class="fas fa-plus-circle me-2"></i>Добавить точку
             </button>
@@ -578,8 +651,18 @@
         dayDiv.appendChild(dayBody);
         document.getElementById('daysContainer').appendChild(dayDiv);
 
+        if (existingDay) {
+            dayBody.querySelector('.day-title').value = existingDay.title || '';
+            dayBody.querySelector('.day-cost').value = existingDay.cost ?? 0;
+            dayBody.querySelector('.day-description').value = existingDay.description || '';
+            dayBody.querySelector('.day-photo-url').value = existingDay.photoUrl || '';
+            dayBody.querySelector('.day-travel-time').value = existingDay.travelTime || '';
+            (existingDay.points || []).forEach(point => addPoint(dayId, point));
+        }
+
         // Автоматически обновляем длительность маршрута при добавлении дня
-        updateDuration();
+        updateRouteTotals();
+        return dayDiv;
     }
 
     // Удаление дня
@@ -589,7 +672,7 @@
             dayElement.remove();
             // Перенумеруем дни
             renumberDays();
-            updateDuration();
+            updateRouteTotals();
         }
     }
 
@@ -609,44 +692,81 @@
         dayCounter = days.length;
     }
 
+    function moveDay(dayId, direction) {
+        const day = document.getElementById(dayId);
+        if (!day) return;
+        if (direction < 0 && day.previousElementSibling) {
+            day.parentNode.insertBefore(day, day.previousElementSibling);
+        }
+        if (direction > 0 && day.nextElementSibling) {
+            day.parentNode.insertBefore(day.nextElementSibling, day);
+        }
+        renumberDays();
+        updateRouteTotals();
+        updateMapMarkers();
+        scheduleTravelTimeRecalculation();
+    }
+
+    function renumberPoints(pointsContainer) {
+        const points = pointsContainer?.querySelectorAll('.point-item') || [];
+        points.forEach((point, idx) => {
+            const header = point.querySelector('.point-header h6');
+            if (header) {
+                header.innerHTML = `<i class="fas fa-map-marker-alt me-2"></i>Точка ${idx + 1}`;
+            }
+        });
+    }
+
     // Добавление точки в конкретный день
-    function addPoint(dayId) {
+    function addPoint(dayId, existingPoint = null) {
         const pointsContainer = document.getElementById(`points-${dayId}`);
         const pointIndex = pointsContainer.children.length + 1;
 
         const pointDiv = document.createElement('div');
         pointDiv.className = 'point-item';
+        if (existingPoint?.id) pointDiv.dataset.existingId = existingPoint.id;
         pointDiv.innerHTML = `
             <div class="point-header">
                 <h6><i class="fas fa-map-marker-alt me-2"></i>Точка ${pointIndex}</h6>
                 <div class="point-actions">
+                    <button type="button" onclick="movePoint(this, -1)" title="Переместить выше"><i class="fas fa-arrow-up"></i></button>
+                    <button type="button" onclick="movePoint(this, 1)" title="Переместить ниже"><i class="fas fa-arrow-down"></i></button>
                     <button type="button" onclick="removePoint(this)" title="Удалить точку"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="row g-2">
                 <div class="col-md-4">
-                    <input type="text" class="form-control form-control-sm point-title" placeholder="Название точки" oninput="updateMapMarkers()" required>
+                    <input type="text" class="form-control form-control-sm point-title" placeholder="Название точки" minlength="2" maxlength="100" oninput="updateMapMarkers()" required>
+                    <div class="help-text required-hint">Обязательно: 2-100 символов.</div>
+                    <div class="field-error point-title-error"></div>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" class="form-control form-control-sm point-time-start" placeholder="Начало (чч:мм)">
+                    <input type="text" class="form-control form-control-sm point-time-start" placeholder="Начало (чч:мм)" pattern="^([01]\d|2[0-3]):[0-5]\d$" inputmode="numeric" title="Формат времени: чч:мм">
+                    <div class="field-error point-time-start-error"></div>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" class="form-control form-control-sm point-time-end" placeholder="Конец (чч:мм)">
+                    <input type="text" class="form-control form-control-sm point-time-end" placeholder="Конец (чч:мм)" pattern="^([01]\d|2[0-3]):[0-5]\d$" inputmode="numeric" title="Формат времени: чч:мм">
+                    <div class="field-error point-time-end-error"></div>
                 </div>
                 <div class="col-md-2">
-                    <input type="number" class="form-control form-control-sm point-cost" placeholder="Стоимость" step="50" min="0">
+                    <input type="number" class="form-control form-control-sm point-cost" placeholder="Стоимость" step="1" min="0" oninput="updateRouteTotals()">
+                    <div class="field-error point-cost-error"></div>
                 </div>
                 <div class="col-12">
-                    <textarea class="form-control form-control-sm point-desc" rows="1" placeholder="Описание точки"></textarea>
+                    <textarea class="form-control form-control-sm point-desc" rows="1" maxlength="300" placeholder="Описание точки"></textarea>
                 </div>
                 <div class="col-md-6">
                     <input type="url" class="form-control form-control-sm point-map-url" placeholder="Ссылка на Яндекс.Карты" onchange="fillCoordsFromMapUrl(this)">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" class="form-control form-control-sm point-lat" placeholder="Широта" step="0.000001" onchange="updateMapMarkers()">
+                    <input type="number" class="form-control form-control-sm point-lat" placeholder="Широта" min="-90" max="90" step="0.000001" onchange="updateMapMarkers()">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" class="form-control form-control-sm point-lon" placeholder="Долгота" step="0.000001" onchange="updateMapMarkers()">
+                    <input type="number" class="form-control form-control-sm point-lon" placeholder="Долгота" min="-180" max="180" step="0.000001" onchange="updateMapMarkers()">
+                </div>
+                <div class="col-12">
+                    <div class="help-text required-hint">Координаты обязательны: поставьте точку на карте, вставьте ссылку Яндекс.Карт или заполните широту/долготу.</div>
+                    <div class="field-error point-coords-error"></div>
                 </div>
                 <div class="col-12">
                     <input type="text" class="form-control form-control-sm point-photo-url" placeholder="URL фото точки или выберите JPG/PNG ниже">
@@ -660,10 +780,21 @@
             </div>
         `;
         pointsContainer.appendChild(pointDiv);
+        if (existingPoint) {
+            pointDiv.querySelector('.point-title').value = existingPoint.name || existingPoint.title || '';
+            pointDiv.querySelector('.point-time-start').value = existingPoint.timeStart || '';
+            pointDiv.querySelector('.point-time-end').value = existingPoint.timeEnd || '';
+            pointDiv.querySelector('.point-cost').value = existingPoint.cost ?? '';
+            pointDiv.querySelector('.point-desc').value = existingPoint.description || '';
+            pointDiv.querySelector('.point-lat').value = existingPoint.latitude ?? existingPoint.lat ?? '';
+            pointDiv.querySelector('.point-lon').value = existingPoint.longitude ?? existingPoint.lon ?? '';
+            pointDiv.querySelector('.point-photo-url').value = existingPoint.photoUrl || '';
+        }
         pointDiv.addEventListener('focusin', () => setActivePoint(pointDiv));
         pointDiv.addEventListener('click', () => setActivePoint(pointDiv));
         setActivePoint(pointDiv);
         updateMapMarkers();
+        updateRouteTotals();
         scheduleTravelTimeRecalculation();
     }
 
@@ -718,7 +849,12 @@
 
     function fillCoordsFromMapUrl(input) {
         const coords = parseMapCoordinates(input.value);
-        if (!coords) return;
+        if (!coords || !validCoords(coords.lat, coords.lon)) {
+            input.setCustomValidity('Не удалось распознать корректные координаты из ссылки');
+            input.reportValidity();
+            return;
+        }
+        input.setCustomValidity('');
         const point = input.closest('.point-item');
         point.querySelector('.point-lat').value = coords.lat.toFixed(6);
         point.querySelector('.point-lon').value = coords.lon.toFixed(6);
@@ -727,25 +863,39 @@
         scheduleTravelTimeRecalculation();
     }
 
+    function validCoords(lat, lon) {
+        return Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+    }
+
     // Удаление точки
     function removePoint(btn) {
         if (confirm('Удалить эту точку?')) {
             const pointDiv = btn.closest('.point-item');
-            pointDiv.remove();
-            // Перенумеровать точки внутри дня (можно не делать, но для красоты)
             const pointsContainer = pointDiv.closest('.points-container');
-            const points = pointsContainer.querySelectorAll('.point-item');
-            points.forEach((point, idx) => {
-                const header = point.querySelector('.point-header h6');
-                if (header) {
-                    header.innerHTML = `<i class="fas fa-map-marker-alt me-2"></i>Точка ${idx + 1}`;
-                }
-            });
+            pointDiv.remove();
+            renumberPoints(pointsContainer);
             activePointElement = document.querySelector('.point-item');
             if (activePointElement) setActivePoint(activePointElement);
             updateMapMarkers();
+            updateRouteTotals();
             scheduleTravelTimeRecalculation();
         }
+    }
+
+    function movePoint(btn, direction) {
+        const point = btn.closest('.point-item');
+        const pointsContainer = point?.closest('.points-container');
+        if (!point || !pointsContainer) return;
+        if (direction < 0 && point.previousElementSibling) {
+            pointsContainer.insertBefore(point, point.previousElementSibling);
+        }
+        if (direction > 0 && point.nextElementSibling) {
+            pointsContainer.insertBefore(point.nextElementSibling, point);
+        }
+        renumberPoints(pointsContainer);
+        setActivePoint(point);
+        updateMapMarkers();
+        scheduleTravelTimeRecalculation();
     }
 
     function initRouteMap() {
@@ -785,7 +935,7 @@
                 const name = point.querySelector('.point-title')?.value.trim() || `Точка ${idx + 1}`;
                 return { point, idx, lat, lon, name };
             })
-            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon) && p.lat !== 0 && p.lon !== 0);
+            .filter(p => validCoords(p.lat, p.lon) && p.lat !== 0 && p.lon !== 0);
 
         points.forEach(p => {
             const placemark = new ymaps.Placemark([p.lat, p.lon], {
@@ -822,7 +972,7 @@
         const parsed = parseMapCoordinates(mapUrl);
         const lat = Number(point.querySelector('.point-lat')?.value || parsed?.lat);
         const lon = Number(point.querySelector('.point-lon')?.value || parsed?.lon);
-        if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat === 0 || lon === 0) return null;
+        if (!validCoords(lat, lon) || lat === 0 || lon === 0) return null;
         return [lat, lon];
     }
 
@@ -910,6 +1060,222 @@
         return /[A-Za-zА-Яа-яЁё]/.test(value || '');
     }
 
+    function clearValidationState() {
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.field-error').forEach(el => {
+            el.textContent = '';
+            el.classList.remove('show');
+        });
+        document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+        const summary = document.getElementById('formErrorSummary');
+        if (summary) {
+            summary.textContent = '';
+            summary.classList.remove('show');
+        }
+    }
+
+    function findFieldError(field) {
+        if (!field) return null;
+        if (field.id) {
+            const byId = document.querySelector(`[data-error-for="${field.id}"]`);
+            if (byId) return byId;
+        }
+        const parent = field.closest('.col-12, .col-md-6, .col-md-4, .col-md-3, .col-md-2, .mb-3');
+        return parent?.querySelector('.field-error') || null;
+    }
+
+    function setFieldError(errors, field, message, options = {}) {
+        errors.push({ field, message });
+        if (field?.classList) field.classList.add('is-invalid');
+        if (options.container?.classList) options.container.classList.add('has-error');
+        const errorBox = options.errorBox || findFieldError(field);
+        if (errorBox) {
+            errorBox.textContent = message;
+            errorBox.classList.add('show');
+        }
+    }
+
+    function setBlockError(errors, target, message, errorBox = null) {
+        errors.push({ field: target, message });
+        if (target?.classList) target.classList.add('has-error');
+        if (errorBox) {
+            errorBox.textContent = message;
+            errorBox.classList.add('show');
+        }
+    }
+
+    function showValidationSummary(errors) {
+        const summary = document.getElementById('formErrorSummary');
+        if (summary) {
+            summary.innerHTML = `<i class="fas fa-exclamation-circle mt-1"></i><span>Проверьте обязательные поля: ${errors[0]?.message || 'есть незаполненные данные'}</span>`;
+            summary.classList.add('show');
+        }
+        const first = errors[0]?.field;
+        if (first?.scrollIntoView) {
+            first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (first?.focus) {
+            setTimeout(() => first.focus({ preventScroll: true }), 250);
+        }
+    }
+
+    function validateRouteForm() {
+        clearValidationState();
+        const errors = [];
+        const titleField = document.getElementById('routeTitle');
+        const descField = document.getElementById('routeShortDesc');
+        const durationField = document.getElementById('routeDuration');
+        const costField = document.getElementById('routeTotalCost');
+        const tagsField = document.getElementById('routeTags');
+
+        const title = titleField.value.trim();
+        const shortDesc = descField.value.trim();
+        const duration = Number.parseInt(durationField.value, 10);
+        const totalCost = Number.parseFloat(costField.value);
+        const tags = tagsField.value.trim();
+
+        if (!title) {
+            setFieldError(errors, titleField, 'Заполните название маршрута.');
+        } else if (title.length < 3 || title.length > 100 || !hasLetter(title)) {
+            setFieldError(errors, titleField, 'Название: 3-100 символов, минимум одна буква.');
+        }
+
+        if (!durationField.value.trim()) {
+            setFieldError(errors, durationField, 'Укажите длительность маршрута.');
+        } else if (!Number.isInteger(duration) || duration < 1 || duration > 30) {
+            setFieldError(errors, durationField, 'Длительность должна быть от 1 до 30 дней.');
+        }
+
+        if (!costField.value.trim()) {
+            setFieldError(errors, costField, 'Укажите общую стоимость.');
+        } else if (!Number.isFinite(totalCost) || totalCost < 0) {
+            setFieldError(errors, costField, 'Стоимость должна быть неотрицательным числом.');
+        }
+
+        if (!shortDesc) {
+            setFieldError(errors, descField, 'Заполните описание маршрута.');
+        } else if (shortDesc.length < 10 || shortDesc.length > 1000 || hasHtmlTags(shortDesc)) {
+            setFieldError(errors, descField, 'Описание: 10-1000 символов без HTML-тегов.');
+        }
+
+        if (tags.length > 200) {
+            setFieldError(errors, tagsField, 'Теги должны быть не длиннее 200 символов.');
+        }
+
+        const dayElements = Array.from(document.querySelectorAll('.day-item'));
+        if (dayElements.length === 0) {
+            setBlockError(errors, document.getElementById('daysContainer'), 'Добавьте хотя бы один день маршрута.', document.getElementById('daysError'));
+        }
+
+        const timeOk = value => !value || /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+        dayElements.forEach(day => {
+            const dayNumber = day.dataset.dayNumber;
+            const dayTitleField = day.querySelector('.day-title');
+            const dayDescField = day.querySelector('.day-description');
+            const dayCostField = day.querySelector('.day-cost');
+            const dayTitle = dayTitleField.value.trim();
+            const dayDesc = dayDescField.value.trim();
+            const dayCostRaw = dayCostField.value.trim();
+            const dayCost = Number.parseFloat(dayCostRaw);
+
+            if (!dayTitle) {
+                setFieldError(errors, dayTitleField, `Заполните название дня ${dayNumber}.`, { container: day });
+            } else if (dayTitle.length < 3 || dayTitle.length > 100 || !hasLetter(dayTitle)) {
+                setFieldError(errors, dayTitleField, `Название дня ${dayNumber}: 3-100 символов, минимум одна буква.`, { container: day });
+            }
+
+            if (dayCostRaw && (!Number.isFinite(dayCost) || dayCost < 0)) {
+                setFieldError(errors, dayCostField, `Стоимость дня ${dayNumber} должна быть 0 или больше.`, { container: day });
+            }
+
+            if (!dayDesc) {
+                setFieldError(errors, dayDescField, `Заполните описание дня ${dayNumber}.`, { container: day });
+            } else if (dayDesc.length < 10 || dayDesc.length > 500 || hasHtmlTags(dayDesc)) {
+                setFieldError(errors, dayDescField, `Описание дня ${dayNumber}: 10-500 символов без HTML-тегов.`, { container: day });
+            }
+
+            const pointItems = Array.from(day.querySelectorAll('.point-item'));
+            if (pointItems.length === 0) {
+                setBlockError(errors, day.querySelector('.btn-add') || day, `Добавьте хотя бы одну точку в день ${dayNumber}.`, day.querySelector('.day-points-error'));
+            }
+
+            pointItems.forEach((point, index) => {
+                const pointTitleField = point.querySelector('.point-title');
+                const timeStartField = point.querySelector('.point-time-start');
+                const timeEndField = point.querySelector('.point-time-end');
+                const pointCostField = point.querySelector('.point-cost');
+                const pointDescField = point.querySelector('.point-desc');
+                const latField = point.querySelector('.point-lat');
+                const lonField = point.querySelector('.point-lon');
+                const pointTitle = pointTitleField.value.trim();
+                const timeStart = timeStartField.value.trim();
+                const timeEnd = timeEndField.value.trim();
+                const pointCostRaw = pointCostField.value.trim();
+                const pointCost = Number.parseFloat(pointCostRaw);
+                const pointDesc = pointDescField.value.trim();
+                const coords = pointCoordsFromElement(point);
+                const pointLabel = `точки ${index + 1} в день ${dayNumber}`;
+
+                if (!pointTitle) {
+                    setFieldError(errors, pointTitleField, `Заполните название ${pointLabel}.`, { container: point });
+                } else if (pointTitle.length < 2 || pointTitle.length > 100 || !hasLetter(pointTitle)) {
+                    setFieldError(errors, pointTitleField, `Название ${pointLabel}: 2-100 символов, минимум одна буква.`, { container: point });
+                }
+
+                if (!coords) {
+                    const coordsError = point.querySelector('.point-coords-error');
+                    setFieldError(errors, latField, `Укажите координаты ${pointLabel}.`, { container: point, errorBox: coordsError });
+                    lonField.classList.add('is-invalid');
+                }
+
+                if (!timeOk(timeStart)) {
+                    setFieldError(errors, timeStartField, `Начало ${pointLabel}: формат чч:мм.`, { container: point });
+                }
+                if (!timeOk(timeEnd)) {
+                    setFieldError(errors, timeEndField, `Конец ${pointLabel}: формат чч:мм.`, { container: point });
+                }
+
+                if (pointCostRaw && (!Number.isFinite(pointCost) || pointCost < 0)) {
+                    setFieldError(errors, pointCostField, `Стоимость ${pointLabel} должна быть 0 или больше.`, { container: point });
+                }
+
+                if (pointDesc.length > 300 || hasHtmlTags(pointDesc)) {
+                    setFieldError(errors, pointDescField, `Описание ${pointLabel}: до 300 символов без HTML-тегов.`, { container: point });
+                }
+            });
+        });
+
+        if (errors.length > 0) {
+            showValidationSummary(errors);
+            return false;
+        }
+        return true;
+    }
+
+    function clearFieldValidation(field) {
+        if (!field?.classList) return;
+        field.classList.remove('is-invalid');
+        const errorBox = findFieldError(field);
+        if (errorBox) {
+            errorBox.textContent = '';
+            errorBox.classList.remove('show');
+        }
+        const point = field.closest('.point-item');
+        if (point && field.matches('.point-lat, .point-lon, .point-map-url')) {
+            point.querySelector('.point-lat')?.classList.remove('is-invalid');
+            point.querySelector('.point-lon')?.classList.remove('is-invalid');
+            const coordsError = point.querySelector('.point-coords-error');
+            if (coordsError) {
+                coordsError.textContent = '';
+                coordsError.classList.remove('show');
+            }
+        }
+        const container = field.closest('.point-item, .day-item');
+        if (container && !container.querySelector('.is-invalid')) {
+            container.classList.remove('has-error');
+        }
+    }
+
     async function readErrorMessage(response, fallback) {
         const text = await response.text().catch(() => '');
         if (!text) return fallback || `HTTP ${response.status}`;
@@ -929,91 +1295,195 @@
     function resetSaveButton(saveBtn) {
         if (saveBtn) {
             saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Создать маршрут';
+            saveBtn.innerHTML = EDIT_MODE
+                ? '<i class="fas fa-save me-2"></i>Сохранить изменения'
+                : '<i class="fas fa-save me-2"></i>Создать маршрут';
         }
     }
 
-    // Обновление поля длительности маршрута на основе количества дней
-    function updateDuration() {
-        const dayCount = document.querySelectorAll('.day-item').length;
-        document.getElementById('routeDuration').value = dayCount || 1;
+    function numericInputValue(selector, scope = document) {
+        const raw = scope.querySelector(selector)?.value;
+        const value = Number.parseFloat(raw);
+        return Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    // Длительность и итоговая стоимость считаются из фактических дней и расходов.
+    function updateRouteTotals() {
+        const dayElements = Array.from(document.querySelectorAll('.day-item'));
+        const dayCount = dayElements.length || 1;
+        const totalCost = dayElements.reduce((sum, day) => {
+            const dayCost = numericInputValue('.day-cost', day);
+            const pointsCost = Array.from(day.querySelectorAll('.point-item'))
+                .reduce((pointSum, point) => pointSum + numericInputValue('.point-cost', point), 0);
+            return sum + dayCost + pointsCost;
+        }, 0);
+        document.getElementById('routeDuration').value = dayCount;
+        document.getElementById('routeTotalCost').value = Math.round(totalCost);
+        return { dayCount, totalCost };
     }
 
     function createRoute() {
         return saveRoute();
     }
 
+    function pointSaveBody(point, index) {
+        return {
+            orderIndex: index,
+            name: point.title || point.name || 'Точка',
+            description: point.description || '',
+            lat: point.lat || 0,
+            lon: point.lon || 0,
+            photoUrl: point.photoUrl || null,
+            timeStart: point.timeStart || null,
+            timeEnd: point.timeEnd || null
+        };
+    }
+
+    async function fetchJsonOrThrow(url, options, fallback) {
+        const { headers = {}, ...restOptions } = options || {};
+        const response = await fetch(url, {
+            credentials: 'include',
+            ...restOptions,
+            headers: { 'Content-Type': 'application/json', ...headers }
+        });
+        if (!response.ok) {
+            const message = await readErrorMessage(response, fallback);
+            if (response.status === 401) {
+                alert(message || 'Войдите в аккаунт');
+                window.location.href = `/login?redirectUrl=${encodeURIComponent(window.location.pathname)}`;
+                throw new Error('Требуется вход');
+            }
+            throw new Error(message);
+        }
+        return response.status === 204 ? null : response.json().catch(() => null);
+    }
+
+    async function createDayWithPoints(routeId, day, dayIndex) {
+        const createdDay = await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days`, {
+            method: 'POST',
+            body: JSON.stringify({
+                dayNumber: Number(day.dayNumber) || (dayIndex + 1),
+                title: day.title,
+                description: day.description,
+                photoUrl: day.photoUrl || null,
+                cost: day.cost || 0,
+                travelTime: day.travelTime || ''
+            })
+        }, `Ошибка сохранения дня ${dayIndex + 1}`);
+
+        for (let pointIndex = 0; pointIndex < day.points.length; pointIndex++) {
+            await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days/${createdDay.id}/points`, {
+                method: 'POST',
+                body: JSON.stringify(pointSaveBody(day.points[pointIndex], pointIndex))
+            }, `Ошибка сохранения точки ${pointIndex + 1}`);
+        }
+
+        return createdDay;
+    }
+
+    async function createNewRoute(routeBody, days) {
+        const createdRoute = await fetchJsonOrThrow('/api/proxy/routes', {
+            method: 'POST',
+            body: JSON.stringify(routeBody)
+        }, 'Ошибка сохранения маршрута');
+
+        for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+            await createDayWithPoints(createdRoute.id, days[dayIndex], dayIndex);
+        }
+
+        return createdRoute.id;
+    }
+
+    async function updateExistingRoute(routeId, routeBody, days) {
+        await fetchJsonOrThrow(`/api/proxy/routes/${routeId}`, {
+            method: 'PUT',
+            body: JSON.stringify(routeBody)
+        }, 'Ошибка сохранения маршрута');
+
+        const originalDays = originalRoute?.days || [];
+        const currentDayIds = new Set(days.map(day => String(day.id)).filter(Boolean));
+        for (const originalDay of originalDays) {
+            if (!currentDayIds.has(String(originalDay.id))) {
+                await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days/${originalDay.id}`, { method: 'DELETE' }, `Ошибка удаления дня ${originalDay.dayNumber || ''}`);
+            }
+        }
+
+        for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+            const day = days[dayIndex];
+            let savedDayId = day.id;
+            if (savedDayId) {
+                await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days/${savedDayId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        dayNumber: Number(day.dayNumber) || (dayIndex + 1),
+                        title: day.title,
+                        description: day.description,
+                        photoUrl: day.photoUrl || null,
+                        cost: day.cost || 0,
+                        travelTime: day.travelTime || ''
+                    })
+                }, `Ошибка сохранения дня ${dayIndex + 1}`);
+
+                const originalDay = originalDays.find(item => String(item.id) === String(savedDayId));
+                const currentPointIds = new Set(day.points.map(point => String(point.id)).filter(Boolean));
+                for (const originalPoint of (originalDay?.points || [])) {
+                    if (!currentPointIds.has(String(originalPoint.id))) {
+                        await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days/${savedDayId}/points/${originalPoint.id}`, { method: 'DELETE' }, `Ошибка удаления точки ${originalPoint.name || ''}`);
+                    }
+                }
+            } else {
+                const createdDay = await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        dayNumber: Number(day.dayNumber) || (dayIndex + 1),
+                        title: day.title,
+                        description: day.description,
+                        photoUrl: day.photoUrl || null,
+                        cost: day.cost || 0,
+                        travelTime: day.travelTime || ''
+                    })
+                }, `Ошибка сохранения дня ${dayIndex + 1}`);
+                savedDayId = createdDay.id;
+            }
+
+            for (let pointIndex = 0; pointIndex < day.points.length; pointIndex++) {
+                const point = day.points[pointIndex];
+                const body = pointSaveBody(point, pointIndex);
+                if (point.id) {
+                    await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days/${savedDayId}/points/${point.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(body)
+                    }, `Ошибка сохранения точки ${pointIndex + 1}`);
+                } else {
+                    await fetchJsonOrThrow(`/api/proxy/routes/${routeId}/days/${savedDayId}/points`, {
+                        method: 'POST',
+                        body: JSON.stringify(body)
+                    }, `Ошибка сохранения точки ${pointIndex + 1}`);
+                }
+            }
+        }
+    }
+
     async function saveRoute() {
-        // Валидация основных полей
+        updateRouteTotals();
+        if (!validateRouteForm()) {
+            return;
+        }
+
         const title = document.getElementById('routeTitle').value.trim();
         const shortDesc = document.getElementById('routeShortDesc').value.trim();
         const tags = document.getElementById('routeTags').value.trim();
-        const duration = Number.parseInt(document.getElementById('routeDuration').value, 10);
-        const totalCost = Number.parseFloat(document.getElementById('routeTotalCost').value);
-
-        if (title.length < 3 || title.length > 100 || !hasLetter(title)) {
-            alert('Название маршрута должно содержать 3-100 символов и хотя бы одну букву');
-            return;
-        }
-        if (shortDesc.length < 10 || shortDesc.length > 1000 || hasHtmlTags(shortDesc)) {
-            alert('Описание маршрута должно содержать 10-1000 символов и не должно содержать HTML-теги');
-            return;
-        }
-        if (!Number.isInteger(duration) || duration < 1 || duration > 30) {
-            alert('Длительность должна быть от 1 до 30 дней');
-            return;
-        }
-        if (!Number.isFinite(totalCost) || totalCost < 0) {
-            alert('Стоимость должна быть неотрицательным числом');
-            return;
-        }
-        if (tags.length > 200) {
-            alert('Теги должны быть не длиннее 200 символов');
-            return;
-        }
+        let duration = Number.parseInt(document.getElementById('routeDuration').value, 10);
+        let totalCost = Number.parseFloat(document.getElementById('routeTotalCost').value);
 
         // Собираем данные о днях
         const days = [];
         const dayElements = document.querySelectorAll('.day-item');
-        if (dayElements.length === 0) {
-            alert('Добавьте хотя бы один день маршрута');
-            return;
-        }
         const saveBtn = document.querySelector('button[type="submit"]');
         if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Расчёт времени...'; }
         await recalculateAllDayTravelTimes();
 
         let calculatedTotalCost = 0;
-
-        for (const day of dayElements) {
-            const dayNumber = day.dataset.dayNumber;
-            const dayTitle = day.querySelector('.day-title')?.value.trim() || '';
-            if (dayTitle.length < 3) {
-                alert(`Введите название дня ${dayNumber} длиной минимум 3 символа`);
-                resetSaveButton(saveBtn);
-                return;
-            }
-            const pointItems = day.querySelectorAll('.point-item');
-            if (pointItems.length === 0) {
-                alert(`Добавьте хотя бы одну точку в день ${dayNumber}`);
-                resetSaveButton(saveBtn);
-                return;
-            }
-            for (const point of pointItems) {
-                const pointTitle = point.querySelector('.point-title')?.value.trim() || '';
-                const coords = pointCoordsFromElement(point);
-                if (pointTitle.length < 2) {
-                    alert(`Введите название точки в день ${dayNumber}`);
-                    resetSaveButton(saveBtn);
-                    return;
-                }
-                if (!coords) {
-                    alert(`Укажите координаты точки «${pointTitle}» в день ${dayNumber}`);
-                    resetSaveButton(saveBtn);
-                    return;
-                }
-            }
-        }
 
         dayElements.forEach(day => {
             const dayTitle = day.querySelector('.day-title')?.value.trim() || `День ${day.dataset.dayNumber}`;
@@ -1038,6 +1508,7 @@
                 const lon = parseFloat(point.querySelector('.point-lon')?.value) || parsedCoords?.lon || 0;
                 const photoUrl = point.querySelector('.point-photo-url')?.value.trim() || '';
                 points.push({
+                    id: point.dataset.existingId || null,
                     title: pointTitle,
                     timeStart,
                     timeEnd,
@@ -1051,7 +1522,8 @@
             });
 
             days.push({
-                dayNumber: day.dataset.dayNumber,
+                id: day.dataset.existingId || null,
+                dayNumber: Number(day.dataset.dayNumber) || (days.length + 1),
                 title: dayTitle,
                 cost: dayCost,
                 description: dayDesc,
@@ -1064,101 +1536,112 @@
             calculatedTotalCost += dayCost;
         });
 
-        // Если общая стоимость не совпадает с суммой по дням/точкам, можно предложить обновить
-        if (Math.abs(calculatedTotalCost - totalCost) > 0.01) {
-            if (!confirm(`Сумма по дням и точкам (${calculatedTotalCost} ₽) отличается от указанной общей стоимости (${totalCost} ₽). Продолжить?`)) {
-                resetSaveButton(saveBtn);
-                return;
-            }
-        }
+        duration = days.length || 1;
+        totalCost = Math.round(calculatedTotalCost);
+        document.getElementById('routeDuration').value = duration;
+        document.getElementById('routeTotalCost').value = totalCost;
 
-        // POST to make-service proxy (routesview-service reads JWT cookie)
         if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...'; }
 
         try {
-            // 1. Create route
-            const routeResp = await fetch('/api/proxy/routes', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title,
-                    description: shortDesc,
-                    tags,
-                    isPublic: true,
-                    durationDays: duration,
-                    totalCost
-                })
-            });
-            if (!routeResp.ok) {
-                const message = await readErrorMessage(routeResp, 'Ошибка сохранения маршрута');
-                if (routeResp.status === 401) {
-                    alert(message || 'Войдите в аккаунт');
-                    window.location.href = '/login?redirectUrl=/routes/create';
-                    return;
-                }
-                throw new Error(message);
-            }
-            const createdRoute = await routeResp.json();
-            const routeId = createdRoute.id;
+            const routeBody = {
+                title,
+                description: shortDesc,
+                tags,
+                isPublic: true,
+                durationDays: duration,
+                totalCost
+            };
+            const routeId = EDIT_MODE
+                ? (await updateExistingRoute(EDIT_ROUTE_ID, routeBody, days), EDIT_ROUTE_ID)
+                : await createNewRoute(routeBody, days);
 
-            // 2. Create days + points
-            for (let di = 0; di < days.length; di++) {
-                const d = days[di];
-                const dayResp = await fetch(`/api/proxy/routes/${routeId}/days`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        dayNumber: Number(d.dayNumber) || (di + 1),
-                        title: d.title,
-                        description: d.description,
-                        photoUrl: d.photoUrl || null,
-                        cost: d.cost || 0,
-                        travelTime: d.travelTime || ''
-                    })
-                });
-                if (!dayResp.ok) {
-                    const message = await readErrorMessage(dayResp, `Ошибка сохранения дня ${di + 1}`);
-                    throw new Error(message);
-                }
-                const createdDay = await dayResp.json();
-                for (let pi = 0; pi < d.points.length; pi++) {
-                    const p = d.points[pi];
-                    const pointResp = await fetch(`/api/proxy/routes/${routeId}/days/${createdDay.id}/points`, {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            orderIndex: pi,
-                            name: p.title || p.name || 'Точка',
-                            description: p.description || '',
-                            lat: p.lat || 0,
-                            lon: p.lon || 0,
-                            photoUrl: p.photoUrl || null,
-                            timeStart: p.timeStart || null,
-                            timeEnd: p.timeEnd || null
-                        })
-                    });
-                    if (!pointResp.ok) {
-                        const message = await readErrorMessage(pointResp, `Ошибка сохранения точки ${pi + 1}`);
-                        throw new Error(message);
-                    }
-                }
-            }
-
-            alert('Маршрут успешно создан!');
+            alert(EDIT_MODE ? 'Маршрут успешно обновлён!' : 'Маршрут успешно создан!');
             window.location.href = `/routes/${routeId}`;
         } catch (err) {
-            alert('Ошибка сохранения: ' + err.message);
-            resetSaveButton(saveBtn);
+            if (err.message !== 'Требуется вход') {
+                alert('Ошибка сохранения: ' + err.message);
+                resetSaveButton(saveBtn);
+            }
         }
     }
 
+    document.addEventListener('input', event => {
+        if (event.target.matches('input, textarea, select')) {
+            clearFieldValidation(event.target);
+        }
+    });
+
+    document.addEventListener('change', event => {
+        if (event.target.matches('input, textarea, select')) {
+            clearFieldValidation(event.target);
+        }
+    });
+
+    function configurePageMode() {
+        if (!EDIT_MODE) return;
+        document.getElementById('pageTitle').innerHTML = '<i class="fas fa-pen me-3"></i>Редактирование маршрута';
+        document.getElementById('pageSubtitle').textContent = 'Измените основную информацию, дни и точки маршрута в той же форме, что используется при создании.';
+        document.getElementById('saveRouteBtn').innerHTML = '<i class="fas fa-save me-2"></i>Сохранить изменения';
+        document.getElementById('cancelRouteBtn').onclick = () => { window.location.href = `/routes/${EDIT_ROUTE_ID}`; };
+    }
+
+    async function currentUserIdForEdit() {
+        try {
+            const response = await fetch('/api/proxy/reviews/me', { credentials: 'include' });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.userId;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function loadRouteForEdit() {
+        const loadedRoute = await fetchJsonOrThrow(`/api/proxy/routes/${EDIT_ROUTE_ID}`, { method: 'GET' }, 'Маршрут не найден');
+        originalRoute = JSON.parse(JSON.stringify(loadedRoute));
+        const userId = await currentUserIdForEdit();
+        if (userId && String(userId) !== String(loadedRoute.authorId)) {
+            alert('Редактировать маршрут может только автор');
+            window.location.href = `/routes/${EDIT_ROUTE_ID}`;
+            return;
+        }
+
+        document.getElementById('routeTitle').value = loadedRoute.title || '';
+        document.getElementById('routeDuration').value = loadedRoute.durationDays || (loadedRoute.days || []).length || 1;
+        document.getElementById('routeTotalCost').value = loadedRoute.totalCost ?? 0;
+        document.getElementById('routeShortDesc').value = loadedRoute.description || '';
+        document.getElementById('routeTags').value = loadedRoute.tags || '';
+
+        const daysContainer = document.getElementById('daysContainer');
+        daysContainer.innerHTML = '';
+        dayCounter = 0;
+        const sortedDays = [...(loadedRoute.days || [])].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
+        sortedDays.forEach(day => addDay(day));
+        if (sortedDays.length === 0) addDay();
+        setTimeout(() => {
+            updateRouteTotals();
+            updateMapMarkers();
+            if (window.location.hash) {
+                document.querySelector(window.location.hash)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 200);
+    }
+
     // Инициализация: добавить первый день по умолчанию
-    window.onload = function() {
-        addDay(); // добавляем первый день
+    window.onload = async function() {
+        configurePageMode();
         initRouteMap();
+        if (EDIT_MODE) {
+            try {
+                await loadRouteForEdit();
+            } catch (e) {
+                alert('Не удалось открыть маршрут для редактирования: ' + e.message);
+                window.location.href = '/routes';
+            }
+        } else {
+            addDay(); // добавляем первый день
+        }
     };
 </script>
 

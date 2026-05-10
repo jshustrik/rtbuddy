@@ -1,25 +1,33 @@
 server:
   port: 8081
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/rbtestdb
-    username: postgres
-    password: 123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/rbtestdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
   main:
     allow-bean-definition-overriding: true
 
 jwt:
-  secret: 'n4uB0oP1mQ6sT8yZ0xR3vL7eF2aD5jK9sU8iE4wQ1zC3bN6rT8vY0pL7kJ2dS9aF'
-  expiration: 3600000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION_MS:3600000}
+
+service:
+  internal-token: ${INTERNAL_SERVICE_TOKEN:}
 
 logging:
   level:
-    org.springframework.web: DEBUG
-    org.springframework.boot.autoconfigure.web: DEBUG
-    org.springframework.boot.actuate.endpoint.web: DEBUG
+    org.springframework.web: INFO
+    org.springframework.boot.autoconfigure.web: WARN
+    org.springframework.boot.actuate.endpoint.web: WARN

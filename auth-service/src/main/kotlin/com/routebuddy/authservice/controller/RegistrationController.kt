@@ -4,8 +4,9 @@ import com.routebuddy.authservice.dto.RegistrationRequest
 import com.routebuddy.authservice.model.User
 import com.routebuddy.authservice.repository.UserRepository
 import com.routebuddy.authservice.service.AuthService
+import com.routebuddy.authservice.config.JwtCookieFactory
 import com.routebuddy.authservice.config.JwtTokenProvider
-import jakarta.servlet.http.Cookie
+import com.routebuddy.authservice.config.RedirectUrlValidator
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -20,15 +21,17 @@ import org.springframework.web.bind.annotation.PostMapping
 class RegistrationController(
     private val authService: AuthService,
     private val userRepository: UserRepository,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val jwtCookieFactory: JwtCookieFactory,
+    private val redirectUrlValidator: RedirectUrlValidator
 ) {
 
     @GetMapping("/register")
     fun showRegistrationForm(model: Model, request: HttpServletRequest): String {
-        val redirectUrl = request.getParameter("redirectUrl")
+        val redirectUrl = redirectUrlValidator.sanitize(request.getParameter("redirectUrl"))
         model.addAttribute("redirectUrl", redirectUrl)
         model.addAttribute("registrationRequest", RegistrationRequest("", "", "USER", ""))
-        return "register"  // шаблон register.html
+        return "register"
     }
 
     @PostMapping("/register")
@@ -47,26 +50,15 @@ class RegistrationController(
             val user: User = userRepository.findByUsername(registrationRequest.username)
                 ?: throw RuntimeException("User not found after registration")
             val token = jwtTokenProvider.generateToken(user)
-            val cookie = Cookie("JWT", token).apply {
-                isHttpOnly = true
-                path = "/"
-                maxAge = (jwtTokenProvider.getJwtExpirationInMs() / 1000).toInt()
-            }
-            response.addCookie(cookie)
+            jwtCookieFactory.addCookie(request, response, token)
         } catch (e: Exception) {
             model.addAttribute("error", e.message)
             return "register"
         }
-        val redirectUrl = request.getParameter("redirectUrl")
-        val targetUrl = if (!redirectUrl.isNullOrBlank()) {
-            if (redirectUrl.contains("?")) {
-                "$redirectUrl&nickname=${registrationRequest.username}"
-            } else {
-                "$redirectUrl?nickname=${registrationRequest.username}"
-            }
-        } else {
-            "/profile/${registrationRequest.username}"
-        }
+        val redirectUrl = redirectUrlValidator.sanitize(request.getParameter("redirectUrl"))
+        val targetUrl = redirectUrl
+            ?.let { redirectUrlValidator.withNickname(it, registrationRequest.username) }
+            ?: redirectUrlValidator.profileUrl(registrationRequest.username)
         return "redirect:$targetUrl"
     }
 }

@@ -10,42 +10,42 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.core.JdbcTemplate
 
 @Configuration
-class DemoRoutesConfig {
+class SeedRoutesConfig {
     private companion object {
         const val SPB_ROUTE_TITLE = "Петербург без спешки: музеи, вода и дворы"
         const val KAZAN_ROUTE_TITLE = "Казань за выходные"
 
-        const val PHOTO_KAZAN_CATHEDRAL = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Kazan_Cathedral_Saint_Petersburg.jpg/330px-Kazan_Cathedral_Saint_Petersburg.jpg"
-        const val PHOTO_SINGER_HOUSE = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Singer_House_SPB_01.jpg/330px-Singer_House_SPB_01.jpg"
-        const val PHOTO_PALACE_SQUARE = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/RUS-2016-Aerial-SPB-Winter_Palace.jpg/330px-RUS-2016-Aerial-SPB-Winter_Palace.jpg"
-        const val PHOTO_HERMITAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Winter_Palace_Panorama_2.jpg/330px-Winter_Palace_Panorama_2.jpg"
-        const val PHOTO_PALACE_BRIDGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Palace_Bridge_SPB_%28img2%29.jpg/330px-Palace_Bridge_SPB_%28img2%29.jpg"
-        const val PHOTO_VASILIEVSKY_SPIT = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Spb_06-2017_img01_Spit_of_Vasilievsky_Island.jpg/330px-Spb_06-2017_img01_Spit_of_Vasilievsky_Island.jpg"
-        const val PHOTO_PETER_FORTRESS = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/RUS-2016-Aerial-SPB-Peter_and_Paul_Fortress_02.jpg/330px-RUS-2016-Aerial-SPB-Peter_and_Paul_Fortress_02.jpg"
-        const val PHOTO_KAZAN_KREMLIN = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Kazan_Kremlin_-_panoramio_%286%29.jpg/330px-Kazan_Kremlin_-_panoramio_%286%29.jpg"
-        const val PHOTO_BAUMAN_STREET = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Baumana_Street_Kazan_Russia_2009_sept_06.jpg/330px-Baumana_Street_Kazan_Russia_2009_sept_06.jpg"
-        const val PHOTO_KAZAN_FAMILY = "https://upload.wikimedia.org/wikipedia/ru/thumb/8/8f/%D0%A6%D0%B5%D0%BD%D1%82%D1%80_%D1%81%D0%B5%D0%BC%D1%8C%D0%B8_%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD_1.jpg/330px-%D0%A6%D0%B5%D0%BD%D1%82%D1%80_%D1%81%D0%B5%D0%BC%D1%8C%D0%B8_%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD_1.jpg"
-        const val PHOTO_KREMLIN_EMBANKMENT = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BD%D0%B0%D0%B1%D0%B5%D1%80%D0%B5%D0%B6%D0%BD%D0%B0%D1%8F_%D1%81_%D1%85%D0%BE%D0%BB%D0%BC%D0%B0.jpg/330px-%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BD%D0%B0%D0%B1%D0%B5%D1%80%D0%B5%D0%B6%D0%BD%D0%B0%D1%8F_%D1%81_%D1%85%D0%BE%D0%BB%D0%BC%D0%B0.jpg"
+        const val PHOTO_KAZAN_CATHEDRAL = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Kazan_Cathedral_Saint_Petersburg.jpg/1280px-Kazan_Cathedral_Saint_Petersburg.jpg"
+        const val PHOTO_SINGER_HOUSE = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Singer_House_SPB_01.jpg/1280px-Singer_House_SPB_01.jpg"
+        const val PHOTO_PALACE_SQUARE = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/RUS-2016-Aerial-SPB-Winter_Palace.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace.jpg"
+        const val PHOTO_HERMITAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Winter_Palace_Panorama_2.jpg/1280px-Winter_Palace_Panorama_2.jpg"
+        const val PHOTO_PALACE_BRIDGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Palace_Bridge_SPB_%28img2%29.jpg/1280px-Palace_Bridge_SPB_%28img2%29.jpg"
+        const val PHOTO_VASILIEVSKY_SPIT = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Spb_06-2017_img01_Spit_of_Vasilievsky_Island.jpg/1280px-Spb_06-2017_img01_Spit_of_Vasilievsky_Island.jpg"
+        const val PHOTO_PETER_FORTRESS = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/RUS-2016-Aerial-SPB-Peter_and_Paul_Fortress_02.jpg/1280px-RUS-2016-Aerial-SPB-Peter_and_Paul_Fortress_02.jpg"
+        const val PHOTO_KAZAN_KREMLIN = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Kazan_Kremlin_-_panoramio_%286%29.jpg/1280px-Kazan_Kremlin_-_panoramio_%286%29.jpg"
+        const val PHOTO_BAUMAN_STREET = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Baumana_Street_Kazan_Russia_2009_sept_06.jpg/1280px-Baumana_Street_Kazan_Russia_2009_sept_06.jpg"
+        const val PHOTO_KAZAN_FAMILY = "https://upload.wikimedia.org/wikipedia/ru/thumb/8/8f/%D0%A6%D0%B5%D0%BD%D1%82%D1%80_%D1%81%D0%B5%D0%BC%D1%8C%D0%B8_%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD_1.jpg/1280px-%D0%A6%D0%B5%D0%BD%D1%82%D1%80_%D1%81%D0%B5%D0%BC%D1%8C%D0%B8_%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD_1.jpg"
+        const val PHOTO_KREMLIN_EMBANKMENT = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BD%D0%B0%D0%B1%D0%B5%D1%80%D0%B5%D0%B6%D0%BD%D0%B0%D1%8F_%D1%81_%D1%85%D0%BE%D0%BB%D0%BC%D0%B0.jpg/1280px-%D0%9A%D1%80%D0%B5%D0%BC%D0%BB%D1%91%D0%B2%D1%81%D0%BA%D0%B0%D1%8F_%D0%BD%D0%B0%D0%B1%D0%B5%D1%80%D0%B5%D0%B6%D0%BD%D0%B0%D1%8F_%D1%81_%D1%85%D0%BE%D0%BB%D0%BC%D0%B0.jpg"
     }
 
     @Bean
-    fun seedDemoRoutes(routeRepository: RouteRepository, jdbcTemplate: JdbcTemplate): CommandLineRunner = CommandLineRunner {
+    fun seedRoutes(routeRepository: RouteRepository, jdbcTemplate: JdbcTemplate): CommandLineRunner = CommandLineRunner {
         jdbcTemplate.execute("ALTER TABLE IF EXISTS ms_days ALTER COLUMN photo_url TYPE TEXT")
         jdbcTemplate.execute("ALTER TABLE IF EXISTS ms_route_points ALTER COLUMN photo_url TYPE TEXT")
         repairExistingPlacePhotos(jdbcTemplate)
+        repairExistingTags(jdbcTemplate)
 
-        val demoTitles = setOf(SPB_ROUTE_TITLE, KAZAN_ROUTE_TITLE)
-        routeRepository.findAll()
-            .filter { it.title in demoTitles && it.authorUsername in setOf("traveler", "guide_kazan") }
-            .forEach(routeRepository::delete)
+        val seededTitles = setOf(SPB_ROUTE_TITLE, KAZAN_ROUTE_TITLE)
+        val existingSeedRoutes = routeRepository.findAll()
+            .filter { it.title in seededTitles && it.authorUsername in setOf("traveler", "guide_kazan") }
 
-        routeRepository.save(
+        if (existingSeedRoutes.none { it.title == SPB_ROUTE_TITLE }) routeRepository.save(
             Route(
                 title = SPB_ROUTE_TITLE,
                 description = "Трехдневный маршрут по главным местам Санкт-Петербурга с короткими переходами, картой, временем посещения и спокойным темпом.",
                 authorId = 1,
                 authorUsername = "traveler",
-                tags = "культура,музеи,маломобильных,город",
+                tags = "культура,музеи,маломобильные,город",
                 isPublic = true,
                 durationDays = 3,
                 totalCost = 6200.0
@@ -109,7 +109,7 @@ class DemoRoutesConfig {
             }
         )
 
-        routeRepository.save(
+        if (existingSeedRoutes.none { it.title == KAZAN_ROUTE_TITLE }) routeRepository.save(
             Route(
                 title = KAZAN_ROUTE_TITLE,
                 description = "Маршрут на два дня: Кремль, Баумана, набережная Казанки и современные общественные пространства.",
@@ -171,6 +171,12 @@ class DemoRoutesConfig {
         ).forEach { (name, photoUrl) ->
             jdbcTemplate.update("UPDATE ms_route_points SET photo_url = ? WHERE name = ?", photoUrl, name)
         }
+    }
+
+    private fun repairExistingTags(jdbcTemplate: JdbcTemplate) {
+        jdbcTemplate.update(
+            "UPDATE ms_routes SET tags = replace(tags, 'маломобильных', 'маломобильные') WHERE tags LIKE '%маломобильных%'"
+        )
     }
 
     private fun point(

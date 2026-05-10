@@ -11,7 +11,7 @@ import java.util.*
 class JwtTokenProviderTest {
 
     private lateinit var jwtTokenProvider: JwtTokenProvider
-    private val secret = "n4uB0oP1mQ6sT8yZ0xR3vL7eF2aD5jK9sU8iE4wQ1zC3bN6rT8vY0pL7kJ2dS9aF"
+    private val secret = "test-secret-test-secret-test-secret-test-secret-test-secret-test-secret-test-secret"
     private val expiration = 3600000L // 1 час
 
     @BeforeEach

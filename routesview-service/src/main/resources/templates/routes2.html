@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Маршруты | RouteBuddy</title>
+    <title>Каталог маршрутов | RouteBuddy</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -344,7 +345,7 @@
             border: 1px solid var(--medium-gray);
         }
 
-        .empty-state i {
+        .empty-state > i {
             color: var(--accent-color);
             font-size: 4rem;
             margin-bottom: 1.5rem;
@@ -360,6 +361,55 @@
         .empty-state p {
             color: var(--text-light);
             margin-bottom: 2rem;
+        }
+
+        .empty-actions {
+            display: flex;
+            gap: .75rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .empty-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            min-height: 44px;
+            padding: .8rem 1.15rem;
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: background .2s ease, transform .2s ease;
+        }
+
+        .empty-action-btn i {
+            color: currentColor;
+            font-size: 1rem;
+            margin: 0;
+            opacity: 1;
+        }
+
+        .empty-action-btn:hover {
+            background: var(--secondary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .empty-secondary-link {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .empty-secondary-link:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
         }
 
         /* Информация о поиске */
@@ -532,12 +582,14 @@
             border-color: var(--rb-line);
         }
         .scope-switch a.active,
-        .action-btn {
+        .action-btn,
+        .empty-action-btn {
             background: var(--rb-primary);
             border-color: var(--rb-primary);
         }
         .scope-switch a.active:hover,
-        .action-btn:hover {
+        .action-btn:hover,
+        .empty-action-btn:hover {
             background: var(--rb-primary-dark);
             transform: none;
             box-shadow: none;
@@ -607,6 +659,13 @@
         .author-avatar {
             background: var(--rb-primary);
         }
+        .author-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
         .route-meta {
             border-color: var(--rb-line);
         }
@@ -643,7 +702,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-1"><a class="nav-link active" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link active" href="/routes"><i class="fas fa-compass me-1"></i>Каталог маршрутов</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
@@ -693,7 +752,7 @@
                         type="text"
                         name="search"
                         class="search-input"
-                        placeholder="Поиск по названию, описанию или тегам: культура, маломобильных..."
+                        placeholder="Поиск по названию, описанию или тегам: культура, маломобильные..."
                         th:value="${searchQuery}"
                         autocomplete="off"
                         id="searchInput">
@@ -717,7 +776,7 @@
     <div id="loadingState" class="text-center py-5 text-muted">
         <i class="fas fa-spinner fa-spin fa-2x mb-3 d-block"></i>Загружаем маршруты...
     </div>
-    <div id="emptyState" class="text-center py-5 text-muted" style="display:none;">
+    <div id="emptyState" class="empty-state text-center py-5 text-muted" style="display:none;">
         <i class="fas fa-map-signs fa-3x mb-3 d-block" style="opacity:.4;"></i>
         <h5>Маршруты не найдены</h5>
         <p>Попробуйте изменить запрос или <a href="/routes">сбросить поиск</a>.</p>
@@ -765,7 +824,27 @@
     });
 
     function esc(s) {
-        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function photoFallbackUrl(url) {
+        return String(url || '').replace(/\/(?:1200|1280)px-([^/?#]+)([?#].*)?$/, '/330px-$1');
+    }
+
+    function imageErrorFallback(img) {
+        const fallback = img.getAttribute('data-fallback');
+        if (fallback) {
+            img.removeAttribute('data-fallback');
+            img.src = fallback;
+            return;
+        }
+        img.closest('.route-media').innerHTML = '<div class="route-media-fallback"><i class="fas fa-map-marked-alt"></i></div>';
+    }
+
+    function photoImg(url, alt) {
+        const fallback = photoFallbackUrl(url);
+        const fallbackAttr = fallback && fallback !== url ? ` data-fallback="${esc(fallback)}"` : '';
+        return `<img src="${esc(url)}" alt="${esc(alt || '')}"${fallbackAttr} onerror="imageErrorFallback(this)">`;
     }
 
     function fmtDate(iso) {
@@ -795,7 +874,9 @@
     function renderRoutes(routes) {
         document.getElementById('loadingState').style.display = 'none';
         if (!routes || routes.length === 0) {
-            document.getElementById('emptyState').style.display = 'block';
+            const emptyState = document.getElementById('emptyState');
+            emptyState.style.display = 'block';
+            emptyState.innerHTML = emptyStateContent();
             return;
         }
         const grid = document.getElementById('routesGrid');
@@ -810,7 +891,7 @@
             return `
             <div class="route-card" onclick="location.href='/routes/${r.id}'">
                 <div class="route-media">
-                    ${img ? `<img src="${esc(img)}" alt="${esc(r.title)}">` : `<div class="route-media-fallback"><i class="fas fa-map-marked-alt"></i></div>`}
+                    ${img ? photoImg(img, r.title) : `<div class="route-media-fallback"><i class="fas fa-map-marked-alt"></i></div>`}
                     ${tags ? `<div class="route-tags-overlay">${tags}</div>` : ''}
                 </div>
                 <div class="route-header">
@@ -824,7 +905,7 @@
                         ${dateStr ? `<div class="route-meta-item"><i class="fas fa-calendar-alt"></i><span>${dateStr}</span></div>` : ''}
                     </div>
                     <div class="route-author">
-                        <div class="author-avatar"><span>${initials}</span></div>
+                        <div class="author-avatar" data-author-id="${esc(r.authorId)}" data-initials="${esc(initials)}"><span>${initials}</span></div>
                         <div class="author-info"><div class="author-name">${esc(r.authorUsername || 'аноним')}</div></div>
                     </div>
                     <a href="/routes/${r.id}" class="action-btn" onclick="event.stopPropagation()">
@@ -833,6 +914,43 @@
                 </div>
             </div>`;
         }).join('');
+        loadAuthorAvatars(routes);
+    }
+
+    function emptyStateContent() {
+        if (SHOW_MY) {
+            const resetLink = SEARCH_QUERY ? '<a class="empty-secondary-link" href="/routes?my=true">Сбросить поиск</a>' : '';
+            return `
+                <i class="fas fa-route fa-3x mb-3 d-block" style="opacity:.4;"></i>
+                <h5>${SEARCH_QUERY ? 'Ваши маршруты не найдены' : 'У вас пока нет маршрутов'}</h5>
+                <p>${SEARCH_QUERY ? 'Попробуйте изменить запрос или создайте новый маршрут.' : 'Создайте первый маршрут, добавьте дни, точки и фото.'}</p>
+                <div class="empty-actions">
+                    <a class="empty-action-btn" href="/routes/create">
+                        <i class="fas fa-plus-circle"></i>
+                        Создать первый маршрут
+                    </a>
+                    ${resetLink}
+                </div>`;
+        }
+        return `
+            <i class="fas fa-map-signs fa-3x mb-3 d-block" style="opacity:.4;"></i>
+            <h5>Маршруты не найдены</h5>
+            <p>Попробуйте изменить запрос или <a href="/routes">сбросить поиск</a>.</p>`;
+    }
+
+    async function loadAuthorAvatars(routes) {
+        const ids = [...new Set((routes || []).map(r => r.authorId).filter(Boolean))];
+        await Promise.all(ids.map(async id => {
+            try {
+                const resp = await fetch(`/internal/users/by-id/${encodeURIComponent(id)}`);
+                if (!resp.ok) return;
+                const user = await resp.json();
+                if (!user.avatarUrl) return;
+                document.querySelectorAll(`.author-avatar[data-author-id="${CSS.escape(String(id))}"]`).forEach(el => {
+                    el.innerHTML = `<img src="${esc(user.avatarUrl)}" alt="Аватар ${esc(user.username || '')}">`;
+                });
+            } catch (e) {}
+        }));
     }
 
     document.addEventListener('DOMContentLoaded', function() {

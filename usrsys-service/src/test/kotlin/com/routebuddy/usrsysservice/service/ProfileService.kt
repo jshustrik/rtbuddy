@@ -9,7 +9,7 @@ import org.mockito.kotlin.*
 class ProfileServiceTest {
 
     private val authServiceClient = mock<AuthServiceClient>()
-    private val profileService = ProfileService(authServiceClient, "http://127.0.0.1:8081")
+    private val profileService = ProfileService(authServiceClient, "http://127.0.0.1:8081", "internal-test-token")
 
     @Test
     fun `getProfile should return ProfileDto from user data`() {
@@ -19,7 +19,7 @@ class ProfileServiceTest {
             email = "alice@example.com",
             role = "TEACHER"
         )
-        whenever(authServiceClient.getUserByUsername("alice")).thenReturn(userDto)
+        whenever(authServiceClient.getUserByUsername("internal-test-token", "alice")).thenReturn(userDto)
         val profile = profileService.getProfile("alice")
         assertEquals(123, profile.id)
         assertEquals("alice", profile.username)

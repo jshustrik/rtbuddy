@@ -4,6 +4,7 @@ import com.routebuddy.routesviewservice.security.JwtAuthenticationFilter
 import com.routebuddy.routesviewservice.security.JwtTokenProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
@@ -23,11 +24,13 @@ class RoutesViewServiceSecurityConfig (
                     "/constructor", "/constructor/**",
                     "/route", "/route/**",
                     "/export", "/export/**",
+                    "/error", "/error/**",
                     "/api/proxy/routes",          // public GET list
                     "/api/proxy/routes/*",         // public GET single
                     "/api/proxy/reviews/routes/**",
                     "/api/proxy/reviews/me"
                 ).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/**").permitAll()
                     .anyRequest().authenticated()
             }
             .addFilterBefore(

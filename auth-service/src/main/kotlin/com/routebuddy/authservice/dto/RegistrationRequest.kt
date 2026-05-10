@@ -9,8 +9,8 @@ data class RegistrationRequest(
     @field:NotBlank(message = "Введите имя пользователя")
     @field:Size(min = 4, max = 20, message = "Имя пользователя должно содержать от 4 до 20 символов")
     @field:Pattern(
-        regexp = "^[A-Za-zА-Яа-яЁё0-9_-]{4,20}$",
-        message = "Имя пользователя может содержать только буквы, цифры, подчёркивание и дефис"
+        regexp = "^[A-Za-z0-9_-]{4,20}$",
+        message = "Имя пользователя может содержать только латинские буквы, цифры, подчёркивание и дефис"
     )
     val username: String,
     @field:NotBlank(message = "Введите пароль")

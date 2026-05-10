@@ -1,10 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: rbtestdb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -15,6 +16,7 @@ services:
 
   mongo:
     image: mongo:7
+    restart: unless-stopped
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -24,50 +26,75 @@ services:
       retries: 20
 
   auth-service:
+    restart: unless-stopped
     build:
       context: ./auth-service
       dockerfile: ../Dockerfile.service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rbtestdb
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 123
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
     depends_on:
       postgres:
         condition: service_healthy
 
   usrsys-service:
+    restart: unless-stopped
     build:
       context: ./usrsys-service
       dockerfile: ../Dockerfile.service
     environment:
       AUTH_SERVICE_URL: http://auth-service:8081
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
     depends_on:
       - auth-service
 
   make-service:
+    restart: unless-stopped
     build:
       context: ./make-service
       dockerfile: ../Dockerfile.service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/rbtestdb
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 123
-      YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY:-fb560341-ba13-42eb-9e2f-fad6f7701d75}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
 
   review-service:
+    restart: unless-stopped
     build:
       context: ./review-service
       dockerfile: ../Dockerfile.service
     environment:
       SPRING_MONGODB_URI: mongodb://mongo:27017/routebuddy_reviews
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
     depends_on:
       mongo:
         condition: service_healthy
 
+  export-service:
+    restart: unless-stopped
+    build:
+      context: ./export-service
+      dockerfile: ../Dockerfile.service
+    environment:
+      SERVICES_MAKE_SERVICE: http://make-service:8084
+      YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY}
+    depends_on:
+      - make-service
+
   routesview-service:
+    restart: unless-stopped
     build:
       context: ./routesview-service
       dockerfile: ../Dockerfile.service
@@ -75,20 +102,28 @@ services:
       SERVICES_MAKE_SERVICE: http://make-service:8084
       SERVICES_REVIEW_SERVICE: http://review-service:8085
       SPRING_MONGODB_URI: mongodb://mongo:27017/rtbuddydb
-      YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY:-fb560341-ba13-42eb-9e2f-fad6f7701d75}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY}
     depends_on:
       - make-service
       - review-service
 
   gateway:
     image: nginx:1.27-alpine
+    restart: unless-stopped
     ports:
+      - "80:80"
+      - "443:443"
       - "8080:80"
     volumes:
       - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/favicon.svg:/usr/share/nginx/html/favicon.svg:ro
     depends_on:
       - auth-service
       - usrsys-service
+      - export-service
       - routesview-service
 
 volumes:

@@ -103,6 +103,40 @@ class RouteServiceDayPointTest {
     }
 
     @Test
+    fun `addPoint accepts http image cdn url without file extension`() {
+        val route = route()
+        val day = day(route)
+        val photo = "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
+        val req = CreatePointRequest(
+            name = "Парк",
+            description = "Фото с CDN без расширения",
+            lat = 55.75,
+            lon = 37.61,
+            photoUrl = photo
+        )
+        whenever(routeRepository.findById(10L)).thenReturn(Optional.of(route))
+        whenever(dayRepository.findById(20L)).thenReturn(Optional.of(day))
+        whenever(pointRepository.save(any<RoutePoint>())).thenAnswer { it.arguments[0] as RoutePoint }
+        whenever(routeRepository.save(any<Route>())).thenAnswer { it.arguments[0] as Route }
+
+        val result = routeService.addPoint(10L, 20L, req, 7L)
+
+        assertEquals(photo, result.photoUrl)
+    }
+
+    @Test
+    fun `addPoint rejects non http photo url`() {
+        val route = route()
+        val day = day(route)
+        whenever(routeRepository.findById(10L)).thenReturn(Optional.of(route))
+        whenever(dayRepository.findById(20L)).thenReturn(Optional.of(day))
+
+        assertThrows<IllegalArgumentException> {
+            routeService.addPoint(10L, 20L, CreatePointRequest(name = "X", photoUrl = "javascript:alert(1)"), 7L)
+        }
+    }
+
+    @Test
     fun `addPoint rejects day from another route`() {
         val route = route()
         val otherRoute = route().copy(id = 99L)

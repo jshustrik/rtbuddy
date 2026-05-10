@@ -8,7 +8,7 @@
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
           as="style" onload="this.rel='stylesheet'">
-    <link rel="icon" href="data:image/x-icon;base64," type="image/x-icon">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <!-- Font Awesome -->
@@ -51,9 +51,12 @@
 
         .header-section {
             background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            padding: 2.5rem 2rem;
+            padding: 1.4rem 2rem 2.35rem;
             text-align: center;
             color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .logo-container {
@@ -161,6 +164,29 @@
             transform: translateX(2px);
         }
 
+        .home-nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            align-self: flex-start;
+            margin-bottom: 1.25rem;
+            padding: .5rem .75rem;
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 8px;
+            background: rgba(255,255,255,.1);
+            color: rgba(255,255,255,.9);
+            text-decoration: none;
+            font-size: .82rem;
+            font-weight: 700;
+            transition: background .2s ease, color .2s ease, border-color .2s ease;
+        }
+
+        .home-nav-link:hover {
+            background: rgba(255,255,255,.18);
+            border-color: rgba(255,255,255,.34);
+            color: white;
+        }
+
         .divider {
             position: relative;
             text-align: center;
@@ -225,6 +251,11 @@
                 padding: 2rem 1.5rem;
             }
 
+            .home-nav-link {
+                align-self: center;
+                margin-bottom: 1rem;
+            }
+
             .form-container {
                 padding: 2rem 1.5rem;
             }
@@ -276,6 +307,10 @@
     <div class="login-card w-full max-w-md">
         <!-- Заголовок -->
         <div class="header-section">
+            <a href="/routes" class="home-nav-link">
+                <i class="fas fa-compass"></i>
+                <span>На главную</span>
+            </a>
             <div class="logo-container">
                 <i class="fas fa-mountain text-3xl"></i>
                 <h1 class="text-3xl font-bold">RouteBuddy</h1>
@@ -341,19 +376,6 @@
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                </div>
-
-                <!-- Запомнить меня (опционально) -->
-                <div class="flex items-center mb-6">
-                    <input
-                            type="checkbox"
-                            id="remember-me"
-                            name="remember-me"
-                            class="mr-2 h-4 w-4 text-primary-color rounded border-gray-300 focus:ring-primary-color"
-                    >
-                    <label for="remember-me" class="text-sm text-gray-600">
-                        Запомнить меня
-                    </label>
                 </div>
 
                 <!-- Кнопка "Войти" -->

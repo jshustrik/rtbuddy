@@ -46,3 +46,6 @@ bin/
 .omx/
 .playwright-cli/
 output/
+.env
+TZ_AUDIT.md
+docs/

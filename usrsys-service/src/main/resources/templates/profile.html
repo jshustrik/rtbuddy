@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль пользователя - RouteBuddy</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -191,6 +192,22 @@
         .stat-item {
             text-align: center;
             padding: 0.5rem;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 8px;
+            display: block;
+            width: 100%;
+            font: inherit;
+            transition: background .15s ease, transform .15s ease;
+        }
+
+        .stat-item:hover,
+        .stat-item:focus {
+            background: #eef6f2;
+            color: inherit;
+            transform: translateY(-1px);
         }
 
         .stat-value {
@@ -228,6 +245,7 @@
 
         .action-btn-primary:hover {
             background: linear-gradient(135deg, var(--secondary-color), #1a202c);
+            color: white;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(45, 55, 72, 0.2);
         }
@@ -257,6 +275,12 @@
 
         .action-btn-danger {
             background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .action-btn-success:hover,
+        .action-btn-warning:hover,
+        .action-btn-danger:hover {
             color: white;
         }
 
@@ -469,11 +493,32 @@
             border: 1px solid var(--medium-gray);
         }
 
-        .empty-state i {
+        .empty-state > i {
             color: var(--accent-color);
             font-size: 4rem;
             margin-bottom: 1.5rem;
             opacity: 0.6;
+        }
+
+        .empty-state-action {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            gap: .65rem;
+            width: auto;
+            min-height: 48px;
+            padding: .9rem 1.35rem;
+            margin-top: 1.1rem;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .empty-state-action i {
+            color: currentColor;
+            font-size: 1rem;
+            margin: 0;
+            opacity: 1;
+            line-height: 1;
         }
 
         .pagination-container {
@@ -521,14 +566,26 @@
             box-shadow: none;
             border-bottom: 1px solid rgba(255,255,255,.12);
         }
+        .navbar-brand {
+            font-size: 1.05rem;
+            line-height: 1.1;
+        }
         .nav-link {
             border-radius: 8px;
             padding: .55rem .75rem !important;
+            font-size: .95rem;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: .35rem;
         }
         .nav-link:hover,
         .nav-link.active {
             background: rgba(255,255,255,.1);
             transform: none;
+        }
+        .nav-link i {
+            font-size: .95rem;
         }
         .profile-card,
         .routes-section,
@@ -561,6 +618,7 @@
         .action-btn-success:hover,
         .action-btn-warning:hover {
             background: var(--rb-primary-dark);
+            color: white;
             transform: none;
             box-shadow: none;
         }
@@ -632,7 +690,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Маршруты</a></li>
+                <li class="nav-item mx-1"><a class="nav-link" href="/routes"><i class="fas fa-compass me-1"></i>Каталог маршрутов</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/routes/create"><i class="fas fa-plus-circle me-1"></i>Создать маршрут</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/constructor"><i class="fas fa-layer-group me-1"></i>Конструктор</a></li>
                 <li class="nav-item mx-1"><a class="nav-link" href="/export"><i class="fas fa-file-pdf me-1"></i>Выгрузка PDF</a></li>
@@ -650,6 +708,8 @@
             <div class="avatar-container">
                 <img th:if="${user.avatarUrl != null and !#strings.isEmpty(user.avatarUrl)}"
                      th:src="${user.avatarUrl}"
+                     th:style="${user.avatarUrl != null and !#strings.isEmpty(user.avatarUrl) ? '' : 'display:none'}"
+                     style="display:none"
                      class="avatar-img"
                      id="currentAvatar"
                      alt="Аватар пользователя">
@@ -674,23 +734,23 @@
         <div class="user-info">
             <!-- Статистика пользователя -->
             <div class="user-stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="routesCount">0</div>
-                    <div class="stat-label">Маршрутов</div>
+                    <a class="stat-item" href="/routes?my=true">
+                        <div class="stat-value" id="routesCount">0</div>
+                        <div class="stat-label">Мои маршруты</div>
+                    </a>
+                    <a class="stat-item" href="/routes">
+                        <div class="stat-value"><i class="fas fa-globe"></i></div>
+                        <div class="stat-label">Публичный каталог</div>
+                    </a>
+                    <a class="stat-item" href="/export">
+                        <div class="stat-value"><i class="fas fa-file-pdf"></i></div>
+                        <div class="stat-label">Выгрузка PDF</div>
+                    </a>
+                    <button class="stat-item" type="button" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                        <div class="stat-value"><i class="fas fa-camera"></i></div>
+                        <div class="stat-label">Аватар</div>
+                    </button>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-value"><i class="fas fa-globe"></i></div>
-                    <div class="stat-label">Публичный каталог</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value"><i class="fas fa-file-pdf"></i></div>
-                    <div class="stat-label">Выгрузка PDF</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value"><i class="fas fa-camera"></i></div>
-                    <div class="stat-label">Аватар</div>
-                </div>
-            </div>
 
             <!-- Кнопки действий -->
             <div class="row g-3 mt-4">
@@ -729,6 +789,7 @@
         </div>
     </div>
 
+</div>
 
 <!-- Модальное окно для загрузки аватара -->
 <div class="modal fade" id="avatarModal" tabindex="-1" aria-hidden="true">
@@ -762,24 +823,15 @@
                         <img id="avatarPreview" class="avatar-preview" alt="Превью аватара">
                     </div>
 
-                    <div class="mt-4">
-                        <label for="avatarUrl" class="form-label fw-bold mb-3">
-                            <i class="fas fa-link me-2"></i>Или введите URL изображения:
-                        </label>
-                        <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fas fa-link"></i>
-                                </span>
-                            <input type="url"
-                                   class="form-control"
-                                   id="avatarUrl"
-                                   placeholder="https://example.com/avatar.jpg"
-                                   onchange="loadAvatarFromUrl(this.value)">
-                        </div>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-danger me-auto"
+                        th:if="${user.avatarUrl != null and !#strings.isEmpty(user.avatarUrl)}"
+                        onclick="deleteAvatar()">
+                    <i class="fas fa-trash me-2"></i>Удалить аватар
+                </button>
                 <button type="button" class="btn btn-outline-gray" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Отмена
                 </button>
@@ -841,40 +893,13 @@
         }
     }
 
-    // Загрузка аватара по URL
-    function loadAvatarFromUrl(url) {
-        if (!url) return;
-
-        const preview = document.getElementById('avatarPreview');
-        const container = document.getElementById('avatarPreviewContainer');
-
-        // Валидация URL
-        if (!url.match(/^https?:\/\/.+\/.+\.(jpg|jpeg|png)(?:\?.*)?$/i)) {
-            alert('Пожалуйста, введите корректный URL JPG или PNG');
-            return;
-        }
-
-        preview.src = url;
-        container.style.display = 'block';
-
-        // Обновляем текстовое поле загрузки
-        const uploadArea = document.querySelector('.upload-area');
-        uploadArea.innerHTML = `
-                <div class="text-success">
-                    <i class="fas fa-link fa-3x mb-3"></i>
-                    <h5 class="fw-bold">URL изображения установлен</h5>
-                    <p class="mb-0 text-truncate">${url}</p>
-                </div>
-            `;
-    }
-
     // Отправка формы аватара
     function uploadAvatar() {
         const preview = document.getElementById('avatarPreview');
-        const avatarUrl = document.getElementById('avatarUrl').value.trim() || preview.getAttribute('src') || '';
+        const avatarUrl = preview.getAttribute('src') || '';
 
         if (!avatarUrl) {
-            showNotification('Выберите файл или укажите URL изображения', 'error');
+            showNotification('Выберите JPG или PNG до 5 МБ', 'error');
             return;
         }
 
@@ -910,6 +935,18 @@
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             });
+    }
+
+    function deleteAvatar() {
+        if (!confirm('Удалить текущий аватар?')) return;
+
+        fetch('/profile/avatar', { method: 'DELETE' })
+            .then(response => {
+                if (!response.ok) throw new Error('delete failed');
+                showNotification('Аватар удалён', 'success');
+                setTimeout(() => location.reload(), 700);
+            })
+            .catch(() => showNotification('Не удалось удалить аватар', 'error'));
     }
 
     function escapeHtml(value) {
@@ -965,6 +1002,10 @@
                         <i class="fas fa-map-signs d-block"></i>
                         <h5 class="fw-bold">Маршрутов пока нет</h5>
                         <p class="text-muted">Создайте первый маршрут и он появится в профиле.</p>
+                        <a class="btn action-btn action-btn-primary empty-state-action" href="/routes/create">
+                            <i class="fas fa-plus-circle"></i>
+                            Создать первый маршрут
+                        </a>
                     </div>
                 `;
                 return;

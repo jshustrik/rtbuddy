@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.crypto.password.PasswordEncoder
 
 @Configuration
-class DemoUserConfig {
+class SeedUserConfig {
 
     @Bean
-    fun seedDemoUser(userRepository: UserRepository, passwordEncoder: PasswordEncoder): CommandLineRunner =
+    fun seedUsers(userRepository: UserRepository, passwordEncoder: PasswordEncoder): CommandLineRunner =
         CommandLineRunner {
             if (!userRepository.existsByUsername("traveler")) {
                 userRepository.save(

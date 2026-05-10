@@ -29,6 +29,10 @@ class ApiExceptionHandler {
     fun notFound(e: NoSuchElementException): ResponseEntity<Map<String, String>> =
         ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("error" to "Объект не найден"))
 
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun badRequest(e: IllegalArgumentException): ResponseEntity<Map<String, String>> =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapOf("error" to (e.message ?: "Проверьте поля формы")))
+
     private fun fieldMessage(error: FieldError): String =
         when (error.field) {
             "title" -> "Название должно содержать 3-100 символов и хотя бы одну букву"
@@ -39,9 +43,9 @@ class ApiExceptionHandler {
             "name" -> "Название точки должно содержать 2-100 символов"
             "lat" -> "Широта должна быть от -90 до 90"
             "lon" -> "Долгота должна быть от -180 до 180"
-            "photoUrl" -> "Фото должно быть JPG/PNG до 5 МБ"
+            "photoUrl" -> "Фото должно быть ссылкой http(s) или JPG/PNG до 5 МБ"
             "travelTime" -> "Время в пути слишком длинное"
-            "timeStart", "timeEnd" -> "Время точки должно быть в корректном формате"
+            "timeStart", "timeEnd" -> "Время точки должно быть в формате чч:мм"
             else -> "Проверьте поле «${error.field}»"
         }
 }

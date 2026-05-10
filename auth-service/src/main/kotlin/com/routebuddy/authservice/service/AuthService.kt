@@ -16,7 +16,8 @@ class AuthService(
 
     @Transactional
     fun register(request: RegistrationRequest) {
-        if (userRepository.existsByUsername(request.username)) {
+        val username = request.username.trim()
+        if (userRepository.existsByUsername(username)) {
             throw RuntimeException("Имя пользователя уже занято")
         }
         val email = request.email?.trim()?.lowercase()
@@ -28,7 +29,7 @@ class AuthService(
             throw RuntimeException("Домен email не найден в DNS")
         }
         val user = User(
-            username = request.username,
+            username = username,
             passwordHash = passwordEncoder.encode(request.password),
             role = request.role,
             email = email

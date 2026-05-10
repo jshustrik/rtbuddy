@@ -2,6 +2,10 @@
 
 Веб-платформа путешествий с авторскими маршрутами.
 
+## Адрес проекта
+
+Публичный адрес: https://routebuddy.ru
+
 ## Запуск через Docker
 
 Из корня проекта:
@@ -20,22 +24,32 @@ Gateway перенаправит на каталог маршрутов.
 
 Сборка не требует локальных Java/Gradle: нужны только Docker и интернет. Первый запуск скачивает базовые Docker-образы, один Gradle wrapper `8.14.3` и Maven-зависимости. Повторные сборки используют Docker/Gradle cache и идут существенно быстрее.
 
-## Карты
+## Деплой
 
-Приложение использует API Яндекс.Карт.
-Интерактивные карты подключаются через JavaScript API, а печатная PDF-выгрузка строит статичные изображения карт через Static API.
+Проект развёрнут на виртуальной машине в Yandex Cloud. На сервере установлен Docker Compose, все сервисы запускаются как контейнеры. Локальный запуск использует HTTP-конфиг `deploy/nginx.conf`, чтобы проект стартовал без сертификатов. Продакшен-запуск использует SSL-конфиг:
 
-Ключ по умолчанию уже задан для локального Docker-запуска:
-
-```text
-***********************
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-Для замены ключа:
+Внешний трафик принимает контейнер `gateway` на Nginx, дальше запросы проксируются во внутренние сервисы: авторизация, профиль, маршруты, отзывы, экспорт и HTML-интерфейс. SSL-сертификат выпущен через Let's Encrypt и хранится в volume `certbot`.
+
+## Переменные окружения
+
+При первом запуске `./scripts/docker-up.sh` создаёт локальный файл `.env` и генерирует служебные значения:
+
+- `POSTGRES_PASSWORD`;
+- `JWT_SECRET`;
+- `INTERNAL_SERVICE_TOKEN`;
+- `JWT_EXPIRATION_MS`.
+
+Файл `.env` не коммитится. Для карт нужно указать ключ API Яндекс.Карт:
 
 ```bash
 YANDEX_MAPS_API_KEY=your-key ./scripts/docker-up.sh
 ```
+
+Интерактивные карты подключаются через JavaScript API, а печатная PDF-выгрузка строит статичные изображения карт через Static API.
 
 ## Основные страницы
 
@@ -49,6 +63,7 @@ YANDEX_MAPS_API_KEY=your-key ./scripts/docker-up.sh
 | Создание маршрута | `http://localhost:8080/routes/create` |
 | Конструктор из дней | `http://localhost:8080/constructor` |
 | PDF-выгрузка | `http://localhost:8080/export` |
+| Страница дня | `http://localhost:8080/routes/{routeId}/days/{dayId}` |
 
 ## Тестовый аккаунт
 
@@ -66,7 +81,8 @@ YANDEX_MAPS_API_KEY=your-key ./scripts/docker-up.sh
 | `usrsys-service` | профиль, аватар |
 | `make-service` | маршруты, дни, точки |
 | `review-service` | отзывы и оценки 1-10 |
-| `routesview-service` | HTML-интерфейс, proxy API, PDF-печать |
+| `export-service` | PDF-файлы, данные для выгрузки и статичные карты Яндекса |
+| `routesview-service` | HTML-интерфейс, proxy API |
 
 ## Проверка
 

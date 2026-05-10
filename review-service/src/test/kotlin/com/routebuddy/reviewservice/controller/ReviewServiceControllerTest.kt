@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 class ReviewServiceControllerTest {
 
     private val reviewService = mock(ReviewService::class.java)
-    private val controller = ApiReviewController(reviewService)
+    private val controller = ApiReviewController(reviewService, "internal-test-token")
 
     @Test
     fun `create review delegates to service`() {
@@ -25,7 +25,7 @@ class ReviewServiceControllerTest {
         val response = ReviewResponse("r1", 10L, 1L, "ivan", "Хорошо", 8, now, now)
         `when`(reviewService.createReview(1L, "ivan", ReviewRequest(10L, "Хорошо", 8))).thenReturn(response)
 
-        val result = controller.createReview(1L, "ivan", ReviewRequest(10L, "Хорошо", 8))
+        val result = controller.createReview("internal-test-token", 1L, "ivan", ReviewRequest(10L, "Хорошо", 8))
 
         assertThat(result.id).isEqualTo("r1")
         assertThat(result.authorUsername).isEqualTo("ivan")

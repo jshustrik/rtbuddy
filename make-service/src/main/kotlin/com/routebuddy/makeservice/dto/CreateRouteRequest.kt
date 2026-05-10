@@ -47,9 +47,9 @@ data class CreateDayRequest(
     @field:Max(30)
     val dayNumber: Int = 1,
     @field:NotBlank
-    @field:Size(min = 2, max = 100)
+    @field:Size(min = 3, max = 100)
     val title: String,
-    @field:Size(max = 1000)
+    @field:Size(min = 10, max = 500)
     @field:Pattern(regexp = "^(?!.*<[^>]+>)[\\s\\S]*$")
     val description: String = "",
     @field:Size(max = 7_000_000)
@@ -65,9 +65,9 @@ data class UpdateDayRequest(
     @field:Max(30)
     val dayNumber: Int = 1,
     @field:NotBlank
-    @field:Size(min = 2, max = 100)
+    @field:Size(min = 3, max = 100)
     val title: String,
-    @field:Size(max = 1000)
+    @field:Size(min = 10, max = 500)
     @field:Pattern(regexp = "^(?!.*<[^>]+>)[\\s\\S]*$")
     val description: String = "",
     @field:Size(max = 7_000_000)
@@ -95,9 +95,9 @@ data class CreatePointRequest(
     val lon: Double = 0.0,
     @field:Size(max = 7_000_000)
     val photoUrl: String? = null,
-    @field:Size(max = 10)
+    @field:Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$")
     val timeStart: String? = null,
-    @field:Size(max = 10)
+    @field:Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$")
     val timeEnd: String? = null
 )
 
@@ -118,8 +118,8 @@ data class UpdatePointRequest(
     val lon: Double = 0.0,
     @field:Size(max = 7_000_000)
     val photoUrl: String? = null,
-    @field:Size(max = 10)
+    @field:Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$")
     val timeStart: String? = null,
-    @field:Size(max = 10)
+    @field:Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$")
     val timeEnd: String? = null
 )

@@ -1,11 +1,12 @@
 package com.routebuddy.authservice.controller
 
+import com.routebuddy.authservice.config.JwtCookieFactory
 import com.routebuddy.authservice.config.JwtTokenProvider
+import com.routebuddy.authservice.config.RedirectUrlValidator
 import com.routebuddy.authservice.dto.RegistrationRequest
 import com.routebuddy.authservice.model.User
 import com.routebuddy.authservice.repository.UserRepository
 import com.routebuddy.authservice.service.AuthService
-import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,18 +29,24 @@ class RegistrationControllerTest {
         authService = mock()
         userRepository = mock()
         jwtTokenProvider = mock()
-        controller = RegistrationController(authService, userRepository, jwtTokenProvider)
+        controller = RegistrationController(
+            authService,
+            userRepository,
+            jwtTokenProvider,
+            JwtCookieFactory(jwtTokenProvider),
+            RedirectUrlValidator()
+        )
     }
 
     @Test
     fun `showRegistrationForm should return register view and set model attributes`() {
         val request = MockHttpServletRequest()
-        request.setParameter("redirectUrl", "http://example.com/redirect")
+        request.setParameter("redirectUrl", "/constructor")
         val model = ConcurrentModel()
 
         val viewName = controller.showRegistrationForm(model, request)
         assertEquals("register", viewName)
-        assertEquals("http://example.com/redirect", model.getAttribute("redirectUrl"))
+        assertEquals("/constructor", model.getAttribute("redirectUrl"))
         assertNotNull(model.getAttribute("registrationRequest"))
     }
 
@@ -81,7 +88,8 @@ class RegistrationControllerTest {
 
         val model = ConcurrentModel()
         val request = MockHttpServletRequest()
-        request.setParameter("redirectUrl", "http://example.com/game")
+        request.setParameter("redirectUrl", "/constructor")
+        request.addHeader("X-Forwarded-Proto", "https")
         val response = MockHttpServletResponse()
 
         // Успешная регистрация
@@ -95,17 +103,36 @@ class RegistrationControllerTest {
 
         val viewName = controller.processRegistrationForm(registrationRequest, bindingResult, model, request, response)
 
-        // Проверка Cookie
-        val cookie: Cookie? = response.cookies.find { it.name == "JWT" }
-        assertNotNull(cookie)
-        assertEquals("dummyJWT", cookie!!.value)
-        assertTrue(cookie.isHttpOnly)
-        assertEquals("/", cookie.path)
-        // 3600000 мс = 3600 секунд
-        assertEquals(3600, cookie.maxAge)
+        val cookieHeader = response.getHeader("Set-Cookie")!!
+        assertTrue(cookieHeader.contains("JWT=dummyJWT"))
+        assertTrue(cookieHeader.contains("HttpOnly"))
+        assertTrue(cookieHeader.contains("Path=/"))
+        assertTrue(cookieHeader.contains("Max-Age=3600"))
+        assertTrue(cookieHeader.contains("SameSite=Lax"))
+        assertTrue(cookieHeader.contains("Secure"))
 
-        // Проверяем, что перенаправление корректное
-        assertEquals("redirect:http://example.com/game?nickname=user", viewName)
+        assertEquals("redirect:/constructor?nickname=user", viewName)
+    }
+
+    @Test
+    fun `processRegistrationForm should ignore external redirect url`() {
+        val registrationRequest = RegistrationRequest("user", "pass", "USER", "user@test.com")
+        val bindingResult: BindingResult = BeanPropertyBindingResult(registrationRequest, "registrationRequest")
+
+        val model = ConcurrentModel()
+        val request = MockHttpServletRequest()
+        request.setParameter("redirectUrl", "https://example.com/game")
+        val response = MockHttpServletResponse()
+
+        doNothing().whenever(authService).register(any())
+        val user = User(1, "user", "encoded", "USER", "user@test.com")
+        whenever(userRepository.findByUsername("user")).thenReturn(user)
+        whenever(jwtTokenProvider.generateToken(user)).thenReturn("dummyJWT")
+        whenever(jwtTokenProvider.getJwtExpirationInMs()).thenReturn(3600000L)
+
+        val viewName = controller.processRegistrationForm(registrationRequest, bindingResult, model, request, response)
+
+        assertEquals("redirect:/profile/user", viewName)
     }
 
     @Test

@@ -7,5 +7,5 @@ import org.springframework.web.bind.annotation.GetMapping
 class ExportController {
 
     @GetMapping("/export")
-    fun exportPage(): String = "export-demo"
+    fun exportPage(): String = "export"
 }

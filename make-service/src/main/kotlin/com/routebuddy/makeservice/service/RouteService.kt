@@ -10,6 +10,7 @@ import com.routebuddy.makeservice.repository.RouteRepository
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.net.URI
 import java.time.LocalDateTime
 
 @Service
@@ -72,6 +73,7 @@ class RouteService(
     // ── Days ─────────────────────────────────────────────────────────────────
 
     fun addDay(routeId: Long, req: CreateDayRequest, userId: Long): DayDto {
+        validatePhotoUrl(req.photoUrl)
         val route = routeRepository.findById(routeId).orElseThrow { NoSuchElementException("Route $routeId not found") }
         if (route.authorId != userId) throw AccessDeniedException("Not the author")
         val day = Day(
@@ -90,6 +92,7 @@ class RouteService(
     }
 
     fun updateDay(routeId: Long, dayId: Long, req: UpdateDayRequest, userId: Long): DayDto {
+        validatePhotoUrl(req.photoUrl)
         val route = routeRepository.findById(routeId).orElseThrow { NoSuchElementException("Route $routeId not found") }
         if (route.authorId != userId) throw AccessDeniedException("Not the author")
         val day = dayRepository.findById(dayId).orElseThrow { NoSuchElementException("Day $dayId not found") }
@@ -118,6 +121,7 @@ class RouteService(
     // ── Points ────────────────────────────────────────────────────────────────
 
     fun addPoint(routeId: Long, dayId: Long, req: CreatePointRequest, userId: Long): RoutePointDto {
+        validatePhotoUrl(req.photoUrl)
         val route = routeRepository.findById(routeId).orElseThrow { NoSuchElementException("Route $routeId not found") }
         if (route.authorId != userId) throw AccessDeniedException("Not the author")
         val day = dayRepository.findById(dayId).orElseThrow { NoSuchElementException("Day $dayId not found") }
@@ -140,6 +144,7 @@ class RouteService(
     }
 
     fun updatePoint(routeId: Long, dayId: Long, pointId: Long, req: UpdatePointRequest, userId: Long): RoutePointDto {
+        validatePhotoUrl(req.photoUrl)
         val route = routeRepository.findById(routeId).orElseThrow { NoSuchElementException("Route $routeId not found") }
         if (route.authorId != userId) throw AccessDeniedException("Not the author")
         val point = pointRepository.findById(pointId).orElseThrow { NoSuchElementException("Point $pointId not found") }
@@ -176,4 +181,20 @@ class RouteService(
             throw AccessDeniedException("Point does not belong to route day")
         }
     }
+
+    private fun validatePhotoUrl(value: String?) {
+        if (value.isNullOrBlank()) return
+        val dataImage = Regex("^data:image/(jpeg|png);base64,[A-Za-z0-9+/=\\r\\n]+$", RegexOption.IGNORE_CASE)
+        require(dataImage.matches(value) || isHttpImageUrl(value)) {
+            "Фото должно быть ссылкой http(s) или JPG/PNG до 5 МБ"
+        }
+    }
+
+    private fun isHttpImageUrl(value: String): Boolean =
+        runCatching {
+            require(!value.any { it.isISOControl() })
+            val uri = URI(value.trim())
+            val scheme = uri.scheme?.lowercase()
+            scheme in setOf("http", "https") && !uri.host.isNullOrBlank()
+        }.getOrDefault(false)
 }

@@ -1,11 +1,14 @@
 package com.routebuddy.routesviewservice.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.routebuddy.routesviewservice.security.JwtTokenProvider
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * Proxy to review-service (8085).
@@ -16,9 +19,11 @@ import org.springframework.web.client.RestTemplate
 @RequestMapping("/api/proxy/reviews")
 class ReviewProxyController(
     private val jwtTokenProvider: JwtTokenProvider,
-    @Value("\${services.review-service}") private val reviewServiceUrl: String
+    @Value("\${services.review-service}") private val reviewServiceUrl: String,
+    @Value("\${services.internal-token}") private val internalToken: String
 ) {
     private val rest = RestTemplate()
+    private val objectMapper = ObjectMapper()
 
     private fun extractToken(request: HttpServletRequest): String? {
         request.cookies?.forEach { if (it.name == "JWT") return it.value }
@@ -27,15 +32,48 @@ class ReviewProxyController(
     }
 
     private fun userHeaders(request: HttpServletRequest): HttpHeaders {
-        val token = extractToken(request) ?: error("Not authenticated")
+        val token = extractToken(request)
+            ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Войдите в аккаунт")
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Сессия истекла. Войдите заново")
+        }
         val userId = jwtTokenProvider.getUserIdFromJWT(token)
         val username = jwtTokenProvider.getUsernameFromJWT(token) ?: "unknown"
         return HttpHeaders().apply {
             set("X-User-Id", userId.toString())
             set("X-Username", username)
+            set("X-Internal-Token", internalToken)
             contentType = MediaType.APPLICATION_JSON
         }
     }
+
+    private fun upstreamMessage(e: RestClientResponseException, fallback: String): String {
+        val body = e.responseBodyAsString.ifBlank { return fallback }
+        return runCatching {
+            val json = objectMapper.readValue(body, Map::class.java)
+            (json["message"] ?: json["error"])?.toString()
+                ?.takeIf { it.isNotBlank() && it != "Bad Request" }
+        }.getOrNull() ?: fallback
+    }
+
+    private fun proxyError(e: Exception): ResponseEntity<Any> =
+        when (e) {
+            is ResponseStatusException -> ResponseEntity.status(e.statusCode)
+                .body(mapOf("error" to (e.reason ?: "Ошибка авторизации")))
+            is RestClientResponseException -> {
+                val fallback = when (e.statusCode) {
+                    HttpStatus.UNAUTHORIZED -> "Войдите в аккаунт"
+                    HttpStatus.FORBIDDEN -> "Нет прав на изменение этого отзыва"
+                    HttpStatus.CONFLICT -> "Вы уже оставили отзыв на этот маршрут"
+                    HttpStatus.BAD_REQUEST -> "Проверьте текст и оценку отзыва"
+                    HttpStatus.NOT_FOUND -> "Отзыв не найден"
+                    else -> "Ошибка сервиса отзывов"
+                }
+                ResponseEntity.status(e.statusCode).body(mapOf("error" to upstreamMessage(e, fallback)))
+            }
+            else -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(mapOf("error" to "Ошибка сервиса отзывов"))
+        }
 
     // GET /api/proxy/reviews/routes/{routeId} — public
     @GetMapping("/routes/{routeId}")
@@ -51,7 +89,7 @@ class ReviewProxyController(
             )
             ResponseEntity.ok(resp.body)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to (e.message ?: "error")))
+            proxyError(e)
         }
     }
 
@@ -65,7 +103,7 @@ class ReviewProxyController(
             )
             ResponseEntity.ok(resp.body)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to (e.message ?: "error")))
+            proxyError(e)
         }
     }
 
@@ -78,9 +116,7 @@ class ReviewProxyController(
             val resp = rest.postForEntity("$reviewServiceUrl/api/reviews", entity, Any::class.java)
             ResponseEntity.status(resp.statusCode).body(resp.body)
         } catch (e: Exception) {
-            val msg = e.message ?: "error"
-            val status = if (msg.contains("409") || msg.contains("already")) HttpStatus.CONFLICT else HttpStatus.INTERNAL_SERVER_ERROR
-            ResponseEntity.status(status).body(mapOf("error" to msg))
+            proxyError(e)
         }
     }
 
@@ -93,7 +129,7 @@ class ReviewProxyController(
             rest.exchange("$reviewServiceUrl/api/reviews/$reviewId", HttpMethod.DELETE, entity, Void::class.java)
             ResponseEntity.noContent().build()
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to (e.message ?: "error")))
+            proxyError(e)
         }
     }
 
@@ -110,7 +146,7 @@ class ReviewProxyController(
             val resp = rest.exchange("$reviewServiceUrl/api/reviews/$reviewId", HttpMethod.PUT, entity, Any::class.java)
             ResponseEntity.status(resp.statusCode).body(resp.body)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to (e.message ?: "error")))
+            proxyError(e)
         }
     }
 
@@ -123,7 +159,7 @@ class ReviewProxyController(
             val username = jwtTokenProvider.getUsernameFromJWT(token) ?: "unknown"
             ResponseEntity.ok(mapOf("userId" to userId, "username" to username))
         } catch (e: Exception) {
-            ResponseEntity.status(401).body(mapOf("error" to "invalid token"))
+            ResponseEntity.status(401).body(mapOf("error" to "Сессия истекла. Войдите заново"))
         }
     }
 }
