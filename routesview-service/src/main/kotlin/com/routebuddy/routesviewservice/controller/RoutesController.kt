@@ -49,11 +49,40 @@ class RoutesController(
     }
 
     @GetMapping("/routes/{id}/edit")
-    fun viewEditRoute(@PathVariable id: Long, request: HttpServletRequest, model: Model): Any {
-        if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/$id/edit")
+    fun viewEditRoute(@PathVariable id: String, request: HttpServletRequest, model: Model): Any {
+        val routeId = id.toLongOrNull() ?: return httpRedirect("/routes")
+        if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/$routeId/edit")
         model.addAttribute("editMode", true)
-        model.addAttribute("editRouteId", id)
+        model.addAttribute("editRouteId", routeId)
         return "create1"
+    }
+
+    @GetMapping("/routes/{routeId}/days/{dayId}/edit")
+    fun viewEditRouteDay(
+        @PathVariable routeId: String,
+        @PathVariable dayId: String,
+        request: HttpServletRequest
+    ): Any {
+        val route = routeId.toLongOrNull() ?: return httpRedirect("/routes")
+        val day = dayId.toLongOrNull() ?: return httpRedirect("/routes/$route/edit")
+        if (!hasValidToken(request)) return httpRedirect("/login?redirectUrl=/routes/$route/days/$day/edit")
+        return httpRedirect("/routes/$route/edit#day-$day")
+    }
+
+    @GetMapping("/route/{id}/edit")
+    fun viewLegacyEditRoute(@PathVariable id: String): Any {
+        val routeId = id.toLongOrNull() ?: return httpRedirect("/routes")
+        return httpRedirect("/routes/$routeId/edit")
+    }
+
+    @GetMapping("/route/{routeId}/days/{dayId}/edit")
+    fun viewLegacyEditRouteDay(
+        @PathVariable routeId: String,
+        @PathVariable dayId: String
+    ): Any {
+        val route = routeId.toLongOrNull() ?: return httpRedirect("/routes")
+        val day = dayId.toLongOrNull() ?: return httpRedirect("/routes/$route/edit")
+        return httpRedirect("/routes/$route/days/$day/edit")
     }
 
     @GetMapping("/routes/{id}")

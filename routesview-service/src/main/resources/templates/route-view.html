@@ -407,10 +407,11 @@
             `<span class="tag-badge">${esc(t.trim())}</span>`).join('') : '';
         const cost = r.totalCost > 0 ? `&nbsp;·&nbsp;~${r.totalCost.toLocaleString('ru-RU')} ₽` : '';
         const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ru-RU') : '';
+        const editUrl = `/routes/${ROUTE_ID}/edit`;
         const authorTools = String(currentUserId) === String(r.authorId)
             ? `<div class="author-tools">
-                    <a class="btn btn-sm btn-light" href="/routes/${r.id}/edit"><i class="fas fa-pen me-1"></i>Редактировать маршрут</a>
-                    <a class="btn btn-sm btn-light" href="/routes/${r.id}/edit"><i class="fas fa-plus me-1"></i>Добавить день</a>
+                    <a class="btn btn-sm btn-light" href="${editUrl}"><i class="fas fa-pen me-1"></i>Редактировать маршрут</a>
+                    <a class="btn btn-sm btn-light" href="${editUrl}"><i class="fas fa-plus me-1"></i>Добавить день</a>
                     <button class="btn btn-sm btn-danger" onclick="deleteRoute()"><i class="fas fa-trash me-1"></i>Удалить маршрут</button>
                </div>`
             : '';
@@ -430,7 +431,7 @@
             </div>
             <p class="mb-0">${esc(r.description)}</p>
             <div class="mt-2">
-                <a href="/export?routeId=${r.id}" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border-radius:20px;">
+                <a href="/export?routeId=${ROUTE_ID}" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border-radius:20px;">
                     <i class="fas fa-file-pdf me-1"></i>Выгрузить в PDF
                 </a>
             </div>

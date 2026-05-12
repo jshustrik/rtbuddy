@@ -214,10 +214,10 @@
         document.getElementById('dayNumber').textContent = day.dayNumber || 1;
         document.getElementById('dayTitle').textContent = day.title || 'День маршрута';
         document.getElementById('routeLink').textContent = route.title || 'Маршрут';
-        document.getElementById('routeLink').href = `/routes/${route.id}`;
-        document.getElementById('backRouteBtn').href = `/routes/${route.id}`;
-        document.getElementById('exportDayBtn').href = `/export?routeId=${route.id}&dayId=${day.id}`;
-        document.getElementById('editDayBtn').href = `/routes/${route.id}/edit#day-${day.id}`;
+        document.getElementById('routeLink').href = `/routes/${ROUTE_ID}`;
+        document.getElementById('backRouteBtn').href = `/routes/${ROUTE_ID}`;
+        document.getElementById('exportDayBtn').href = `/export?routeId=${ROUTE_ID}&dayId=${DAY_ID}`;
+        document.getElementById('editDayBtn').href = `/routes/${ROUTE_ID}/edit#day-${DAY_ID}`;
         document.getElementById('dayCost').textContent = `${Number(day.cost || 0).toLocaleString('ru-RU')} ₽`;
         document.getElementById('travelTime').textContent = day.travelTime || 'не рассчитано';
         document.getElementById('dayDescription').textContent = day.description || '';
@@ -257,7 +257,7 @@
                     </div>
                     ${p.photoUrl ? photoImg(p.photoUrl, 'point-photo', p.name || 'Фото точки') : ''}
                     ${canEdit() ? `<div class="tools">
-                        <a class="btn btn-sm btn-outline-rb" href="/routes/${route.id}/edit#day-${day.id}"><i class="fas fa-pen me-1"></i>Редактировать</a>
+                        <a class="btn btn-sm btn-outline-rb" href="/routes/${ROUTE_ID}/edit#day-${DAY_ID}"><i class="fas fa-pen me-1"></i>Редактировать</a>
                         <button class="btn btn-sm btn-outline-danger" onclick="deletePoint('${p.id}')"><i class="fas fa-trash me-1"></i>Удалить</button>
                     </div>` : ''}
                 </div>
