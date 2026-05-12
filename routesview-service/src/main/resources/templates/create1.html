@@ -578,6 +578,9 @@
     const EDIT_ROUTE_MATCH = window.location.pathname.match(/^\/routes\/(\d+)\/edit\/?$/);
     const EDIT_MODE = Boolean(MODEL_EDIT_MODE) || Boolean(EDIT_ROUTE_MATCH);
     const EDIT_ROUTE_ID = MODEL_EDIT_ROUTE_ID || (EDIT_ROUTE_MATCH ? Number(EDIT_ROUTE_MATCH[1]) : null);
+    const EDIT_ACTION_PARAMS = new URLSearchParams(window.location.search);
+    const AUTO_ADD_DAY = EDIT_ACTION_PARAMS.get('addDay') === '1';
+    const AUTO_ADD_POINT_DAY_ID = EDIT_ACTION_PARAMS.get('addPoint');
 
     function addDay(existingDay = null) {
         dayCounter++;
@@ -802,6 +805,7 @@
         updateMapMarkers();
         updateRouteTotals();
         scheduleTravelTimeRecalculation();
+        return pointDiv;
     }
 
     function setActivePoint(pointDiv) {
@@ -1592,6 +1596,22 @@
         document.getElementById('cancelRouteBtn').onclick = () => { window.location.href = `/routes/${EDIT_ROUTE_ID}`; };
     }
 
+    function clearEditActionParams() {
+        if (!AUTO_ADD_DAY && !AUTO_ADD_POINT_DAY_ID) return;
+        const cleanUrl = `${window.location.pathname}${window.location.hash || ''}`;
+        window.history.replaceState({}, '', cleanUrl);
+    }
+
+    function focusNewDay(dayElement) {
+        dayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => dayElement.querySelector('.day-title')?.focus(), 250);
+    }
+
+    function focusNewPoint(pointElement) {
+        pointElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => pointElement.querySelector('.point-title')?.focus(), 250);
+    }
+
     async function currentUserIdForEdit() {
         try {
             const response = await fetch('/api/proxy/reviews/me', { credentials: 'include' });
@@ -1624,7 +1644,24 @@
         dayCounter = 0;
         const sortedDays = [...(loadedRoute.days || [])].sort((a, b) => (a.dayNumber || 0) - (b.dayNumber || 0));
         sortedDays.forEach(day => addDay(day));
-        if (sortedDays.length === 0) addDay();
+        if (sortedDays.length === 0) {
+            focusNewDay(addDay());
+            clearEditActionParams();
+            return;
+        }
+        if (AUTO_ADD_DAY) {
+            focusNewDay(addDay());
+            clearEditActionParams();
+            return;
+        }
+        if (AUTO_ADD_POINT_DAY_ID) {
+            const dayElement = document.getElementById(`day-${AUTO_ADD_POINT_DAY_ID}`);
+            if (dayElement) {
+                focusNewPoint(addPoint(dayElement.id));
+                clearEditActionParams();
+                return;
+            }
+        }
         setTimeout(() => {
             updateRouteTotals();
             updateMapMarkers();

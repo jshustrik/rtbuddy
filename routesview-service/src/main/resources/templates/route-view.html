@@ -408,10 +408,11 @@
         const cost = r.totalCost > 0 ? `&nbsp;·&nbsp;~${r.totalCost.toLocaleString('ru-RU')} ₽` : '';
         const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ru-RU') : '';
         const editUrl = `/routes/${ROUTE_ID}/edit`;
+        const addDayUrl = `${editUrl}?addDay=1`;
         const authorTools = String(currentUserId) === String(r.authorId)
             ? `<div class="author-tools">
                     <a class="btn btn-sm btn-light" href="${editUrl}"><i class="fas fa-pen me-1"></i>Редактировать маршрут</a>
-                    <a class="btn btn-sm btn-light" href="${editUrl}"><i class="fas fa-plus me-1"></i>Добавить день</a>
+                    <a class="btn btn-sm btn-light" href="${addDayUrl}"><i class="fas fa-plus me-1"></i>Добавить день</a>
                     <button class="btn btn-sm btn-danger" onclick="deleteRoute()"><i class="fas fa-trash me-1"></i>Удалить маршрут</button>
                </div>`
             : '';
@@ -480,7 +481,7 @@
 		                    ${canEditRoute() ? `<div class="author-tools ms-auto">
 		                        <a class="btn btn-sm btn-outline-secondary" href="/routes/${ROUTE_ID}/days/${esc(d.id)}"><i class="fas fa-eye me-1"></i>Открыть</a>
 		                        <a class="btn btn-sm btn-outline-secondary" href="/routes/${ROUTE_ID}/edit#day-${esc(d.id)}"><i class="fas fa-pen me-1"></i>День</a>
-		                        <a class="btn btn-sm btn-outline-secondary" href="/routes/${ROUTE_ID}/edit#day-${esc(d.id)}"><i class="fas fa-plus me-1"></i>Точка</a>
+		                        <a class="btn btn-sm btn-outline-secondary" href="/routes/${ROUTE_ID}/edit?addPoint=${esc(d.id)}#day-${esc(d.id)}"><i class="fas fa-plus me-1"></i>Точка</a>
 		                        <a class="btn btn-sm btn-outline-secondary" href="/export?routeId=${ROUTE_ID}&dayId=${esc(d.id)}"><i class="fas fa-file-pdf me-1"></i>PDF</a>
 		                        <button class="btn btn-sm btn-outline-danger" onclick="deleteDay('${d.id}')"><i class="fas fa-trash me-1"></i></button>
 		                    </div>` : ''}
