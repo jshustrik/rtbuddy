@@ -481,8 +481,11 @@
 <div class="container py-5">
     <!-- Заголовок страницы -->
     <div class="page-header">
-        <h1 id="pageTitle"><i class="fas fa-plus-circle me-3"></i>Создание нового маршрута</h1>
-        <p id="pageSubtitle">Заполните информацию о маршруте, добавьте дни и ключевые точки. Все поля можно будет отредактировать позже.</p>
+        <h1 id="pageTitle">
+            <i class="fas me-3" th:classappend="${editMode} ? 'fa-pen' : 'fa-plus-circle'"></i>
+            <span th:text="${editMode} ? 'Редактирование маршрута' : 'Создание нового маршрута'">Создание нового маршрута</span>
+        </h1>
+        <p id="pageSubtitle" th:text="${editMode} ? 'Измените основную информацию, дни и точки маршрута в той же форме, что используется при создании.' : 'Заполните информацию о маршруте, добавьте дни и ключевые точки. Все поля можно будет отредактировать позже.'">Заполните информацию о маршруте, добавьте дни и ключевые точки. Все поля можно будет отредактировать позже.</p>
     </div>
 
     <!-- Форма создания маршрута (данные сохраняются в JS) -->
@@ -570,8 +573,11 @@
     let activePointElement = null;
     let travelCalcTimer = null;
     let originalRoute = null;
-    const EDIT_MODE = /*[[${editMode}]]*/ false;
-    const EDIT_ROUTE_ID = /*[[${editRouteId}]]*/ null;
+    const MODEL_EDIT_MODE = /*[[${editMode}]]*/ false;
+    const MODEL_EDIT_ROUTE_ID = /*[[${editRouteId}]]*/ null;
+    const EDIT_ROUTE_MATCH = window.location.pathname.match(/^\/routes\/(\d+)\/edit\/?$/);
+    const EDIT_MODE = Boolean(MODEL_EDIT_MODE) || Boolean(EDIT_ROUTE_MATCH);
+    const EDIT_ROUTE_ID = MODEL_EDIT_ROUTE_ID || (EDIT_ROUTE_MATCH ? Number(EDIT_ROUTE_MATCH[1]) : null);
 
     function addDay(existingDay = null) {
         dayCounter++;
@@ -1628,8 +1634,7 @@
         }, 200);
     }
 
-    // Инициализация: добавить первый день по умолчанию
-    window.onload = async function() {
+    async function initializeRouteForm() {
         configurePageMode();
         initRouteMap();
         if (EDIT_MODE) {
@@ -1642,7 +1647,9 @@
         } else {
             addDay(); // добавляем первый день
         }
-    };
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeRouteForm);
 </script>
 
 <!-- Небольшие дополнительные стили для кнопок удаления -->
